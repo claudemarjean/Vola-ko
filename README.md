@@ -1,10 +1,10 @@
-# T-Volako 🏦
+# Vola-ko 💰
 
 Application de gestion de budget personnel 100% frontend, moderne et multilingue (FR/MG).
 
 ## 📋 Description
 
-**T-Volako** est une application web frontend destinée à la gestion de budget personnel. Construite avec du Vanilla JavaScript, CSS moderne et HTML5, elle offre une expérience utilisateur fluide et attractive sans dépendre d'un backend serveur. L'application est préparée pour une future intégration avec Supabase.
+**Vola-ko** (qui signifie "mon argent") est une application web frontend destinée à la gestion de budget personnel. Construite avec du Vanilla JavaScript, CSS moderne et HTML5, elle offre une expérience utilisateur fluide et attractive sans dépendre d'un backend serveur. L'application est préparée pour une future intégration avec Supabase.
 
 ## ✨ Fonctionnalités
 
@@ -40,7 +40,7 @@ npm run preview
 ## 📁 Structure du projet
 
 ```
-T-Volako/
+Vola-ko/
 ├── src/
 │   ├── assets/
 │   │   ├── icons/
@@ -49,20 +49,34 @@ T-Volako/
 │   │   ├── base.css          # Reset et styles de base
 │   │   ├── theme.css         # Thème clair (défaut)
 │   │   ├── dark.css          # Thème sombre
-│   │   └── animations.css    # Animations et transitions
+│   │   ├── animations.css    # Animations et transitions
+│   │   └── app-layout.css    # Layout de l'application
 │   ├── js/
 │   │   ├── app.js            # Point d'entrée principal
 │   │   ├── auth.js           # Gestion authentification
 │   │   ├── i18n.js           # Internationalisation
 │   │   ├── router.js         # Routage client
 │   │   ├── storage.js        # LocalStorage management
-│   │   └── theme.js          # Gestion du thème
+│   │   ├── theme.js          # Gestion du thème
+│   │   ├── components.js     # Composants réutilisables
+│   │   ├── dashboard.js      # Logique Dashboard
+│   │   ├── expenses.js       # Logique Dépenses
+│   │   ├── incomes.js        # Logique Revenus
+│   │   ├── budgets.js        # Logique Budgets
+│   │   ├── reports.js        # Logique Rapports
+│   │   └── settings.js       # Logique Paramètres
 │   ├── locales/
 │   │   ├── fr.json           # Traductions françaises
 │   │   └── mg.json           # Traductions malgaches
 │   ├── index.html            # Page d'accueil
 │   ├── login.html            # Page connexion
-│   └── register.html         # Page inscription
+│   ├── register.html         # Page inscription
+│   ├── dashboard.html        # Dashboard principal
+│   ├── expenses.html         # Gestion des dépenses
+│   ├── incomes.html          # Gestion des revenus
+│   ├── budgets.html          # Gestion des budgets
+│   ├── reports.html          # Rapports financiers
+│   └── settings.html         # Paramètres
 ├── dist/                      # Build de production (généré)
 ├── package.json
 ├── vite.config.js            # Configuration Vite

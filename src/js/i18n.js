@@ -90,6 +90,13 @@ class I18n {
   }
 
   /**
+   * Alias pour changeLanguage
+   */
+  async setLanguage(lang) {
+    return this.changeLanguage(lang);
+  }
+
+  /**
    * Mettre à jour le contenu de la page
    */
   updatePageContent() {

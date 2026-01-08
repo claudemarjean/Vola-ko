@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres - Vola-ko</title>
+  
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/app-layout.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-container"></aside>
+
+    <main class="main-content">
+      <div class="app-header">
+        <div class="header-title">
+          <h1 data-i18n="settings.title">Paramètres</h1>
+          <p data-i18n="settings.subtitle">Personnalisez votre expérience</p>
+        </div>
+      </div>
+
+      <!-- Profile Section -->
+      <div class="settings-section card">
+        <h2 data-i18n="settings.profile_title">Profil</h2>
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">👤</span>
+            <div>
+              <h4 data-i18n="settings.name">Nom complet</h4>
+              <p id="user-name">Utilisateur</p>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" data-i18n="common.edit">Modifier</button>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">📧</span>
+            <div>
+              <h4 data-i18n="settings.email">Email</h4>
+              <p id="user-email">user@example.com</p>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" data-i18n="common.edit">Modifier</button>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-section card">
+        <h2 data-i18n="settings.appearance">Apparence</h2>
+        
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">🌓</span>
+            <div>
+              <h4 data-i18n="settings.theme">Thème</h4>
+              <p data-i18n="settings.theme_desc">Mode clair ou sombre</p>
+            </div>
+          </div>
+          <button id="theme-toggle-setting" class="btn btn-outline btn-sm">
+            🌙
+          </button>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">🌍</span>
+            <div>
+              <h4 data-i18n="settings.language">Langue</h4>
+              <p data-i18n="settings.language_desc">Français ou Malgache</p>
+            </div>
+          </div>
+          <select id="language-selector-setting" class="form-select">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="mg">🇲🇬 Malgache</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Currency -->
+      <div class="settings-section card">
+        <h2 data-i18n="settings.currency_title">Devise</h2>
+        
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">💱</span>
+            <div>
+              <h4 data-i18n="settings.currency">Devise</h4>
+              <p data-i18n="settings.currency_desc">Devise par défaut</p>
+            </div>
+          </div>
+          <select id="currency-selector" class="form-select">
+            <option value="MGA" selected>MGA - Ariary</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="USD">USD - Dollar</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="settings-section card">
+        <h2 data-i18n="settings.data_title">Gestion des données</h2>
+        
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">📤</span>
+            <div>
+              <h4 data-i18n="settings.export">Exporter les données</h4>
+              <p data-i18n="settings.export_desc">Téléchargez vos données au format JSON</p>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" id="export-data-btn" data-i18n="settings.export_button">Exporter</button>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-item-info">
+            <span class="settings-icon">🗑️</span>
+            <div>
+              <h4 data-i18n="settings.clear_data">Effacer les données</h4>
+              <p data-i18n="settings.clear_data_desc">Supprimer toutes les données locales</p>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm danger" id="clear-data-btn" data-i18n="settings.clear_button">Effacer</button>
+        </div>
+      </div>
+
+      <!-- Account Actions -->
+      <div class="settings-section card">
+        <h2 data-i18n="settings.account_title">Compte</h2>
+        
+        <button class="btn btn-outline" id="logout-btn-settings" style="width: 100%;">
+          <span>🚪</span>
+          <span data-i18n="nav.logout">Déconnexion</span>
+        </button>
+      </div>
+    </main>
+
+    <nav class="bottom-nav" id="bottom-nav"></nav>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/settings.js"></script>
+</body>
+</html>

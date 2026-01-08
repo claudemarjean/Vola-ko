@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vola-ko - Dashboard">
+  <meta name="theme-color" content="#10b981">
+  <title>Dashboard - Vola-ko</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  
+  <style>
+    /* App Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+      background-color: var(--bg-secondary);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--border-primary);
+      padding: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      font-size: 1.75rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-2xl);
+      letter-spacing: -0.02em;
+      text-align: center;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      transition: all var(--transition-fast);
+      margin-bottom: var(--space-xs);
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    .nav-item .icon {
+      font-size: 1.5rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border-primary);
+      padding-top: var(--space-lg);
+      margin-top: var(--space-lg);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: var(--space-xl);
+    }
+
+    .app-header {
+      background-color: var(--card-bg);
+      padding: var(--space-lg) var(--space-xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xl);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-title h1 {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--space-xs);
+    }
+
+    .header-title p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    /* Dashboard Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-fast);
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-md);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-icon.balance {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .stat-icon.income {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .stat-icon.expense {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .stat-icon.budget {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-value {
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-change {
+      font-size: var(--font-size-sm);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .stat-change.positive {
+      color: var(--color-success);
+    }
+
+    .stat-change.negative {
+      color: var(--color-error);
+    }
+
+    /* Recent Transactions */
+    .transactions-card {
+      background-color: var(--card-bg);
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--space-xl);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-lg);
+    }
+
+    .card-title {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+    }
+
+    .transaction-list {
+      list-style: none;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+
+    .transaction-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .transaction-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      background-color: var(--bg-tertiary);
+    }
+
+    .transaction-details h4 {
+      font-size: var(--font-size-base);
+      margin-bottom: 2px;
+    }
+
+    .transaction-details p {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .transaction-amount {
+      font-weight: 700;
+      font-size: var(--font-size-lg);
+    }
+
+    .transaction-amount.income {
+      color: var(--color-success);
+    }
+
+    .transaction-amount.expense {
+      color: var(--color-error);
+    }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: var(--space-xl);
+    }
+
+    .chart-card {
+      background-color: var(--card-bg);
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-placeholder {
+      height: 300px;
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    /* Mobile Bottom Navigation */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-bg);
+      border-top: 1px solid var(--border-primary);
+      padding: var(--space-sm) 0;
+      z-index: 1000;
+    }
+
+    .bottom-nav-items {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm);
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .bottom-nav-item .icon {
+      font-size: 1.5rem;
+    }
+
+    .bottom-nav-item.active {
+      color: var(--color-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: var(--space-md);
+        padding-bottom: 80px;
+      }
+
+      .bottom-nav {
+        display: block;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .app-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo" data-i18n="app.name">Vola-ko</div>
+      
+      <nav class="sidebar-nav">
+        <a href="/dashboard.html" class="nav-item active" data-link>
+          <span class="icon">🏠</span>
+          <span data-i18n="nav.dashboard">Dashboard</span>
+        </a>
+        <a href="/expenses.html" class="nav-item" data-link>
+          <span class="icon">💸</span>
+          <span data-i18n="nav.expenses">Dépenses</span>
+        </a>
+        <a href="/incomes.html" class="nav-item" data-link>
+          <span class="icon">💰</span>
+          <span data-i18n="nav.incomes">Revenus</span>
+        </a>
+        <a href="/budgets.html" class="nav-item" data-link>
+          <span class="icon">🎯</span>
+          <span data-i18n="nav.budgets">Budgets</span>
+        </a>
+        <a href="/reports.html" class="nav-item" data-link>
+          <span class="icon">📊</span>
+          <span data-i18n="nav.reports">Rapports</span>
+        </a>
+        <a href="/settings.html" class="nav-item" data-link>
+          <span class="icon">⚙️</span>
+          <span data-i18n="nav.settings">Paramètres</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="header-actions">
+          <select id="language-selector" aria-label="Choisir la langue">
+            <option value="fr">🇫🇷 FR</option>
+            <option value="mg">🇲🇬 MG</option>
+          </select>
+          
+          <button id="theme-toggle" class="btn btn-secondary" aria-label="Changer de thème">
+            🌙
+          </button>
+        </div>
+        
+        <button id="logout-btn" class="btn btn-outline" style="width: 100%; margin-top: var(--space-md);" data-i18n="nav.logout">
+          Déconnexion
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <div class="app-header animate-fade-in-down">
+        <div class="header-title">
+          <h1 data-i18n="dashboard.title">Tableau de bord</h1>
+          <p data-i18n="dashboard.subtitle">Vue d'ensemble de vos finances</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="add-transaction-btn">
+            <span>➕</span>
+            <span data-i18n="dashboard.add_transaction">Nouvelle transaction</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <!-- Balance -->
+        <div class="stat-card animate-fade-in-up">
+          <div class="stat-header">
+            <div>
+              <div class="stat-label" data-i18n="dashboard.balance">Solde actuel</div>
+              <div class="stat-value" id="balance-value">0 MGA</div>
+              <div class="stat-change positive">
+                <span>↑</span>
+                <span>+0%</span>
+              </div>
+            </div>
+            <div class="stat-icon balance">💰</div>
+          </div>
+        </div>
+
+        <!-- Income -->
+        <div class="stat-card animate-fade-in-up delay-100">
+          <div class="stat-header">
+            <div>
+              <div class="stat-label" data-i18n="dashboard.income_month">Revenus du mois</div>
+              <div class="stat-value" id="income-value">0 MGA</div>
+              <div class="stat-change positive">
+                <span>↑</span>
+                <span>+0%</span>
+              </div>
+            </div>
+            <div class="stat-icon income">📈</div>
+          </div>
+        </div>
+
+        <!-- Expenses -->
+        <div class="stat-card animate-fade-in-up delay-200">
+          <div class="stat-header">
+            <div>
+              <div class="stat-label" data-i18n="dashboard.expenses_month">Dépenses du mois</div>
+              <div class="stat-value" id="expenses-value">0 MGA</div>
+              <div class="stat-change negative">
+                <span>↓</span>
+                <span>+0%</span>
+              </div>
+            </div>
+            <div class="stat-icon expense">📉</div>
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <div class="stat-card animate-fade-in-up delay-300">
+          <div class="stat-header">
+            <div>
+              <div class="stat-label" data-i18n="dashboard.budget_remaining">Budget restant</div>
+              <div class="stat-value" id="budget-value">0 MGA</div>
+              <div class="stat-change positive">
+                <span>0%</span>
+                <span data-i18n="dashboard.used">utilisé</span>
+              </div>
+            </div>
+            <div class="stat-icon budget">🎯</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="transactions-card animate-fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title" data-i18n="dashboard.recent_transactions">Transactions récentes</h2>
+          <a href="/expenses.html" class="btn btn-outline btn-sm" data-i18n="dashboard.view_all">Voir tout</a>
+        </div>
+        <ul class="transaction-list" id="transactions-list">
+          <li class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-icon">🛒</div>
+              <div class="transaction-details">
+                <h4>Courses alimentaires</h4>
+                <p>Aujourd'hui • Alimentation</p>
+              </div>
+            </div>
+            <div class="transaction-amount expense">-50,000 MGA</div>
+          </li>
+          <li class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-icon">💼</div>
+              <div class="transaction-details">
+                <h4>Salaire</h4>
+                <p>Il y a 2 jours • Revenus</p>
+              </div>
+            </div>
+            <div class="transaction-amount income">+2,500,000 MGA</div>
+          </li>
+          <li class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-icon">⛽</div>
+              <div class="transaction-details">
+                <h4>Essence</h4>
+                <p>Il y a 3 jours • Transport</p>
+              </div>
+            </div>
+            <div class="transaction-amount expense">-80,000 MGA</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card animate-fade-in-up">
+          <div class="card-header">
+            <h2 class="card-title" data-i18n="dashboard.expense_breakdown">Répartition des dépenses</h2>
+          </div>
+          <div class="chart-placeholder" data-i18n="dashboard.chart_coming">Graphique à venir</div>
+        </div>
+
+        <div class="chart-card animate-fade-in-up delay-100">
+          <div class="card-header">
+            <h2 class="card-title" data-i18n="dashboard.monthly_trend">Évolution mensuelle</h2>
+          </div>
+          <div class="chart-placeholder" data-i18n="dashboard.chart_coming">Graphique à venir</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="bottom-nav-items">
+        <a href="/dashboard.html" class="bottom-nav-item active" data-link>
+          <span class="icon">🏠</span>
+          <span data-i18n="nav.dashboard_short">Dashboard</span>
+        </a>
+        <a href="/expenses.html" class="bottom-nav-item" data-link>
+          <span class="icon">💸</span>
+          <span data-i18n="nav.expenses_short">Dépenses</span>
+        </a>
+        <a href="/budgets.html" class="bottom-nav-item" data-link>
+          <span class="icon">🎯</span>
+          <span data-i18n="nav.budgets_short">Budgets</span>
+        </a>
+        <a href="/reports.html" class="bottom-nav-item" data-link>
+          <span class="icon">📊</span>
+          <span data-i18n="nav.reports_short">Rapports</span>
+        </a>
+        <a href="/settings.html" class="bottom-nav-item" data-link>
+          <span class="icon">⚙️</span>
+          <span data-i18n="nav.settings_short">Plus</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

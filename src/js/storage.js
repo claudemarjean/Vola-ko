@@ -7,7 +7,11 @@ const STORAGE_KEYS = {
   THEME: 'tvolako_theme',
   LANGUAGE: 'tvolako_language',
   USER: 'tvolako_user',
-  TOKEN: 'tvolako_token'
+  TOKEN: 'tvolako_token',
+  EXPENSES: 'volako_expenses',
+  INCOMES: 'volako_incomes',
+  BUDGETS: 'volako_budgets',
+  CURRENCY: 'volako_currency'
 };
 
 class Storage {

@@ -9,7 +9,13 @@ export default defineConfig({
       input: {
         main: 'src/index.html',
         login: 'src/login.html',
-        register: 'src/register.html'
+        register: 'src/register.html',
+        dashboard: 'src/dashboard.html',
+        expenses: 'src/expenses.html',
+        incomes: 'src/incomes.html',
+        budgets: 'src/budgets.html',
+        reports: 'src/reports.html',
+        settings: 'src/settings.html'
       }
     },
     minify: 'terser',
