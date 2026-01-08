@@ -90,6 +90,10 @@ export function renderBottomNav(activePage = '') {
         <span class="icon">💸</span>
         <span data-i18n="nav.expenses_short">Dépenses</span>
       </a>
+      <a href="/incomes.html" class="bottom-nav-item ${activePage === 'incomes' ? 'active' : ''}" data-link>
+        <span class="icon">💰</span>
+        <span data-i18n="nav.incomes_short">Revenus</span>
+      </a>
       <a href="/budgets.html" class="bottom-nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets_short">Budgets</span>
