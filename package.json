@@ -8,10 +8,16 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": ["budget", "finance", "vanilla-js", "vola-ko"],
+  "keywords": [
+    "budget",
+    "finance",
+    "vanilla-js",
+    "vola-ko"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "terser": "^5.44.1",
     "vite": "^5.0.0"
   }
 }
