@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revenus - Vola-ko</title>
+  
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/app-layout.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-container"></aside>
+
+    <main class="main-content">
+      <div class="app-header">
+        <div class="header-title">
+          <h1 data-i18n="incomes.title">Mes Revenus</h1>
+          <p data-i18n="incomes.subtitle">Suivez vos sources de revenus</p>
+        </div>
+        <button class="btn btn-primary" id="add-income-btn">
+          <span>➕</span>
+          <span data-i18n="incomes.add">Ajouter un revenu</span>
+        </button>
+      </div>
+
+      <!-- Income Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="incomes.total_month">Total ce mois</div>
+          <div class="stat-value" id="income-month">0 MGA</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-i18n="incomes.total_year">Total cette année</div>
+          <div class="stat-value" id="income-year">0 MGA</div>
+        </div>
+      </div>
+
+      <!-- Incomes List -->
+      <div class="incomes-list card" id="incomes-list">
+        <!-- Dynamic content -->
+      </div>
+    </main>
+
+    <nav class="bottom-nav" id="bottom-nav"></nav>
+  </div>
+
+  <!-- Modal -->
+  <div id="income-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 data-i18n="incomes.modal_title">Ajouter un revenu</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="income-form">
+        <div class="form-group">
+          <label for="income-source" data-i18n="incomes.source">Source</label>
+          <input type="text" id="income-source" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="income-amount" data-i18n="incomes.amount">Montant (MGA)</label>
+          <input type="number" id="income-amount" class="form-input" required min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="income-date" data-i18n="incomes.date">Date</label>
+          <input type="date" id="income-date" class="form-input" required>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary" data-i18n="common.save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/incomes.js"></script>
+</body>
+</html>
