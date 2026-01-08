@@ -149,6 +149,25 @@
       display: flex;
       gap: var(--space-md);
       align-items: center;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      flex-shrink: 0;
+    }
+
+    /* Masquer la barre de défilement mais garder la fonctionnalité */
+    .header-controls::-webkit-scrollbar {
+      display: none;
+    }
+
+    .header-controls {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .header-controls > * {
+      flex-shrink: 0;
     }
 
     #theme-toggle {
@@ -185,6 +204,33 @@
     @media (max-width: 768px) {
       .hero {
         min-height: 70vh;
+      }
+
+      .navbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .header-controls {
+        gap: var(--space-sm);
+      }
+
+      .header-controls .btn {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--font-size-sm);
+        white-space: nowrap;
+      }
+
+      #language-selector {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--font-size-sm);
+      }
+
+      #theme-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
       }
 
       .hero-buttons {
