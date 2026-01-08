@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   root: 'src',
@@ -29,5 +30,15 @@ export default defineConfig({
         comments: false
       }
     }
-  }
+  },
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'locales/*',
+          dest: 'locales'
+        }
+      ]
+    })
+  ]
 });
