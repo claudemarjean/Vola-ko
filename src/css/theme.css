@@ -83,6 +83,9 @@
   cursor: pointer;
   border: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  gap: var(--space-xs);
 }
 
 .btn-primary {
