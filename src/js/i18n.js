@@ -26,7 +26,9 @@ class I18n {
    */
   async loadTranslations(lang) {
     try {
-      const response = await fetch(`/locales/${lang}.json`);
+      // Utiliser un chemin relatif qui fonctionne en dev et en production
+      const path = `/locales/${lang}.json`;
+      const response = await fetch(path);
       if (!response.ok) throw new Error(`Failed to load ${lang}`);
       
       this.translations = await response.json();
