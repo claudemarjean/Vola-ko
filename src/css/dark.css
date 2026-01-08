@@ -1,0 +1,56 @@
+/* ==============================================
+   DARK.CSS - Dark Mode
+   ============================================== */
+
+[data-theme="dark"] {
+  /* Semantic Colors - Dark Mode */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #0f172a;
+  
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-focus: var(--color-primary);
+  
+  /* Card & Surface */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  
+  /* Header */
+  --header-bg: #1e293b;
+  --header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  
+  /* Button */
+  --btn-secondary-bg: #334155;
+  --btn-secondary-text: #f1f5f9;
+  --btn-secondary-hover: #475569;
+  
+  /* Input */
+  --input-bg: #0f172a;
+  --input-border: #334155;
+  --input-text: #f1f5f9;
+  --input-placeholder: #64748b;
+}
+
+[data-theme="dark"] .card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .shadow-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] img {
+  opacity: 0.9;
+}
+
+[data-theme="dark"] img:hover {
+  opacity: 1;
+}

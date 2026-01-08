@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Connexion à T-Volako - Gestion de budget personnel">
+  <meta name="theme-color" content="#10b981">
+  <title>Connexion - T-Volako</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: var(--space-xl);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-page::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .auth-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+
+    .auth-logo {
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-md);
+    }
+
+    .auth-title {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--space-sm);
+    }
+
+    .auth-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+    }
+
+    .auth-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .auth-form {
+      margin-bottom: var(--space-lg);
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: var(--space-xl);
+      padding-top: var(--space-lg);
+      border-top: 1px solid var(--border-primary);
+    }
+
+    .form-footer a {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .form-footer a:hover {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-top: var(--space-sm);
+    }
+
+    .forgot-password a {
+      color: var(--color-primary);
+      font-size: var(--font-size-sm);
+    }
+
+    .form-submit {
+      width: 100%;
+      margin-top: var(--space-lg);
+    }
+
+    .header-controls {
+      position: absolute;
+      top: var(--space-lg);
+      right: var(--space-lg);
+      display: flex;
+      gap: var(--space-sm);
+      z-index: 10;
+    }
+
+    #theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background-color: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    #theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    #language-selector {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-primary);
+      background-color: var(--card-bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+    }
+
+    .back-home {
+      text-align: center;
+      margin-top: var(--space-xl);
+    }
+
+    .back-home a {
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .back-home a:hover {
+      color: var(--color-primary);
+    }
+
+    @media (max-width: 768px) {
+      .auth-page {
+        padding: var(--space-md);
+      }
+
+      .auth-card {
+        padding: var(--space-xl);
+      }
+
+      .header-controls {
+        top: var(--space-md);
+        right: var(--space-md);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Controls -->
+  <div class="header-controls">
+    <select id="language-selector" aria-label="Choisir la langue">
+      <option value="fr">🇫🇷 FR</option>
+      <option value="mg">🇲🇬 MG</option>
+    </select>
+    
+    <button id="theme-toggle" aria-label="Changer de thème">
+      🌙
+    </button>
+  </div>
+
+  <!-- Auth Page -->
+  <div class="auth-page">
+    <div class="auth-container animate-fade-in-up">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="auth-logo" data-i18n="app.name">T-Volako</div>
+        <h1 class="auth-title" data-i18n="login.title">Connexion</h1>
+        <p class="auth-subtitle" data-i18n="login.subtitle">Accédez à votre compte T-Volako</p>
+      </div>
+
+      <!-- Card -->
+      <div class="auth-card">
+        <!-- Form -->
+        <form id="login-form" class="auth-form">
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email" class="form-label" data-i18n="login.email">Adresse email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input"
+              data-i18n-placeholder="login.email"
+              placeholder="Adresse email"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password" class="form-label" data-i18n="login.password">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input"
+              data-i18n-placeholder="login.password"
+              placeholder="Mot de passe"
+              required
+              autocomplete="current-password"
+            >
+            <div class="forgot-password">
+              <a href="#" data-i18n="login.forgot_password">Mot de passe oublié ?</a>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <span class="form-error" role="alert"></span>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-lg form-submit ripple" data-i18n="login.submit">
+            Se connecter
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="form-footer">
+          <p>
+            <span data-i18n="login.no_account">Pas encore de compte ?</span>
+            <a href="/register.html" data-i18n="login.create_account">Créer un compte</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Back to Home -->
+      <div class="back-home">
+        <a href="/">
+          ← <span data-i18n="nav.home">Retour à l'accueil</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

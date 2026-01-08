@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inscription à T-Volako - Gestion de budget personnel">
+  <meta name="theme-color" content="#10b981">
+  <title>Inscription - T-Volako</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: var(--space-xl);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-page::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .auth-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+
+    .auth-logo {
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-md);
+    }
+
+    .auth-title {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--space-sm);
+    }
+
+    .auth-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+    }
+
+    .auth-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .auth-form {
+      margin-bottom: var(--space-lg);
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: var(--space-xl);
+      padding-top: var(--space-lg);
+      border-top: 1px solid var(--border-primary);
+    }
+
+    .form-footer a {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .form-footer a:hover {
+      color: var(--color-primary-dark);
+      text-decoration: underline;
+    }
+
+    .form-submit {
+      width: 100%;
+      margin-top: var(--space-lg);
+    }
+
+    .terms-text {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: var(--space-md);
+      line-height: 1.5;
+    }
+
+    .terms-text a {
+      color: var(--color-primary);
+    }
+
+    .header-controls {
+      position: absolute;
+      top: var(--space-lg);
+      right: var(--space-lg);
+      display: flex;
+      gap: var(--space-sm);
+      z-index: 10;
+    }
+
+    #theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background-color: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    #theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    #language-selector {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-primary);
+      background-color: var(--card-bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+    }
+
+    .back-home {
+      text-align: center;
+      margin-top: var(--space-xl);
+    }
+
+    .back-home a {
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .back-home a:hover {
+      color: var(--color-primary);
+    }
+
+    .password-strength {
+      margin-top: var(--space-xs);
+      font-size: var(--font-size-sm);
+    }
+
+    .strength-bar {
+      height: 4px;
+      background-color: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-top: var(--space-xs);
+    }
+
+    .strength-bar-fill {
+      height: 100%;
+      transition: width var(--transition-base), background-color var(--transition-base);
+      width: 0%;
+    }
+
+    .strength-weak { background-color: var(--color-error); }
+    .strength-medium { background-color: var(--color-warning); }
+    .strength-strong { background-color: var(--color-success); }
+
+    @media (max-width: 768px) {
+      .auth-page {
+        padding: var(--space-md);
+      }
+
+      .auth-card {
+        padding: var(--space-xl);
+      }
+
+      .header-controls {
+        top: var(--space-md);
+        right: var(--space-md);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Controls -->
+  <div class="header-controls">
+    <select id="language-selector" aria-label="Choisir la langue">
+      <option value="fr">🇫🇷 FR</option>
+      <option value="mg">🇲🇬 MG</option>
+    </select>
+    
+    <button id="theme-toggle" aria-label="Changer de thème">
+      🌙
+    </button>
+  </div>
+
+  <!-- Auth Page -->
+  <div class="auth-page">
+    <div class="auth-container animate-fade-in-up">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="auth-logo" data-i18n="app.name">T-Volako</div>
+        <h1 class="auth-title" data-i18n="register.title">Inscription</h1>
+        <p class="auth-subtitle" data-i18n="register.subtitle">Créez votre compte T-Volako gratuitement</p>
+      </div>
+
+      <!-- Card -->
+      <div class="auth-card">
+        <!-- Form -->
+        <form id="register-form" class="auth-form">
+          <!-- Name -->
+          <div class="form-group">
+            <label for="name" class="form-label" data-i18n="register.name">Nom complet</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input"
+              data-i18n-placeholder="register.name"
+              placeholder="Nom complet"
+              required
+              autocomplete="name"
+              minlength="2"
+            >
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email" class="form-label" data-i18n="register.email">Adresse email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input"
+              data-i18n-placeholder="register.email"
+              placeholder="Adresse email"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password" class="form-label" data-i18n="register.password">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input"
+              data-i18n-placeholder="register.password"
+              placeholder="Mot de passe"
+              required
+              autocomplete="new-password"
+              minlength="8"
+            >
+            <div class="password-strength">
+              <div class="strength-bar">
+                <div id="strength-bar-fill" class="strength-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label" data-i18n="register.confirm_password">Confirmer le mot de passe</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-input"
+              data-i18n-placeholder="register.confirm_password"
+              placeholder="Confirmer le mot de passe"
+              required
+              autocomplete="new-password"
+            >
+          </div>
+
+          <!-- Error Message -->
+          <span class="form-error" role="alert"></span>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-lg form-submit ripple" data-i18n="register.submit">
+            Créer mon compte
+          </button>
+
+          <!-- Terms -->
+          <p class="terms-text">
+            <span data-i18n="register.terms">En créant un compte, vous acceptez nos</span>
+            <a href="#" data-i18n="register.terms_link">Conditions d'utilisation</a>
+            <span data-i18n="common.and">et</span>
+            <a href="#" data-i18n="register.privacy_link">Politique de confidentialité</a>
+          </p>
+        </form>
+
+        <!-- Footer -->
+        <div class="form-footer">
+          <p>
+            <span data-i18n="register.have_account">Vous avez déjà un compte ?</span>
+            <a href="/login.html" data-i18n="register.login">Se connecter</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Back to Home -->
+      <div class="back-home">
+        <a href="/">
+          ← <span data-i18n="nav.home">Retour à l'accueil</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/app.js"></script>
+  
+  <script type="module">
+    // Password strength indicator
+    const passwordInput = document.getElementById('password');
+    const strengthBarFill = document.getElementById('strength-bar-fill');
+
+    if (passwordInput && strengthBarFill) {
+      passwordInput.addEventListener('input', (e) => {
+        const password = e.target.value;
+        let strength = 0;
+
+        if (password.length >= 8) strength += 25;
+        if (password.match(/[a-z]/)) strength += 25;
+        if (password.match(/[A-Z]/)) strength += 25;
+        if (password.match(/[0-9]/)) strength += 25;
+
+        strengthBarFill.style.width = strength + '%';
+        
+        strengthBarFill.className = 'strength-bar-fill';
+        if (strength <= 25) strengthBarFill.classList.add('strength-weak');
+        else if (strength <= 75) strengthBarFill.classList.add('strength-medium');
+        else strengthBarFill.classList.add('strength-strong');
+      });
+    }
+  </script>
+</body>
+</html>

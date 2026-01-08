@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="T-Volako - Application de gestion de budget personnel simple et efficace">
+  <meta name="theme-color" content="#10b981">
+  <title>T-Volako - Maîtrisez votre budget</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  
+  <style>
+    /* Page-specific styles */
+    .hero {
+      position: relative;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: var(--space-3xl) 0;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: var(--space-lg);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-2xl);
+      line-height: 1.6;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: var(--space-lg);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .features-section {
+      padding: var(--space-3xl) 0;
+      background-color: var(--bg-secondary);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      margin-bottom: var(--space-md);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: var(--font-size-lg);
+      margin-bottom: var(--space-3xl);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-xl);
+      margin-top: var(--space-2xl);
+    }
+
+    .feature-card {
+      text-align: center;
+      padding: var(--space-xl);
+    }
+
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto var(--space-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      border-radius: var(--radius-xl);
+      font-size: 2rem;
+      color: white;
+    }
+
+    .feature-title {
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--space-sm);
+    }
+
+    .feature-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .cta-section {
+      padding: var(--space-3xl) 0;
+      text-align: center;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+    }
+
+    .cta-section h2,
+    .cta-section p {
+      color: white;
+    }
+
+    .cta-section .btn-primary {
+      background-color: white;
+      color: var(--color-primary);
+    }
+
+    .cta-section .btn-primary:hover {
+      background-color: var(--color-gray-100);
+      transform: translateY(-2px);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    #theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: all var(--transition-fast);
+    }
+
+    #theme-toggle:hover {
+      background-color: var(--bg-tertiary);
+      transform: scale(1.1);
+    }
+
+    #language-selector {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-primary);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    #language-selector:hover {
+      border-color: var(--color-primary);
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        min-height: 70vh;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hero-buttons .btn {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <nav class="navbar container">
+      <div class="logo">
+        <span data-i18n="app.name">T-Volako</span>
+      </div>
+      
+      <div class="header-controls">
+        <select id="language-selector" aria-label="Choisir la langue">
+          <option value="fr">🇫🇷 FR</option>
+          <option value="mg">🇲🇬 MG</option>
+        </select>
+        
+        <button id="theme-toggle" aria-label="Changer de thème">
+          🌙
+        </button>
+        
+        <a href="/login.html" class="btn btn-secondary" data-i18n="nav.login">Connexion</a>
+        <a href="/register.html" class="btn btn-primary" data-i18n="nav.register">Inscription</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content container">
+      <h1 class="hero-title animate-fade-in-down" data-i18n="home.hero.title">
+        Prenez le contrôle de vos finances
+      </h1>
+      <p class="hero-subtitle animate-fade-in-down delay-100" data-i18n="home.hero.subtitle">
+        T-Volako vous aide à gérer votre budget personnel avec simplicité et efficacité
+      </p>
+      <div class="hero-buttons animate-fade-in-up delay-200">
+        <a href="/register.html" class="btn btn-primary btn-lg ripple" data-i18n="home.hero.cta">
+          Commencer maintenant
+        </a>
+        <a href="#features" class="btn btn-outline btn-lg" data-i18n="home.hero.cta_secondary">
+          En savoir plus
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <h2 class="section-title" data-i18n="home.features.title">
+        Pourquoi choisir T-Volako ?
+      </h2>
+      <p class="section-subtitle" data-i18n="home.features.subtitle">
+        Une solution complète pour gérer votre argent intelligemment
+      </p>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            ✨
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature1.title">
+            Simple et intuitif
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature1.description">
+            Interface moderne et facile à utiliser, accessible depuis n'importe quel appareil
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            🔒
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature2.title">
+            Sécurisé
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature2.description">
+            Vos données sont protégées avec les meilleures pratiques de sécurité
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            🌍
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature3.title">
+            Multilingue
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature3.description">
+            Disponible en français et en malgache pour votre confort
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            📊
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature4.title">
+            Suivi en temps réel
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature4.description">
+            Visualisez vos dépenses et revenus instantanément
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            📈
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature5.title">
+            Rapports détaillés
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature5.description">
+            Analysez vos habitudes financières avec des graphiques clairs
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-icon">
+            🎯
+          </div>
+          <h3 class="feature-title" data-i18n="home.features.feature6.title">
+            Objectifs personnalisés
+          </h3>
+          <p class="feature-description" data-i18n="home.features.feature6.description">
+            Définissez et suivez vos objectifs d'épargne facilement
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2 class="section-title animate-fade-in-up" data-i18n="home.cta.title">
+        Prêt à transformer votre gestion financière ?
+      </h2>
+      <p class="section-subtitle animate-fade-in-up delay-100" data-i18n="home.cta.subtitle">
+        Rejoignez des milliers d'utilisateurs qui maîtrisent déjà leur budget
+      </p>
+      <a href="/register.html" class="btn btn-primary btn-lg ripple animate-fade-in-up delay-200" data-i18n="home.cta.button">
+        Créer un compte gratuit
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="padding: var(--space-xl) 0; text-align: center; background-color: var(--bg-secondary); color: var(--text-secondary);">
+    <div class="container">
+      <p>&copy; 2026 <span data-i18n="app.name">T-Volako</span>. Tous droits réservés.</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

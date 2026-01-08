@@ -1,0 +1,109 @@
+{
+  "app": {
+    "name": "T-Volako",
+    "tagline": "Fehezoy ny tetibolanao, tsotra ny fiainanao ara-bola",
+    "description": "Fampiharana tsotra sy mahomby amin'ny fitantanana ny teti-bola manokana"
+  },
+  "nav": {
+    "home": "Fandraisana",
+    "features": "Endri-javatra",
+    "login": "Hiditra",
+    "register": "Hisoratra anarana",
+    "logout": "Hivoaka"
+  },
+  "home": {
+    "hero": {
+      "title": "Fehezoy ny volao",
+      "subtitle": "T-Volako dia manampy anao hitantana ny teti-bolanao amin'ny fomba tsotra sy mahomby",
+      "cta": "Hanomboka izao",
+      "cta_secondary": "Hahafantatra bebe kokoa"
+    },
+    "features": {
+      "title": "Nahoana no hisafidy an'i T-Volako?",
+      "subtitle": "Vahaolana feno mba hitantana ny volanao amin'ny fomba manan-tsaina",
+      "feature1": {
+        "title": "Tsotra sy mora ampiasaina",
+        "description": "Interface maoderina sy mora ampiasaina, azo idirana amin'ny fitaovana rehetra"
+      },
+      "feature2": {
+        "title": "Azo antoka",
+        "description": "Voaaro ny angon-drakitrao amin'ny fomba tsara indrindra momba ny fiarovana"
+      },
+      "feature3": {
+        "title": "Amin'ny fiteny maro",
+        "description": "Misy amin'ny teny frantsay sy malagasy ho an'ny fahamaimanao"
+      },
+      "feature4": {
+        "title": "Fanaraha-maso amin'ny fotoana tena izy",
+        "description": "Jereo avy hatrany ny fandanianao sy ny fidiranao"
+      },
+      "feature5": {
+        "title": "Tatitra feno antsipiriany",
+        "description": "Analisao ny fahazaranao ara-bola miaraka amin'ny sary mazava"
+      },
+      "feature6": {
+        "title": "Tanjona manokana",
+        "description": "Farito sy araho mora foana ny tanjonao momba ny fitsitsiana"
+      }
+    },
+    "cta": {
+      "title": "Vonona ny hanova ny fitantananao ny vola?",
+      "subtitle": "Miaraka amin'ireo mpampiasa an'arivony izay efa mahay ny teti-bolany",
+      "button": "Hamorona kaonty maimaim-poana"
+    }
+  },
+  "login": {
+    "title": "Fidirana",
+    "subtitle": "Midira amin'ny kaontinao T-Volako",
+    "email": "Adiresy mailaka",
+    "password": "Teny miafina",
+    "submit": "Hiditra",
+    "forgot_password": "Hadino ny teny miafina?",
+    "no_account": "Tsy manana kaonty?",
+    "create_account": "Hamorona kaonty"
+  },
+  "register": {
+    "title": "Fisoratana anarana",
+    "subtitle": "Hamorona ny kaontinao T-Volako maimaim-poana",
+    "name": "Anarana feno",
+    "email": "Adiresy mailaka",
+    "password": "Teny miafina",
+    "confirm_password": "Hamarino ny teny miafina",
+    "submit": "Hamorona ny kaontiko",
+    "have_account": "Efa manana kaonty?",
+    "login": "Hiditra",
+    "terms": "Amin'ny fanorenana kaonty dia manaiky ianao ny",
+    "terms_link": "Fepetra momba ny fampiasana",
+    "privacy_link": "Politika momba ny fiainana manokana"
+  },
+  "form": {
+    "required": "Ilaina ity saha ity",
+    "invalid_email": "Adiresy mailaka tsy mety",
+    "password_min": "Ny teny miafina dia tokony hanana litera 8 fara fahakeliny",
+    "password_uppercase": "Ny teny miafina dia tokony hanana litera lehibe",
+    "password_lowercase": "Ny teny miafina dia tokony hanana litera kely",
+    "password_number": "Ny teny miafina dia tokony hanana isa",
+    "password_mismatch": "Tsy mitovy ny teny miafina"
+  },
+  "common": {
+    "loading": "Mampiditra...",
+    "error": "Nisy olana nitranga",
+    "success": "Nahomby ny fihetsika",
+    "cancel": "Hanafoana",
+    "confirm": "Hamafy",
+    "save": "Hitahiry",
+    "edit": "Hanova",
+    "delete": "Hamafa",
+    "close": "Hanakatona"
+  },
+  "theme": {
+    "light": "Fomba mazava",
+    "dark": "Fomba maizina",
+    "toggle": "Hanova ny endrika"
+  },
+  "language": {
+    "fr": "Frantsay",
+    "mg": "Malagasy",
+    "select": "Hisafidy fiteny"
+  }
+}
