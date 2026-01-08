@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dépenses - Vola-ko</title>
+  
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/app-layout.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar (imported via JS) -->
+    <aside class="sidebar" id="sidebar-container"></aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="app-header">
+        <div class="header-title">
+          <h1 data-i18n="expenses.title">Mes Dépenses</h1>
+          <p data-i18n="expenses.subtitle">Gérez et suivez vos dépenses</p>
+        </div>
+        <button class="btn btn-primary" id="add-expense-btn">
+          <span>➕</span>
+          <span data-i18n="expenses.add">Ajouter une dépense</span>
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-card card">
+        <div class="filters-row">
+          <select id="category-filter" class="form-select">
+            <option value="">Toutes les catégories</option>
+            <option value="alimentation">🛒 Alimentation</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="logement">🏠 Logement</option>
+            <option value="sante">💊 Santé</option>
+            <option value="loisirs">🎮 Loisirs</option>
+            <option value="autre">📦 Autre</option>
+          </select>
+
+          <select id="period-filter" class="form-select">
+            <option value="month">Ce mois</option>
+            <option value="week">Cette semaine</option>
+            <option value="year">Cette année</option>
+            <option value="all">Tout</option>
+          </select>
+
+          <input type="text" id="search-input" class="form-input" placeholder="Rechercher...">
+        </div>
+      </div>
+
+      <!-- Expenses List -->
+      <div class="expenses-list" id="expenses-list">
+        <!-- Items will be loaded dynamically -->
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="bottom-nav" id="bottom-nav"></nav>
+  </div>
+
+  <!-- Modal: Add/Edit Expense -->
+  <div id="expense-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title" data-i18n="expenses.modal_title">Ajouter une dépense</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="expense-form">
+        <div class="form-group">
+          <label for="expense-description" data-i18n="expenses.description">Description</label>
+          <input type="text" id="expense-description" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="expense-amount" data-i18n="expenses.amount">Montant (MGA)</label>
+          <input type="number" id="expense-amount" class="form-input" required min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="expense-category" data-i18n="expenses.category">Catégorie</label>
+          <select id="expense-category" class="form-select" required>
+            <option value="">Sélectionner...</option>
+            <option value="alimentation">🛒 Alimentation</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="logement">🏠 Logement</option>
+            <option value="sante">💊 Santé</option>
+            <option value="loisirs">🎮 Loisirs</option>
+            <option value="autre">📦 Autre</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="expense-date" data-i18n="expenses.date">Date</label>
+          <input type="date" id="expense-date" class="form-input" required>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary" data-i18n="common.save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/expenses.js"></script>
+</body>
+</html>

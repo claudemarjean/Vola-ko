@@ -1,0 +1,210 @@
+{
+  "app": {
+    "name": "Vola-ko",
+    "tagline": "Maîtrisez votre budget, simplifiez votre vie financière",
+    "description": "Application de gestion de budget personnel simple et efficace"
+  },
+  "nav": {
+    "home": "Accueil",
+    "features": "Fonctionnalités",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion"
+  },
+  "home": {
+    "hero": {
+      "title": "Prenez le contrôle de vos finances",
+      "subtitle": "T-Volako vous aide à gérer votre budget personnel avec simplicité et efficacité",
+      "cta": "Commencer maintenant",
+      "cta_secondary": "En savoir plus"
+    },
+    "features": {
+      "title": "Pourquoi choisir T-Volako ?",
+      "subtitle": "Une solution complète pour gérer votre argent intelligemment",
+      "feature1": {
+        "title": "Simple et intuitif",
+        "description": "Interface moderne et facile à utiliser, accessible depuis n'importe quel appareil"
+      },
+      "feature2": {
+        "title": "Sécurisé",
+        "description": "Vos données sont protégées avec les meilleures pratiques de sécurité"
+      },
+      "feature3": {
+        "title": "Multilingue",
+        "description": "Disponible en français et en malgache pour votre confort"
+      },
+      "feature4": {
+        "title": "Suivi en temps réel",
+        "description": "Visualisez vos dépenses et revenus instantanément"
+      },
+      "feature5": {
+        "title": "Rapports détaillés",
+        "description": "Analysez vos habitudes financières avec des graphiques clairs"
+      },
+      "feature6": {
+        "title": "Objectifs personnalisés",
+        "description": "Définissez et suivez vos objectifs d'épargne facilement"
+      }
+    },
+    "cta": {
+      "title": "Prêt à transformer votre gestion financière ?",
+      "subtitle": "Rejoignez des milliers d'utilisateurs qui maîtrisent déjà leur budget",
+      "button": "Créer un compte gratuit"
+    }
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Accédez à votre compte T-Volako",
+    "email": "Adresse email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Pas encore de compte ?",
+    "create_account": "Créer un compte"
+  },
+  "register": {
+    "title": "Inscription",
+    "subtitle": "Créez votre compte T-Volako gratuitement",
+    "name": "Nom complet",
+    "email": "Adresse email",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "submit": "Créer mon compte",
+    "have_account": "Vous avez déjà un compte ?",
+    "login": "Se connecter",
+    "terms": "En créant un compte, vous acceptez nos",
+    "terms_link": "Conditions d'utilisation",
+    "privacy_link": "Politique de confidentialité"
+  },
+  "form": {
+    "required": "Ce champ est requis",
+    "invalid_email": "Adresse email invalide",
+    "password_min": "Le mot de passe doit contenir au moins 8 caractères",
+    "password_uppercase": "Le mot de passe doit contenir une majuscule",
+    "password_lowercase": "Le mot de passe doit contenir une minuscule",
+    "password_number": "Le mot de passe doit contenir un chiffre",
+    "password_mismatch": "Les mots de passe ne correspondent pas"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "success": "Opération réussie",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "close": "Fermer"
+  },
+  "nav": {
+    "home": "Accueil",
+    "features": "Fonctionnalités",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion",
+    "dashboard": "Dashboard",
+    "dashboard_short": "Accueil",
+    "expenses": "Dépenses",
+    "expenses_short": "Dépenses",
+    "incomes": "Revenus",
+    "incomes_short": "Revenus",
+    "budgets": "Budgets",
+    "budgets_short": "Budgets",
+    "reports": "Rapports",
+    "reports_short": "Rapports",
+    "settings": "Paramètres",
+    "settings_short": "Plus"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Vue d'ensemble de vos finances",
+    "add_transaction": "Nouvelle transaction",
+    "balance": "Solde actuel",
+    "income_month": "Revenus du mois",
+    "expenses_month": "Dépenses du mois",
+    "budget_remaining": "Budget restant",
+    "used": "utilisé",
+    "recent_transactions": "Transactions récentes",
+    "view_all": "Voir tout",
+    "expense_breakdown": "Répartition des dépenses",
+    "monthly_trend": "Évolution mensuelle",
+    "chart_coming": "Graphique à venir"
+  },
+  "expenses": {
+    "title": "Mes Dépenses",
+    "subtitle": "Gérez et suivez vos dépenses",
+    "add": "Ajouter une dépense",
+    "modal_title": "Ajouter une dépense",
+    "description": "Description",
+    "amount": "Montant (MGA)",
+    "category": "Catégorie",
+    "date": "Date",
+    "no_expenses": "Aucune dépense enregistrée"
+  },
+  "incomes": {
+    "title": "Mes Revenus",
+    "subtitle": "Suivez vos sources de revenus",
+    "add": "Ajouter un revenu",
+    "modal_title": "Ajouter un revenu",
+    "source": "Source",
+    "amount": "Montant (MGA)",
+    "date": "Date",
+    "total_month": "Total ce mois",
+    "total_year": "Total cette année",
+    "no_incomes": "Aucun revenu enregistré"
+  },
+  "budgets": {
+    "title": "Mes Budgets",
+    "subtitle": "Définissez et suivez vos budgets par catégorie",
+    "add": "Créer un budget",
+    "modal_title": "Créer un budget",
+    "category": "Catégorie",
+    "amount": "Montant mensuel (MGA)",
+    "remaining": "Restant",
+    "spent": "Dépensé",
+    "no_budgets": "Aucun budget défini"
+  },
+  "reports": {
+    "title": "Rapports Financiers",
+    "subtitle": "Analysez vos finances avec des graphiques détaillés",
+    "total_income": "Revenus totaux",
+    "total_expenses": "Dépenses totales",
+    "net_balance": "Solde net",
+    "expense_by_category": "Dépenses par catégorie",
+    "monthly_comparison": "Comparaison mensuelle",
+    "trend": "Tendance"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Personnalisez votre expérience",
+    "profile_title": "Profil",
+    "name": "Nom complet",
+    "email": "Email",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "theme_desc": "Mode clair ou sombre",
+    "language": "Langue",
+    "language_desc": "Français ou Malgache",
+    "currency_title": "Devise",
+    "currency": "Devise",
+    "currency_desc": "Devise par défaut",
+    "data_title": "Gestion des données",
+    "export": "Exporter les données",
+    "export_desc": "Téléchargez vos données au format JSON",
+    "export_button": "Exporter",
+    "clear_data": "Effacer les données",
+    "clear_data_desc": "Supprimer toutes les données locales",
+    "clear_button": "Effacer",
+    "account_title": "Compte"
+  },
+  "theme": {
+    "light": "Mode clair",
+    "dark": "Mode sombre",
+    "toggle": "Changer de thème"
+  },
+  "language": {
+    "fr": "Français",
+    "mg": "Malagasy",
+    "select": "Choisir la langue"
+  }
+}
