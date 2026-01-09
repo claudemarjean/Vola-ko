@@ -3,6 +3,8 @@
  * Fonctions utilitaires partagées
  */
 
+import { showConfirmModal } from './components.js';
+
 /**
  * Categories Configuration
  */
@@ -191,8 +193,8 @@ export function showNotification(message, type = 'info') {
 /**
  * Confirm action
  */
-export function confirmAction(message) {
-  return confirm(message);
+export async function confirmAction(message, options = {}) {
+  return await showConfirmModal(message, options);
 }
 
 export default {
