@@ -144,7 +144,7 @@ class App {
 
     if (result.success) {
       // Redirection vers le dashboard (à implémenter)
-      window.location.href = '/dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       if (errorEl) {
         errorEl.textContent = result.error;
@@ -177,7 +177,7 @@ class App {
 
     if (result.success) {
       // Redirection vers le dashboard (à implémenter)
-      window.location.href = '/dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       if (errorEl) {
         errorEl.textContent = result.error;
