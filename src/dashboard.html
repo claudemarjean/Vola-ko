@@ -168,6 +168,10 @@
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
+      .stat-icon.savings {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      }
+
     .stat-icon.budget {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     }
@@ -283,8 +287,9 @@
     /* Charts */
     .charts-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: var(--space-xl);
+      margin-top: var(--space-xl);
     }
 
     .chart-card {
@@ -292,10 +297,45 @@
       padding: var(--space-xl);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .chart-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .chart-header {
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-md);
+      border-bottom: 2px solid var(--border-primary);
+    }
+
+    .chart-title {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .chart-subtitle {
+      margin: 0;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+      width: 100%;
+    }
+
+    .chart-container canvas {
+      max-height: 100%;
     }
 
     .chart-placeholder {
-      height: 300px;
+      height: 280px;
       background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
       border-radius: var(--radius-md);
       display: flex;
@@ -366,7 +406,33 @@
 
       .charts-grid {
         grid-template-columns: 1fr;
+        gap: var(--space-lg);
       }
+
+      .chart-container {
+        height: 250px;
+      }
+    }
+
+    /* Tablet */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .sidebar {
+        width: 240px;
+      }
+
+      .main-content {
+        margin-left: 240px;
+        padding: var(--space-lg);
+      }
+
+      .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .chart-container {
+        height: 260px;
+      }
+    }
 
       .app-header {
         flex-direction: column;
@@ -398,6 +464,10 @@
         <a href="/budgets.html" class="nav-item" data-link>
           <span class="icon">🎯</span>
           <span data-i18n="nav.budgets">Budgets</span>
+        </a>
+        <a href="/savings.html" class="nav-item" data-link>
+          <span class="icon">💾</span>
+          <span data-i18n="nav.savings">Épargne</span>
         </a>
         <a href="/reports.html" class="nav-item" data-link>
           <span class="icon">📊</span>
@@ -490,8 +560,23 @@
           </div>
         </div>
 
-        <!-- Budget -->
-        <div class="stat-card animate-fade-in-up delay-300">
+          <!-- Savings -->
+          <div class="stat-card animate-fade-in-up delay-300">
+            <div class="stat-header">
+              <div>
+                <div class="stat-label" data-i18n="savings.total_saved">Total épargné</div>
+                <div class="stat-value" id="savings-value">0 MGA</div>
+                <div class="stat-change positive">
+                  <span id="savings-goals-count">0</span>
+                  <span data-i18n="savings.active_goals">objectifs actifs</span>
+                </div>
+              </div>
+              <div class="stat-icon savings">💾</div>
+            </div>
+          </div>
+
+          <!-- Budget -->
+          <div class="stat-card animate-fade-in-up delay-400">
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.budget_remaining">Budget restant</div>
@@ -549,17 +634,43 @@
       <!-- Charts -->
       <div class="charts-grid">
         <div class="chart-card animate-fade-in-up">
-          <div class="card-header">
-            <h2 class="card-title" data-i18n="dashboard.expense_breakdown">Répartition des dépenses</h2>
+          <div class="chart-header">
+            <h2 class="chart-title">🍰 Répartition des dépenses</h2>
+            <p class="chart-subtitle">Ce mois-ci</p>
           </div>
-          <div class="chart-placeholder" data-i18n="dashboard.chart_coming">Graphique à venir</div>
+          <div class="chart-container">
+            <canvas id="dashboard-category-chart"></canvas>
+          </div>
         </div>
 
         <div class="chart-card animate-fade-in-up delay-100">
-          <div class="card-header">
-            <h2 class="card-title" data-i18n="dashboard.monthly_trend">Évolution mensuelle</h2>
+          <div class="chart-header">
+            <h2 class="chart-title">📈 Évolution sur 7 jours</h2>
+            <p class="chart-subtitle">Revenus vs Dépenses</p>
           </div>
-          <div class="chart-placeholder" data-i18n="dashboard.chart_coming">Graphique à venir</div>
+          <div class="chart-container">
+            <canvas id="dashboard-trend-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card animate-fade-in-up delay-200">
+          <div class="chart-header">
+            <h2 class="chart-title">🎯 Budget par catégorie</h2>
+            <p class="chart-subtitle">Utilisation actuelle</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="dashboard-budget-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card animate-fade-in-up delay-300">
+          <div class="chart-header">
+            <h2 class="chart-title">💰 Balance mensuelle</h2>
+            <p class="chart-subtitle">Évolution cette année</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="dashboard-balance-chart"></canvas>
+          </div>
         </div>
       </div>
     </main>
@@ -582,6 +693,10 @@
         <a href="/budgets.html" class="bottom-nav-item" data-link>
           <span class="icon">🎯</span>
           <span data-i18n="nav.budgets_short">Budgets</span>
+        </a>
+        <a href="/savings.html" class="bottom-nav-item" data-link>
+          <span class="icon">💾</span>
+          <span data-i18n="nav.savings_short">Épargne</span>
         </a>
         <a href="/reports.html" class="bottom-nav-item" data-link>
           <span class="icon">📊</span>

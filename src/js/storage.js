@@ -11,6 +11,8 @@ const STORAGE_KEYS = {
   EXPENSES: 'volako_expenses',
   INCOMES: 'volako_incomes',
   BUDGETS: 'volako_budgets',
+  SAVINGS: 'volako_savings',
+  SAVINGS_TRANSACTIONS: 'volako_savings_transactions',
   CURRENCY: 'volako_currency'
 };
 

@@ -4,7 +4,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
-import { renderSidebar, renderBottomNav } from './components.js';
+import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import ThemeManager from './theme.js';
 import I18n from './i18n.js';
 
@@ -120,9 +120,29 @@ class SettingsManager {
     URL.revokeObjectURL(url);
   }
 
-  clearData() {
-    if (confirm('⚠️ Attention ! Cette action supprimera toutes vos données locales (dépenses, revenus, budgets). Êtes-vous sûr ?')) {
-      if (confirm('Dernière confirmation : Voulez-vous vraiment supprimer toutes les données ?')) {
+  async clearData() {
+    const firstConfirm = await showConfirmModal(
+      'Cette action supprimera toutes vos données locales (dépenses, revenus, budgets). Êtes-vous sûr ?',
+      {
+        title: '⚠️ Attention !',
+        confirmText: 'Continuer',
+        cancelText: 'Annuler',
+        danger: true
+      }
+    );
+
+    if (firstConfirm) {
+      const secondConfirm = await showConfirmModal(
+        'Voulez-vous vraiment supprimer toutes les données ?',
+        {
+          title: '⚠️ Dernière confirmation',
+          confirmText: 'Supprimer',
+          cancelText: 'Annuler',
+          danger: true
+        }
+      );
+
+      if (secondConfirm) {
         Storage.remove(STORAGE_KEYS.EXPENSES);
         Storage.remove(STORAGE_KEYS.INCOMES);
         Storage.remove(STORAGE_KEYS.BUDGETS);
