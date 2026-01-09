@@ -617,25 +617,28 @@ class Dashboard {
     if (!canvas) return;
 
     const now = new Date();
-    const currentYear = now.getFullYear();
     const months = [];
     const balanceData = [];
 
-    for (let month = 0; month < 12; month++) {
-      const monthName = new Date(currentYear, month).toLocaleDateString('fr-FR', { month: 'short' });
-      months.push(monthName);
+    // Rolling 12 months to include previous year
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthIdx = date.getMonth();
+      const year = date.getFullYear();
+      const monthLabel = date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+      months.push(monthLabel);
 
       const monthIncome = this.incomes
         .filter(inc => {
-          const date = new Date(inc.date);
-          return date.getMonth() === month && date.getFullYear() === currentYear;
+          const d = new Date(inc.date);
+          return d.getMonth() === monthIdx && d.getFullYear() === year;
         })
         .reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
 
       const monthExpense = this.expenses
         .filter(exp => {
-          const date = new Date(exp.date);
-          return date.getMonth() === month && date.getFullYear() === currentYear;
+          const d = new Date(exp.date);
+          return d.getMonth() === monthIdx && d.getFullYear() === year;
         })
         .reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
 

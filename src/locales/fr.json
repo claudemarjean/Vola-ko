@@ -50,6 +50,85 @@
       "title": "Prêt à transformer votre gestion financière ?",
       "subtitle": "Rejoignez des milliers d'utilisateurs qui maîtrisent déjà leur budget",
       "button": "Créer un compte gratuit"
+    },
+    "demos": {
+      "dashboard": {
+        "title": "Dashboard - Vue d'ensemble",
+        "subtitle": "Visualisez toute votre situation financière en un coup d'œil",
+        "feature1_title": "Solde instantané",
+        "feature1_desc": "Consultez votre balance globale (revenus - dépenses) du mois en cours avec un indicateur visuel : vert si positif, rouge si négatif.",
+        "feature2_title": "Graphiques interactifs",
+        "feature2_desc": "Camembert des dépenses par catégorie, courbe de tendance 7 jours, barres de budget utilisé, évolution mensuelle sur 12 mois glissants.",
+        "feature3_title": "Transactions récentes",
+        "feature3_desc": "Les 5 dernières opérations (dépenses et revenus) avec catégorie, montant et date, pour un suivi rapide.",
+        "example": "Exemple : Solde de 1 250 000 MGA, 3 graphiques colorés, liste des dernières transactions"
+      },
+      "expenses": {
+        "title": "Dépenses - Maîtrisez vos sorties",
+        "subtitle": "Suivez chaque ariary dépensé avec précision",
+        "feature1_title": "Catégorisation automatique",
+        "feature1_desc": "Alimentation, Transport, Logement, Santé, Loisirs, Autre. Filtrez par catégorie pour voir où part votre argent.",
+        "feature2_title": "Filtres temporels",
+        "feature2_desc": "Affichez les dépenses de cette semaine, ce mois, les 12 derniers mois ou tout l'historique. Recherche par description.",
+        "feature3_title": "Édition rapide",
+        "feature3_desc": "Modifiez ou supprimez une dépense en un clic avec confirmation de sécurité.",
+        "example": "Exemple : Liste de 15 dépenses avec catégories colorées, total mensuel affiché"
+      },
+      "incomes": {
+        "title": "Revenus - Gardez le cap",
+        "subtitle": "Centralisez toutes vos sources de revenus",
+        "feature1_title": "Statistiques mensuelles",
+        "feature1_desc": "Total du mois en cours et des 12 derniers mois pour comparer votre évolution.",
+        "feature2_title": "Sources multiples",
+        "feature2_desc": "Salaire, freelance, investissements, cadeaux... Gardez trace de tout ce qui rentre.",
+        "feature3_title": "Historique complet",
+        "feature3_desc": "Liste triée par date avec montant et source, modifiable à tout moment.",
+        "example": "Exemple : 3 revenus ce mois (Salaire 800 000 MGA, Freelance 200 000 MGA, Prime 150 000 MGA)"
+      },
+      "budgets": {
+        "title": "Budgets - Fixez vos limites",
+        "subtitle": "Enveloppes mensuelles pour éviter les dérapages",
+        "feature1_title": "Budget par catégorie",
+        "feature1_desc": "Définissez un montant maximum mensuel pour chaque catégorie de dépenses (ex: 300 000 MGA pour Alimentation).",
+        "feature2_title": "Progression visuelle",
+        "feature2_desc": "Barre de progression colorée : verte (&lt; 50%), orange (50-90%), rouge (&gt; 90%). Affichez dépensé/restant.",
+        "feature3_title": "Alertes automatiques",
+        "feature3_desc": "Si vous dépassez votre budget, la carte devient rouge pour vous alerter visuellement.",
+        "example": "Exemple : Budget Alimentation 250/300k (83%, orange), Transport 120/150k (80%, orange)"
+      },
+      "savings": {
+        "title": "Épargnes - Construisez votre avenir",
+        "subtitle": "Objectifs et épargnes libres avec suivi détaillé",
+        "feature1_title": "Objectifs personnalisés",
+        "feature1_desc": "Épargne libre ou avec objectif (montant cible + date). Barre de progression pour suivre l'avancement.",
+        "feature2_title": "Retrait automatique",
+        "feature2_desc": "Planifiez un retrait à une date choisie. Le système vérifie le solde et enregistre la transaction ou signale l'échec.",
+        "feature3_title": "Historique des mouvements",
+        "feature3_desc": "Modal dédié avec totaux (ajouté, retiré, solde actuel) et liste chronologique de toutes les opérations.",
+        "example": "Exemple : Épargne Vacances 2026 : 750k/1M MGA (75%), retrait auto le 15 juin"
+      },
+      "reports": {
+        "title": "Rapports - Analysez vos habitudes",
+        "subtitle": "Graphiques avancés pour comprendre vos finances",
+        "feature1_title": "Dépenses par catégorie",
+        "feature1_desc": "Camembert interactif avec pourcentages pour voir la répartition de votre budget.",
+        "feature2_title": "Comparaisons & tendances",
+        "feature2_desc": "Barres revenus vs dépenses mois par mois, courbe cumulative, top 5 des plus grosses dépenses.",
+        "feature3_title": "Période flexible",
+        "feature3_desc": "Filtres : ce mois, trimestre, 12 derniers mois, année en cours. Les données s'adaptent automatiquement.",
+        "example": "Exemple : 5 graphiques colorés avec données des 12 derniers mois"
+      },
+      "settings": {
+        "title": "Paramètres - Personnalisez votre expérience",
+        "subtitle": "Thème, langue et préférences à portée de main",
+        "feature1_title": "Mode clair / sombre",
+        "feature1_desc": "Basculez entre thème clair et sombre selon vos préférences ou l'heure de la journée.",
+        "feature2_title": "Français & Malgache",
+        "feature2_desc": "Interface disponible en 2 langues. Toutes les pages et labels se traduisent automatiquement.",
+        "feature3_title": "Sécurité",
+        "feature3_desc": "Déconnexion sécurisée, gestion du profil, changement de devise (MGA par défaut).",
+        "example": "Exemple : Boutons thème, sélecteur langue, informations profil"
+      }
     }
   },
   "login": {

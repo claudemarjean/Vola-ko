@@ -104,6 +104,26 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="auto-withdraw-enabled">Retrait automatique</label>
+          <div style="display: flex; align-items: center; gap: var(--space-sm);">
+            <input type="checkbox" id="auto-withdraw-enabled">
+            <span>Activer un retrait automatique à une date choisie</span>
+          </div>
+        </div>
+
+        <div id="auto-withdraw-fields" style="display: none;">
+          <div class="form-group">
+            <label for="auto-withdraw-amount">Montant à retirer (MGA)</label>
+            <input type="number" id="auto-withdraw-amount" class="form-input" min="0" value="0">
+          </div>
+
+          <div class="form-group">
+            <label for="auto-withdraw-date">Date de retrait automatique</label>
+            <input type="date" id="auto-withdraw-date" class="form-input">
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel">Annuler</button>
           <button type="submit" class="btn btn-primary" data-i18n="common.save">Enregistrer</button>
@@ -138,6 +158,25 @@
           <button type="submit" class="btn btn-primary" data-i18n="common.confirm">Confirmer</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: History -->
+  <div class="modal" id="history-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="history-modal-title">Historique</h2>
+        <button class="modal-close" id="close-history-modal">✕</button>
+      </div>
+
+      <div id="history-summary" class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));"></div>
+
+      <div id="history-list" class="savings-grid"></div>
+      <div id="history-empty" class="empty-state" style="display: none;">
+        <div class="empty-icon">📋</div>
+        <h3>Aucun mouvement</h3>
+        <p>Ajoutez une opération pour voir l'historique</p>
+      </div>
     </div>
   </div>
 

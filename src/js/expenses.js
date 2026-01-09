@@ -63,7 +63,8 @@ class ExpensesManager {
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       });
     } else if (this.currentFilter.period === 'year') {
-      filtered = filtered.filter(exp => new Date(exp.date).getFullYear() === now.getFullYear());
+      const rollingYearStart = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+      filtered = filtered.filter(exp => new Date(exp.date) >= rollingYearStart);
     }
 
     // Filtre par recherche
@@ -140,6 +141,8 @@ class ExpensesManager {
         this.currentFilter.period = e.target.value;
         this.loadExpenses();
       });
+      // Keep dropdown text aligned with rolling windows
+      periodFilter.value = this.currentFilter.period;
     }
 
     const searchInput = document.getElementById('search-input');
