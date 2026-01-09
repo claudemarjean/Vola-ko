@@ -20,6 +20,7 @@ export default defineConfig({
         expenses: resolve(__dirname, 'src/expenses.html'),
         incomes: resolve(__dirname, 'src/incomes.html'),
         budgets: resolve(__dirname, 'src/budgets.html'),
+        savings: resolve(__dirname, 'src/savings.html'),
         reports: resolve(__dirname, 'src/reports.html'),
         settings: resolve(__dirname, 'src/settings.html')
       }
