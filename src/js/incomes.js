@@ -32,20 +32,17 @@ class IncomesManager {
   updateStats() {
     const now = new Date();
     const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const rollingYearStart = new Date(now.getFullYear() - 1, now.getMonth(), 1);
 
     const monthIncomes = this.incomes.filter(inc => {
       const date = new Date(inc.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      return date.getMonth() === currentMonth && date.getFullYear() === now.getFullYear();
     });
 
-    const yearIncomes = this.incomes.filter(inc => {
-      const date = new Date(inc.date);
-      return date.getFullYear() === currentYear;
-    });
+    const rollingYearIncomes = this.incomes.filter(inc => new Date(inc.date) >= rollingYearStart);
 
     const monthTotal = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
-    const yearTotal = yearIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
+    const yearTotal = rollingYearIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
 
     const monthEl = document.getElementById('income-month');
     const yearEl = document.getElementById('income-year');

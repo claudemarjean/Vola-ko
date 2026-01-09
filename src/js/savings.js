@@ -20,6 +20,7 @@ class SavingsManager {
     this.checkAuth();
     renderSidebar('savings');
     renderBottomNav('savings');
+    this.processAutoWithdrawals();
     this.updateStats();
     this.loadSavings();
     this.setupEventListeners();
@@ -33,14 +34,16 @@ class SavingsManager {
   }
 
   updateStats() {
-    const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
+    const totalSaved = this.savings.reduce((sum, s) => sum + (parseFloat(s.balance) || 0), 0);
     const activeGoals = this.savings.filter(s => s.type === 'goal').length;
     
     let avgProgress = 0;
-    const goalsWithTarget = this.savings.filter(s => s.type === 'goal' && s.targetAmount);
+    const goalsWithTarget = this.savings.filter(s => s.type === 'goal' && s.targetAmount > 0);
     if (goalsWithTarget.length > 0) {
       const totalProgress = goalsWithTarget.reduce((sum, s) => {
-        const progress = (parseFloat(s.balance) / parseFloat(s.targetAmount)) * 100;
+        const balance = parseFloat(s.balance) || 0;
+        const target = parseFloat(s.targetAmount) || 1;
+        const progress = (balance / target) * 100;
         return sum + Math.min(progress, 100);
       }, 0);
       avgProgress = Math.round(totalProgress / goalsWithTarget.length);
@@ -63,11 +66,45 @@ class SavingsManager {
 
     emptyState.style.display = 'none';
     container.innerHTML = this.savings.map(saving => this.createSavingCard(saving)).join('');
+    
+    // Attach event listeners to buttons
+    this.attachCardEventListeners();
+  }
+
+  attachCardEventListeners() {
+    const container = document.getElementById('savings-list');
+    
+    container.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        
+        switch(action) {
+          case 'edit':
+            this.editSaving(id);
+            break;
+          case 'delete':
+            this.deleteSaving(id);
+            break;
+          case 'add':
+            this.openTransaction(id, 'add');
+            break;
+          case 'withdraw':
+            this.openTransaction(id, 'withdraw');
+            break;
+          case 'history':
+            this.viewHistory(id);
+            break;
+        }
+      });
+    });
   }
 
   createSavingCard(saving) {
     const balance = parseFloat(saving.balance || 0);
     const isGoal = saving.type === 'goal';
+    const hasAutoWithdraw = saving.autoWithdraw && saving.autoWithdraw.enabled;
     const targetAmount = parseFloat(saving.targetAmount || 0);
     const progress = isGoal && targetAmount > 0 ? (balance / targetAmount) * 100 : 0;
     const progressClamped = Math.min(progress, 100);
@@ -107,14 +144,17 @@ class SavingsManager {
             <div class="saving-icon">${isGoal ? '🎯' : '💰'}</div>
             <div>
               <h3 class="saving-name">${saving.name}</h3>
-              <span class="saving-type-badge">${isGoal ? 'Objectif' : 'Libre'}</span>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px;">
+                <span class="saving-type-badge">${isGoal ? 'Objectif' : 'Libre'}</span>
+                ${hasAutoWithdraw ? `<span class="saving-type-badge" title="Retrait automatique planifié">⏱️ Auto</span>` : ''}
+              </div>
             </div>
           </div>
           <div class="saving-actions">
-            <button class="btn-icon" onclick="savingsManager.editSaving('${saving.id}')" title="Modifier">
+            <button class="btn-icon" data-action="edit" data-id="${saving.id}" title="Modifier">
               ✏️
             </button>
-            <button class="btn-icon" onclick="savingsManager.deleteSaving('${saving.id}')" title="Supprimer">
+            <button class="btn-icon" data-action="delete" data-id="${saving.id}" title="Supprimer">
               🗑️
             </button>
           </div>
@@ -128,15 +168,15 @@ class SavingsManager {
         ${statusHTML}
 
         <div class="saving-controls">
-          <button class="btn btn-success btn-sm" onclick="savingsManager.openTransaction('${saving.id}', 'add')">
+          <button class="btn btn-success btn-sm" data-action="add" data-id="${saving.id}">
             <span>➕</span>
             <span>Ajouter</span>
           </button>
-          <button class="btn btn-outline btn-sm" onclick="savingsManager.openTransaction('${saving.id}', 'withdraw')">
+          <button class="btn btn-outline btn-sm" data-action="withdraw" data-id="${saving.id}">
             <span>➖</span>
             <span>Retirer</span>
           </button>
-          <button class="btn btn-secondary btn-sm" onclick="savingsManager.viewHistory('${saving.id}')">
+          <button class="btn btn-secondary btn-sm" data-action="history" data-id="${saving.id}">
             <span>📋</span>
             <span>Historique</span>
           </button>
@@ -156,6 +196,13 @@ class SavingsManager {
     document.getElementById('saving-type').addEventListener('change', (e) => {
       const goalFields = document.getElementById('goal-fields');
       goalFields.style.display = e.target.value === 'goal' ? 'block' : 'none';
+    });
+
+    // Auto withdraw toggle
+    const autoToggle = document.getElementById('auto-withdraw-enabled');
+    const autoFields = document.getElementById('auto-withdraw-fields');
+    autoToggle.addEventListener('change', () => {
+      autoFields.style.display = autoToggle.checked ? 'block' : 'none';
     });
 
     // Transaction modal
@@ -195,10 +242,22 @@ class SavingsManager {
       
       const goalFields = document.getElementById('goal-fields');
       goalFields.style.display = saving.type === 'goal' ? 'block' : 'none';
+
+      const autoToggle = document.getElementById('auto-withdraw-enabled');
+      const autoFields = document.getElementById('auto-withdraw-fields');
+      const auto = saving.autoWithdraw || { enabled: false };
+      autoToggle.checked = !!auto.enabled;
+      autoFields.style.display = autoToggle.checked ? 'block' : 'none';
+      document.getElementById('auto-withdraw-amount').value = auto.amount ?? 0;
+      document.getElementById('auto-withdraw-date').value = auto.date || '';
     } else {
       title.textContent = 'Créer une épargne';
       form.reset();
       document.getElementById('goal-fields').style.display = 'none';
+      document.getElementById('auto-withdraw-enabled').checked = false;
+      document.getElementById('auto-withdraw-fields').style.display = 'none';
+      document.getElementById('auto-withdraw-amount').value = 0;
+      document.getElementById('auto-withdraw-date').value = '';
     }
 
     modal.classList.add('active');
@@ -218,18 +277,81 @@ class SavingsManager {
     const initialAmount = parseFloat(document.getElementById('saving-initial').value) || 0;
     const targetAmount = type === 'goal' ? parseFloat(document.getElementById('saving-target').value) || 0 : 0;
     const targetDate = type === 'goal' ? document.getElementById('saving-target-date').value : null;
+    const autoEnabled = document.getElementById('auto-withdraw-enabled').checked;
+    const autoAmount = parseFloat(document.getElementById('auto-withdraw-amount').value) || 0;
+    const autoDate = document.getElementById('auto-withdraw-date').value || null;
+
+    if (!name) {
+      alert('❌ Le nom de l\'épargne est requis');
+      return;
+    }
+
+    if (initialAmount < 0) {
+      alert('❌ Le montant initial ne peut pas être négatif');
+      return;
+    }
+
+    if (type === 'goal' && targetAmount > 0 && initialAmount > targetAmount) {
+      alert('❌ Le montant initial ne peut pas dépasser l\'objectif');
+      return;
+    }
+
+    if (autoEnabled) {
+      if (!autoDate) {
+        alert('❌ La date de retrait automatique est requise');
+        return;
+      }
+      if (autoAmount <= 0) {
+        alert('❌ Le montant du retrait automatique doit être supérieur à 0');
+        return;
+      }
+    }
+
+    const buildAutoWithdraw = (previous = null) => {
+      if (!autoEnabled) return { enabled: false };
+
+      const base = {
+        enabled: true,
+        amount: autoAmount,
+        date: autoDate
+      };
+
+      if (!previous || previous.date !== autoDate) {
+        return {
+          ...base,
+          executed: false,
+          status: 'scheduled',
+          lastRunAt: null,
+          lastError: null
+        };
+      }
+
+      return {
+        ...base,
+        executed: previous.executed || false,
+        status: previous.status || 'scheduled',
+        lastRunAt: previous.lastRunAt || null,
+        lastError: previous.lastError || null
+      };
+    };
 
     if (this.editingId) {
       // Update existing
       const index = this.savings.findIndex(s => s.id === this.editingId);
       if (index !== -1) {
+        const oldBalance = this.savings[index].balance || 0;
+        const previousAuto = this.savings[index].autoWithdraw || null;
         this.savings[index] = {
           ...this.savings[index],
           name,
           type,
           targetAmount,
-          targetDate
+          targetDate,
+          autoWithdraw: buildAutoWithdraw(previousAuto),
+          updatedAt: new Date().toISOString()
         };
+        // Keep the existing balance when editing
+        this.savings[index].balance = oldBalance;
       }
     } else {
       // Create new
@@ -240,6 +362,7 @@ class SavingsManager {
         balance: initialAmount,
         targetAmount,
         targetDate,
+        autoWithdraw: buildAutoWithdraw(),
         createdAt: new Date().toISOString()
       };
 
@@ -298,13 +421,23 @@ class SavingsManager {
 
     const modal = document.getElementById('transaction-modal');
     const title = document.getElementById('transaction-modal-title');
+    const form = document.getElementById('transaction-form');
     
     title.textContent = type === 'add' ? `➕ Ajouter à "${saving.name}"` : `➖ Retirer de "${saving.name}"`;
     
+    // Reset form first
+    form.reset();
+    
+    // Set hidden fields
     document.getElementById('transaction-saving-id').value = savingId;
     document.getElementById('transaction-type').value = type;
-    document.getElementById('transaction-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('transaction-form').reset();
+    
+    // Set date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('transaction-date').value = today;
+    
+    // Clear amount field
+    document.getElementById('transaction-amount').value = '';
 
     modal.classList.add('active');
   }
@@ -321,8 +454,21 @@ class SavingsManager {
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const date = document.getElementById('transaction-date').value;
 
+    if (!savingId || !type || !amount || !date) {
+      alert('❌ Tous les champs sont requis');
+      return;
+    }
+
+    if (amount <= 0) {
+      alert('❌ Le montant doit être supérieur à 0');
+      return;
+    }
+
     const saving = this.savings.find(s => s.id === savingId);
-    if (!saving) return;
+    if (!saving) {
+      alert('❌ Épargne introuvable');
+      return;
+    }
 
     const currentBalance = parseFloat(saving.balance || 0);
 
@@ -349,6 +495,67 @@ class SavingsManager {
     this.loadSavings();
   }
 
+  processAutoWithdrawals() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let changed = false;
+    const errors = [];
+
+    this.savings.forEach(saving => {
+      const auto = saving.autoWithdraw;
+      if (!auto || !auto.enabled || !auto.date || auto.executed) {
+        return;
+      }
+
+      const scheduled = new Date(auto.date);
+      scheduled.setHours(0, 0, 0, 0);
+
+      if (scheduled > today) {
+        return; // not due yet
+      }
+
+      const amount = parseFloat(auto.amount) || 0;
+      if (amount <= 0) {
+        auto.executed = true;
+        auto.status = 'failed';
+        auto.lastError = 'Montant invalide';
+        auto.lastRunAt = new Date().toISOString();
+        changed = true;
+        return;
+      }
+
+      const balance = parseFloat(saving.balance) || 0;
+
+      if (balance >= amount) {
+        // Execute withdrawal
+        saving.balance = balance - amount;
+        auto.executed = true;
+        auto.status = 'done';
+        auto.lastError = null;
+        auto.lastRunAt = new Date().toISOString();
+        this.recordTransaction(saving.id, amount, 'withdraw', auto.date);
+        changed = true;
+      } else {
+        // Insufficient funds
+        auto.executed = true;
+        auto.status = 'failed';
+        auto.lastError = 'Solde insuffisant';
+        auto.lastRunAt = new Date().toISOString();
+        changed = true;
+        errors.push(`❌ Retrait automatique échoué pour "${saving.name}" : solde insuffisant (${this.formatCurrency(balance)} < ${this.formatCurrency(amount)})`);
+      }
+    });
+
+    if (changed) {
+      Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
+    }
+
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
+    }
+  }
+
   recordTransaction(savingId, amount, type, date) {
     const transaction = {
       id: Date.now().toString(),
@@ -364,25 +571,73 @@ class SavingsManager {
   }
 
   viewHistory(savingId) {
-    // Navigate to a detailed view or show modal with history
-    // For now, we'll use a simple alert
     const saving = this.savings.find(s => s.id === savingId);
+    if (!saving) return;
+
+    const modal = document.getElementById('history-modal');
+    const title = document.getElementById('history-modal-title');
+    const list = document.getElementById('history-list');
+    const empty = document.getElementById('history-empty');
+    const summary = document.getElementById('history-summary');
+
     const savingTransactions = this.transactions
       .filter(t => t.savingsId === savingId)
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    title.textContent = `Historique - "${saving.name}"`;
+
+    const totalAdded = savingTransactions
+      .filter(t => t.type === 'add')
+      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    const totalWithdrawn = savingTransactions
+      .filter(t => t.type === 'withdraw')
+      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    const balance = parseFloat(saving.balance) || 0;
+
+    summary.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">Solde actuel</div>
+        <div class="stat-value">${this.formatCurrency(balance)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total ajouté</div>
+        <div class="stat-value">${this.formatCurrency(totalAdded)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total retiré</div>
+        <div class="stat-value">${this.formatCurrency(totalWithdrawn)}</div>
+      </div>
+    `;
+
     if (savingTransactions.length === 0) {
-      alert(`Aucun historique pour "${saving.name}"`);
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      modal.classList.add('active');
       return;
     }
 
-    let history = `📋 Historique de "${saving.name}"\n\n`;
-    savingTransactions.forEach(t => {
-      const symbol = t.type === 'add' ? '➕' : '➖';
-      history += `${symbol} ${this.formatCurrency(t.amount)} - ${new Date(t.date).toLocaleDateString('fr-FR')}\n`;
-    });
+    empty.style.display = 'none';
 
-    alert(history);
+    list.innerHTML = savingTransactions.map(t => {
+      const isAdd = t.type === 'add';
+      const symbol = isAdd ? '➕' : '➖';
+      const label = isAdd ? 'Ajout' : 'Retrait';
+      const amount = this.formatCurrency(t.amount);
+      const dateLabel = new Date(t.date).toLocaleDateString('fr-FR');
+      const color = isAdd ? 'var(--success-color, #16a34a)' : 'var(--error-color, #dc2626)';
+
+      return `
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">
+          <div>
+            <div style="font-weight: 700;">${symbol} ${label}</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">${dateLabel}</div>
+          </div>
+          <div style="font-weight: 800; color: ${color};">${amount}</div>
+        </div>
+      `;
+    }).join('');
+
+    modal.classList.add('active');
   }
 
   getDaysUntil(dateStr) {
@@ -406,10 +661,14 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     savingsManager = new SavingsManager();
     savingsManager.init();
+    // Expose globally for debugging (optional)
+    window.savingsManager = savingsManager;
   });
 } else {
   savingsManager = new SavingsManager();
   savingsManager.init();
+  // Expose globally for debugging (optional)
+  window.savingsManager = savingsManager;
 }
 
 export default SavingsManager;

@@ -62,10 +62,11 @@ class ReportsManager {
     if (this.currentPeriod === 'month') {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     } else if (this.currentPeriod === 'quarter') {
-      const quarter = Math.floor(now.getMonth() / 3);
-      startDate = new Date(now.getFullYear(), quarter * 3, 1);
-    } else if (this.currentPeriod === 'year') {
-      startDate = new Date(now.getFullYear(), 0, 1);
+      // Rolling 3 months to include a quarter spanning last year if applicable
+      startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    } else if (this.currentPeriod === 'last12' || this.currentPeriod === 'year') {
+      // Rolling 12 months so l'année dernière est incluse
+      startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
     }
 
     const filterByDate = (item) => new Date(item.date) >= startDate;
@@ -225,24 +226,32 @@ class ReportsManager {
     const { incomes, expenses } = this.getFilteredData();
     const colors = this.getChartColors();
     
-    // Group by month
+    // Group by month+year to avoid merging months across different years
     const monthlyData = {};
     
     incomes.forEach(income => {
-      const month = new Date(income.date).toLocaleDateString('fr-FR', { month: 'short' });
-      if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0 };
-      monthlyData[month].income += parseFloat(income.amount);
+      const d = new Date(income.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0, label: d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) };
+      monthlyData[key].income += parseFloat(income.amount);
     });
 
     expenses.forEach(expense => {
-      const month = new Date(expense.date).toLocaleDateString('fr-FR', { month: 'short' });
-      if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0 };
-      monthlyData[month].expense += parseFloat(expense.amount);
+      const d = new Date(expense.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0, label: d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) };
+      monthlyData[key].expense += parseFloat(expense.amount);
     });
 
-    const labels = Object.keys(monthlyData);
-    const incomeData = labels.map(month => monthlyData[month].income);
-    const expenseData = labels.map(month => monthlyData[month].expense);
+    const sortedKeys = Object.keys(monthlyData).sort((a, b) => {
+      const [ay, am] = a.split('-').map(Number);
+      const [by, bm] = b.split('-').map(Number);
+      return new Date(ay, am, 1) - new Date(by, bm, 1);
+    });
+
+    const labels = sortedKeys.map(key => monthlyData[key].label);
+    const incomeData = sortedKeys.map(key => monthlyData[key].income);
+    const expenseData = sortedKeys.map(key => monthlyData[key].expense);
 
     this.charts.comparison = new Chart(canvas, {
       type: 'bar',
@@ -340,7 +349,7 @@ class ReportsManager {
     // Group by date
     const dailyTotals = {};
     sortedExpenses.forEach(expense => {
-      const date = new Date(expense.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      const date = new Date(expense.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' });
       dailyTotals[date] = (dailyTotals[date] || 0) + parseFloat(expense.amount);
     });
 
