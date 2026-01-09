@@ -1,5 +1,10 @@
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
   root: 'src',
@@ -8,15 +13,15 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: 'src/index.html',
-        login: 'src/login.html',
-        register: 'src/register.html',
-        dashboard: 'src/dashboard.html',
-        expenses: 'src/expenses.html',
-        incomes: 'src/incomes.html',
-        budgets: 'src/budgets.html',
-        reports: 'src/reports.html',
-        settings: 'src/settings.html'
+        main: resolve(__dirname, 'src/index.html'),
+        login: resolve(__dirname, 'src/login.html'),
+        register: resolve(__dirname, 'src/register.html'),
+        dashboard: resolve(__dirname, 'src/dashboard.html'),
+        expenses: resolve(__dirname, 'src/expenses.html'),
+        incomes: resolve(__dirname, 'src/incomes.html'),
+        budgets: resolve(__dirname, 'src/budgets.html'),
+        reports: resolve(__dirname, 'src/reports.html'),
+        settings: resolve(__dirname, 'src/settings.html')
       }
     },
     minify: 'terser',
