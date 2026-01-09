@@ -35,6 +35,10 @@ export function renderSidebar(activePage = '') {
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets">Budgets</span>
       </a>
+      <a href="/savings.html" class="nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+        <span class="icon">💾</span>
+        <span data-i18n="nav.savings">Épargne</span>
+      </a>
       <a href="/reports.html" class="nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>
         <span data-i18n="nav.reports">Rapports</span>
@@ -98,6 +102,10 @@ export function renderBottomNav(activePage = '') {
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets_short">Budgets</span>
       </a>
+      <a href="/savings.html" class="bottom-nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+        <span class="icon">💾</span>
+        <span data-i18n="nav.savings_short">Épargne</span>
+      </a>
       <a href="/reports.html" class="bottom-nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>
         <span data-i18n="nav.reports_short">Rapports</span>
@@ -108,4 +116,78 @@ export function renderBottomNav(activePage = '') {
       </a>
     </div>
   `;
+}
+
+/**
+ * Show Custom Confirmation Modal
+ */
+export function showConfirmModal(message, options = {}) {
+  return new Promise((resolve) => {
+    const {
+      title = '⚠️ Confirmation',
+      confirmText = 'Confirmer',
+      cancelText = 'Annuler',
+      confirmClass = 'btn-error',
+      danger = false
+    } = options;
+
+    // Remove existing modal if any
+    const existingModal = document.querySelector('.custom-modal-overlay');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-modal-overlay';
+    overlay.innerHTML = `
+      <div class="custom-modal">
+        <div class="custom-modal-header">
+          <h3 class="custom-modal-title">${title}</h3>
+        </div>
+        <div class="custom-modal-body">
+          <p>${message}</p>
+        </div>
+        <div class="custom-modal-actions">
+          <button class="btn btn-outline custom-modal-cancel">${cancelText}</button>
+          <button class="btn ${danger ? 'btn-error' : confirmClass} custom-modal-confirm">${confirmText}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Add event listeners
+    const confirmBtn = overlay.querySelector('.custom-modal-confirm');
+    const cancelBtn = overlay.querySelector('.custom-modal-cancel');
+
+    const closeModal = (result) => {
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.remove();
+        resolve(result);
+      }, 200);
+    };
+
+    confirmBtn.addEventListener('click', () => closeModal(true));
+    cancelBtn.addEventListener('click', () => closeModal(false));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal(false);
+    });
+
+    // Keyboard support
+    const handleKeydown = (e) => {
+      if (e.key === 'Escape') {
+        closeModal(false);
+        document.removeEventListener('keydown', handleKeydown);
+      } else if (e.key === 'Enter') {
+        closeModal(true);
+        document.removeEventListener('keydown', handleKeydown);
+      }
+    };
+    document.addEventListener('keydown', handleKeydown);
+
+    // Trigger animation
+    setTimeout(() => overlay.classList.add('show'), 10);
+  });
 }

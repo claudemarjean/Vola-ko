@@ -4,7 +4,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
-import { renderSidebar, renderBottomNav } from './components.js';
+import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 
 class BudgetsManager {
   constructor() {
@@ -176,7 +176,7 @@ class BudgetsManager {
     }
   }
 
-  saveBudget() {
+  async saveBudget() {
     const category = document.getElementById('budget-category').value;
     const amount = parseFloat(document.getElementById('budget-amount').value);
 
@@ -184,7 +184,17 @@ class BudgetsManager {
     const existingIndex = this.budgets.findIndex(b => b.category === category);
     
     if (existingIndex !== -1) {
-      if (confirm('Un budget existe déjà pour cette catégorie. Le remplacer ?')) {
+      const confirmed = await showConfirmModal(
+        'Un budget existe déjà pour cette catégorie. Le remplacer ?',
+        {
+          title: '⚠️ Budget existant',
+          confirmText: 'Remplacer',
+          cancelText: 'Annuler',
+          danger: false
+        }
+      );
+
+      if (confirmed) {
         this.budgets[existingIndex].amount = amount;
       } else {
         return;
@@ -203,8 +213,18 @@ class BudgetsManager {
     this.closeModal();
   }
 
-  deleteBudget(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce budget ?')) {
+  async deleteBudget(id) {
+    const confirmed = await showConfirmModal(
+      'Êtes-vous sûr de vouloir supprimer ce budget ?',
+      {
+        title: '⚠️ Confirmation',
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        danger: true
+      }
+    );
+
+    if (confirmed) {
       this.budgets = this.budgets.filter(b => b.id !== id);
       Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
       this.loadBudgets();

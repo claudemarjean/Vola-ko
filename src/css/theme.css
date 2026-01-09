@@ -60,9 +60,9 @@
   --btn-primary-text: var(--color-white);
   --btn-primary-hover: var(--color-primary-dark);
   
-  --btn-secondary-bg: var(--color-gray-200);
-  --btn-secondary-text: var(--color-gray-900);
-  --btn-secondary-hover: var(--color-gray-300);
+  --btn-secondary-bg: var(--color-gray-100);
+  --btn-secondary-text: var(--color-gray-700);
+  --btn-secondary-hover: var(--color-gray-200);
   
   /* Input */
   --input-bg: var(--color-white);
@@ -102,10 +102,14 @@
 .btn-secondary {
   background-color: var(--btn-secondary-bg);
   color: var(--btn-secondary-text);
+  border: 2px solid var(--color-gray-300);
+  font-weight: 600;
 }
 
 .btn-secondary:hover {
   background-color: var(--btn-secondary-hover);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-900);
 }
 
 .btn-outline {
@@ -175,6 +179,67 @@
   outline: none;
 }
 
+/* Date Input Styles */
+input[type="date"] {
+  position: relative;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-height: 44px;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  filter: invert(0);
+  transition: opacity var(--transition-fast);
+  width: 20px;
+  height: 20px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Dark mode calendar icon */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Firefox date input */
+input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+input[type="date"]::-moz-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Remove default clear button on Edge/IE */
+input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+input[type="date"]::-webkit-inner-spin-button {
+  display: none;
+}
+
+/* Better touch target for mobile */
+@media (hover: none) and (pointer: coarse) {
+  input[type="date"] {
+    min-height: 48px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
 .form-error {
   display: block;
   margin-top: var(--space-xs);
@@ -234,4 +299,98 @@
 .badge-error {
   background-color: rgba(239, 68, 68, 0.1);
   color: var(--color-error);
+}
+/* Custom Modal */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.custom-modal-overlay.show {
+  opacity: 1;
+}
+
+.custom-modal-overlay.fade-out {
+  opacity: 0;
+}
+
+.custom-modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.custom-modal-overlay.show .custom-modal {
+  transform: scale(1);
+}
+
+.custom-modal-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.custom-modal-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.custom-modal-body {
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.custom-modal-body p {
+  margin: 0;
+}
+
+.custom-modal-actions {
+  padding: var(--space-lg);
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+}
+
+.custom-modal-actions .btn {
+  min-width: 100px;
+}
+
+.custom-modal-cancel {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 2px solid var(--color-gray-300);
+  font-weight: 600;
+}
+
+.custom-modal-cancel:hover {
+  background-color: var(--btn-secondary-hover);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-900);
+}
+
+[data-theme="dark"] .custom-modal-cancel {
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .custom-modal-cancel:hover {
+  border-color: var(--border-secondary);
 }

@@ -4,7 +4,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
-import { renderSidebar, renderBottomNav } from './components.js';
+import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 
 class ExpensesManager {
   constructor() {
@@ -257,8 +257,18 @@ class ExpensesManager {
     }
   }
 
-  deleteExpense(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
+  async deleteExpense(id) {
+    const confirmed = await showConfirmModal(
+      'Êtes-vous sûr de vouloir supprimer cette dépense ?',
+      {
+        title: '⚠️ Confirmation',
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        danger: true
+      }
+    );
+
+    if (confirmed) {
       this.expenses = this.expenses.filter(exp => exp.id !== id);
       Storage.set(STORAGE_KEYS.EXPENSES, this.expenses);
       this.loadExpenses();
