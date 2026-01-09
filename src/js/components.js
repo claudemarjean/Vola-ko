@@ -35,6 +35,10 @@ export function renderSidebar(activePage = '') {
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets">Budgets</span>
       </a>
+      <a href="/savings.html" class="nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+        <span class="icon">💾</span>
+        <span data-i18n="nav.savings">Épargne</span>
+      </a>
       <a href="/reports.html" class="nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>
         <span data-i18n="nav.reports">Rapports</span>
@@ -97,6 +101,10 @@ export function renderBottomNav(activePage = '') {
       <a href="/budgets.html" class="bottom-nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets_short">Budgets</span>
+      </a>
+      <a href="/savings.html" class="bottom-nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+        <span class="icon">💾</span>
+        <span data-i18n="nav.savings_short">Épargne</span>
       </a>
       <a href="/reports.html" class="bottom-nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>

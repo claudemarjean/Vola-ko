@@ -15,6 +15,7 @@ class Dashboard {
     this.expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
     this.incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
     this.budgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
+    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.charts = {};
   }
@@ -64,6 +65,10 @@ class Dashboard {
     const totalIncome = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
     const balance = totalIncome - totalExpenses;
 
+    // Épargne
+    const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
+    const activeGoals = this.savings.filter(s => s.type === 'goal').length;
+
     // Calculer le budget total et utilisé
     const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount), 0);
     const budgetRemaining = totalBudget - totalExpenses;
@@ -72,6 +77,8 @@ class Dashboard {
     this.updateElement('balance-value', this.formatCurrency(balance));
     this.updateElement('income-value', this.formatCurrency(totalIncome));
     this.updateElement('expenses-value', this.formatCurrency(totalExpenses));
+    this.updateElement('savings-value', this.formatCurrency(totalSaved));
+    this.updateElement('savings-goals-count', activeGoals);
     this.updateElement('budget-value', this.formatCurrency(budgetRemaining));
   }
 
