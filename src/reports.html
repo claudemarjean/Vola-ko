@@ -47,18 +47,53 @@
       <!-- Charts -->
       <div class="charts-grid">
         <div class="chart-card card">
-          <h3 data-i18n="reports.expense_by_category">Dépenses par catégorie</h3>
-          <div class="chart-placeholder">Graphique circulaire à venir</div>
+          <div class="chart-header">
+            <h3 data-i18n="reports.expense_by_category">🍰 Dépenses par catégorie</h3>
+            <p class="chart-subtitle">Répartition de vos dépenses</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="category-chart"></canvas>
+          </div>
         </div>
 
         <div class="chart-card card">
-          <h3 data-i18n="reports.monthly_comparison">Comparaison mensuelle</h3>
-          <div class="chart-placeholder">Graphique à barres à venir</div>
+          <div class="chart-header">
+            <h3 data-i18n="reports.monthly_comparison">📊 Revenus vs Dépenses</h3>
+            <p class="chart-subtitle">Comparaison mensuelle</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="comparison-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card card full-width">
+          <div class="chart-header">
+            <h3 data-i18n="reports.trend">📈 Évolution des finances</h3>
+            <p class="chart-subtitle">Tendance sur la période sélectionnée</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="trend-chart"></canvas>
+          </div>
         </div>
 
         <div class="chart-card card">
-          <h3 data-i18n="reports.trend">Tendance</h3>
-          <div class="chart-placeholder">Graphique en ligne à venir</div>
+          <div class="chart-header">
+            <h3>🎯 Top 5 Dépenses</h3>
+            <p class="chart-subtitle">Vos plus grosses dépenses</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="top-expenses-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card card">
+          <div class="chart-header">
+            <h3>📅 Dépenses hebdomadaires</h3>
+            <p class="chart-subtitle">Répartition par jour</p>
+          </div>
+          <div class="chart-container">
+            <canvas id="weekly-chart"></canvas>
+          </div>
         </div>
       </div>
     </main>
