@@ -28,9 +28,9 @@
   --header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
   
   /* Button */
-  --btn-secondary-bg: #334155;
+  --btn-secondary-bg: #475569;
   --btn-secondary-text: #f1f5f9;
-  --btn-secondary-hover: #475569;
+  --btn-secondary-hover: #64748b;
   
   /* Input */
   --input-bg: #0f172a;
