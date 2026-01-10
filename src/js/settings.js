@@ -24,7 +24,7 @@ class SettingsManager {
 
   checkAuth() {
     if (!this.auth.isAuthenticated()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 
@@ -93,7 +93,7 @@ class SettingsManager {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
         this.auth.logout();
-        window.location.href = '/index.html';
+        window.location.href = '/';
       });
     }
   }

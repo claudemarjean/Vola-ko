@@ -29,7 +29,7 @@ class SavingsManager {
   checkAuth() {
     const auth = new Auth();
     if (!auth.isAuthenticated()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 

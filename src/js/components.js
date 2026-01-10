@@ -19,31 +19,31 @@ export function renderSidebar(activePage = '') {
     <div class="sidebar-logo" data-i18n="app.name">Vola-ko</div>
     
     <nav class="sidebar-nav">
-      <a href="/dashboard.html" class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" data-link>
+      <a href="/dashboard" class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" data-link>
         <span class="icon">🏠</span>
         <span data-i18n="nav.dashboard">Dashboard</span>
       </a>
-      <a href="/expenses.html" class="nav-item ${activePage === 'expenses' ? 'active' : ''}" data-link>
+      <a href="/expenses" class="nav-item ${activePage === 'expenses' ? 'active' : ''}" data-link>
         <span class="icon">💸</span>
         <span data-i18n="nav.expenses">Dépenses</span>
       </a>
-      <a href="/incomes.html" class="nav-item ${activePage === 'incomes' ? 'active' : ''}" data-link>
+      <a href="/incomes" class="nav-item ${activePage === 'incomes' ? 'active' : ''}" data-link>
         <span class="icon">💰</span>
         <span data-i18n="nav.incomes">Revenus</span>
       </a>
-      <a href="/budgets.html" class="nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
+      <a href="/budgets" class="nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets">Budgets</span>
       </a>
-      <a href="/savings.html" class="nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+      <a href="/savings" class="nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
         <span class="icon">💾</span>
         <span data-i18n="nav.savings">Épargne</span>
       </a>
-      <a href="/reports.html" class="nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
+      <a href="/reports" class="nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>
         <span data-i18n="nav.reports">Rapports</span>
       </a>
-      <a href="/settings.html" class="nav-item ${activePage === 'settings' ? 'active' : ''}" data-link>
+      <a href="/settings" class="nav-item ${activePage === 'settings' ? 'active' : ''}" data-link>
         <span class="icon">⚙️</span>
         <span data-i18n="nav.settings">Paramètres</span>
       </a>
@@ -72,7 +72,7 @@ export function renderSidebar(activePage = '') {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       auth.logout();
-      window.location.href = '/index.html';
+      window.location.href = '/';
     });
   }
 }
@@ -86,31 +86,31 @@ export function renderBottomNav(activePage = '') {
 
   container.innerHTML = `
     <div class="bottom-nav-items">
-      <a href="/dashboard.html" class="bottom-nav-item ${activePage === 'dashboard' ? 'active' : ''}" data-link>
+      <a href="/dashboard" class="bottom-nav-item ${activePage === 'dashboard' ? 'active' : ''}" data-link>
         <span class="icon">🏠</span>
         <span data-i18n="nav.dashboard_short">Dashboard</span>
       </a>
-      <a href="/expenses.html" class="bottom-nav-item ${activePage === 'expenses' ? 'active' : ''}" data-link>
+      <a href="/expenses" class="bottom-nav-item ${activePage === 'expenses' ? 'active' : ''}" data-link>
         <span class="icon">💸</span>
         <span data-i18n="nav.expenses_short">Dépenses</span>
       </a>
-      <a href="/incomes.html" class="bottom-nav-item ${activePage === 'incomes' ? 'active' : ''}" data-link>
+      <a href="/incomes" class="bottom-nav-item ${activePage === 'incomes' ? 'active' : ''}" data-link>
         <span class="icon">💰</span>
         <span data-i18n="nav.incomes_short">Revenus</span>
       </a>
-      <a href="/budgets.html" class="bottom-nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
+      <a href="/budgets" class="bottom-nav-item ${activePage === 'budgets' ? 'active' : ''}" data-link>
         <span class="icon">🎯</span>
         <span data-i18n="nav.budgets_short">Budgets</span>
       </a>
-      <a href="/savings.html" class="bottom-nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
+      <a href="/savings" class="bottom-nav-item ${activePage === 'savings' ? 'active' : ''}" data-link>
         <span class="icon">💾</span>
         <span data-i18n="nav.savings_short">Épargne</span>
       </a>
-      <a href="/reports.html" class="bottom-nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
+      <a href="/reports" class="bottom-nav-item ${activePage === 'reports' ? 'active' : ''}" data-link>
         <span class="icon">📊</span>
         <span data-i18n="nav.reports_short">Rapports</span>
       </a>
-      <a href="/settings.html" class="bottom-nav-item ${activePage === 'settings' ? 'active' : ''}" data-link>
+      <a href="/settings" class="bottom-nav-item ${activePage === 'settings' ? 'active' : ''}" data-link>
         <span class="icon">⚙️</span>
         <span data-i18n="nav.settings_short">Plus</span>
       </a>

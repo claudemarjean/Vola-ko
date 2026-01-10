@@ -37,7 +37,7 @@ class Dashboard {
   checkAuth() {
     const auth = new Auth();
     if (!auth.isAuthenticated()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 
@@ -188,7 +188,7 @@ class Dashboard {
       logoutBtn.addEventListener('click', () => {
         const auth = new Auth();
         auth.logout();
-        window.location.href = '/index.html';
+        window.location.href = '/';
       });
     }
 
@@ -196,7 +196,7 @@ class Dashboard {
     const addBtn = document.getElementById('add-transaction-btn');
     if (addBtn) {
       addBtn.addEventListener('click', () => {
-        window.location.href = '/expenses.html';
+        window.location.href = '/expenses';
       });
     }
 
