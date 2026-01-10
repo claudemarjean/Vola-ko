@@ -41,6 +41,9 @@ class ReportsManager {
 
     const totalIncome = incomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
     const totalExpenses = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+    
+    // Balance = Revenus - Dépenses (pour analyse et rapports)
+    // Note: L'épargne n'est pas comptée ici car elle n'affecte pas le flux de trésorerie
     const balance = totalIncome - totalExpenses;
 
     const incomeEl = document.getElementById('report-income');

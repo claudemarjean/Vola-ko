@@ -14,6 +14,7 @@ export const CATEGORIES = [
   { id: 'logement', name: 'Logement', icon: '🏠', color: '#f59e0b' },
   { id: 'sante', name: 'Santé', icon: '💊', color: '#ef4444' },
   { id: 'loisirs', name: 'Loisirs', icon: '🎮', color: '#8b5cf6' },
+  { id: 'epargne', name: 'Épargne', icon: '💾', color: '#7c3aed' },
   { id: 'autre', name: 'Autre', icon: '📦', color: '#6b7280' }
 ];
 
