@@ -1,0 +1,65 @@
+Modifications à effectuer manuellement :
+
+1. Dans financeEngine.js, ligne ~244 :
+   Changer: static addToSaving(savingId, amount, description = '') {
+   En: static addToSaving(savingId, amount, description = '', transactionDate = null) {
+
+2. Dans financeEngine.js, ligne ~270 :
+   Après: const expenseId = 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+   Ajouter: const expenseDate = transactionDate || new Date().toISOString();
+
+3. Dans financeEngine.js, ligne ~275 :
+   Changer: date: new Date().toISOString(),
+   En: date: expenseDate,
+
+4. Dans financeEngine.js, ligne ~289 :
+   Changer: date: new Date().toISOString(),
+   En: date: expenseDate,
+
+5. Dans financeEngine.js, ligne ~312 :
+   Changer: static withdrawFromSaving(savingId, amount, description = '') {
+   En: static withdrawFromSaving(savingId, amount, description = '', transactionDate = null) {
+
+6. Dans financeEngine.js, ligne ~338 :
+   Après: const incomeId = 'inc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+   Ajouter: const incomeDate = transactionDate || new Date().toISOString();
+
+7. Dans financeEngine.js, ligne ~343 :
+   Changer: date: new Date().toISOString(),
+   En: date: incomeDate,
+
+8. Dans financeEngine.js, ligne ~357 :
+   Changer: date: new Date().toISOString(),
+   En: date: incomeDate,
+
+9. Dans savings.js, ligne ~488 :
+   Changer: description || `Ajout à ${saving.name}`
+   En: description || `Ajout à ${saving.name}`,
+       date
+
+10. Dans savings.js, ligne ~510 :
+    Changer: description || `Retrait de ${saving.name}`
+    En: description || `Retrait de ${saving.name}`,
+        date
+
+11. Dans savings.js, ligne ~323 :
+    Avant: const result = FinanceEngine.addToSaving(
+    Ajouter: const today = new Date().toISOString().split('T')[0];
+    Et changer l'appel en:
+      FinanceEngine.addToSaving(
+        saving.id,
+        initialAmount,
+        `Montant initial de ${name}`,
+        today
+      );
+
+12. Dans savings.js, ligne ~372 :
+    Avant: const result = FinanceEngine.withdrawFromSaving(
+    Ajouter: const today = new Date().toISOString().split('T')[0];
+    Et changer l'appel en:
+      FinanceEngine.withdrawFromSaving(
+        id,
+        balance,
+        `Restitution suite à suppression de l'épargne: ${saving.name}`,
+        today
+      );

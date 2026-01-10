@@ -7,6 +7,7 @@ import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import ThemeManager from './theme.js';
 import I18n from './i18n.js';
+import notify from './notifications.js';
 
 class SettingsManager {
   constructor() {
@@ -108,6 +109,8 @@ class SettingsManager {
       expenses: Storage.get(STORAGE_KEYS.EXPENSES, []),
       incomes: Storage.get(STORAGE_KEYS.INCOMES, []),
       budgets: Storage.get(STORAGE_KEYS.BUDGETS, []),
+      savings: Storage.get(STORAGE_KEYS.SAVINGS, []),
+      savingsTransactions: Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []),
       exportDate: new Date().toISOString()
     };
 
@@ -121,33 +124,35 @@ class SettingsManager {
   }
 
   async clearData() {
-    const firstConfirm = await showConfirmModal(
-      'Cette action supprimera toutes vos données locales (dépenses, revenus, budgets). Êtes-vous sûr ?',
+    const firstConfirm = await notify.confirm(
+      'Cette action supprimera toutes vos données locales (dépenses, revenus, budgets, épargnes). Êtes-vous sûr ?',
+      '⚠️ Attention !',
       {
-        title: '⚠️ Attention !',
         confirmText: 'Continuer',
         cancelText: 'Annuler',
+        type: 'warning',
         danger: true
       }
     );
 
     if (firstConfirm) {
-      const secondConfirm = await showConfirmModal(
+      const secondConfirm = await notify.confirm(
         'Voulez-vous vraiment supprimer toutes les données ?',
+        '⚠️ Dernière confirmation',
         {
-          title: '⚠️ Dernière confirmation',
           confirmText: 'Supprimer',
           cancelText: 'Annuler',
+          type: 'error',
           danger: true
         }
       );
 
       if (secondConfirm) {
-        Storage.remove(STORAGE_KEYS.EXPENSES);
-        Storage.remove(STORAGE_KEYS.INCOMES);
-        Storage.remove(STORAGE_KEYS.BUDGETS);
-        alert('✅ Toutes les données ont été supprimées.');
-        window.location.reload();
+        // Supprimer toutes les données de l'application
+        Storage.clear();
+        notify.success('Toutes les données ont été supprimées.');
+        // Rediriger vers la page de connexion après suppression
+        setTimeout(() => window.location.href = '/login', 1500);
       }
     }
   }

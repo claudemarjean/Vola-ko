@@ -6,6 +6,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { CATEGORIES } from './utils.js';
 import { Chart, registerables } from 'chart.js';
+import FinanceEngine from './financeEngine.js';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -43,78 +44,25 @@ class Dashboard {
 
   /**
    * Mettre à jour les statistiques
-   * 
-   * LOGIQUE DES CALCULS:
-   * 1. Solde disponible = Revenus du mois - Dépenses du mois
-   *    → C'est l'argent disponible à dépenser
-   *    → Les dépenses incluent les ajouts à l'épargne (catégorie "Épargne")
-   * 
-   * 2. Épargne totale = Somme de tous les soldes d'épargne
-   *    → Affiché séparément comme indicateur
-   *    → L'épargne est de l'argent mis de côté
-   * 
-   * 3. Quand on AJOUTE à l'épargne:
-   *    → Une dépense automatique est créée
-   *    → Le solde disponible diminue
-   * 
-   * 4. Quand on RETIRE de l'épargne:
-   *    → Un revenu automatique est créé
-   *    → Le solde disponible augmente
+   * Utilise FinanceEngine pour garantir des calculs cohérents
    */
   updateStats() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    // Utiliser le moteur financier pour calculer tous les soldes
+    const balances = FinanceEngine.calculateBalances();
 
-    // Filtrer les transactions du mois en cours
-    const monthExpenses = this.expenses.filter(exp => {
-      const date = new Date(exp.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    const monthIncomes = this.incomes.filter(inc => {
-      const date = new Date(inc.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    // Calculer les totaux
-    const totalExpenses = monthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
-    const totalIncome = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
+    // Mettre à jour l'affichage du solde disponible
+    this.updateElement('balance-available-value', this.formatCurrency(balances.availableBalance));
     
-    // Solde disponible = revenus - dépenses (sans soustraire l'épargne)
-    const availableBalance = totalIncome - totalExpenses;
+    // Mettre à jour les autres statistiques
+    this.updateElement('income-value', this.formatCurrency(balances.totalIncome));
+    this.updateElement('expenses-value', this.formatCurrency(balances.totalExpenses));
+    this.updateElement('savings-value', this.formatCurrency(balances.totalSaved));
+    this.updateElement('savings-goals-count', balances.savingsCount);
 
-    // Épargne totale (séparée du solde disponible)
-    const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
-    const activeGoals = this.savings.filter(s => s.type === 'goal').length;
-
-    // Calculer le budget total et utilisé
-    const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount), 0);
-    const budgetRemaining = totalBudget - totalExpenses;
-
-    // Mettre à jour l'affichage
-    this.updateElement('balance-value', this.formatCurrency(availableBalance));
-    this.updateElement('income-value', this.formatCurrency(totalIncome));
-    this.updateElement('expenses-value', this.formatCurrency(totalExpenses));
-    this.updateElement('savings-value', this.formatCurrency(totalSaved));
-    this.updateElement('savings-goals-count', activeGoals);
+    // Calculer le budget restant
+    const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount || 0), 0);
+    const budgetRemaining = totalBudget - balances.totalExpenses;
     this.updateElement('budget-value', this.formatCurrency(budgetRemaining));
-    
-    // Ajouter un indicateur visuel si épargne > 0
-    const balanceCard = document.querySelector('.stat-card');
-    if (balanceCard && totalSaved > 0) {
-      const savingsIndicator = balanceCard.querySelector('.savings-indicator') || document.createElement('div');
-      if (!balanceCard.querySelector('.savings-indicator')) {
-        savingsIndicator.className = 'savings-indicator';
-        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
-        const statHeader = balanceCard.querySelector('.stat-header');
-        if (statHeader) {
-          statHeader.insertAdjacentElement('afterend', savingsIndicator);
-        }
-      } else {
-        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
-      }
-    }
   }
 
   /**
@@ -134,8 +82,20 @@ class Dashboard {
 
     // Afficher
     const listElement = document.getElementById('transactions-list');
-    if (listElement && recent.length > 0) {
-      listElement.innerHTML = recent.map(t => this.createTransactionHTML(t)).join('');
+    if (listElement) {
+      if (recent.length > 0) {
+        listElement.innerHTML = recent.map(t => this.createTransactionHTML(t)).join('');
+      } else {
+        listElement.innerHTML = `
+          <li class="transaction-item empty-state">
+            <div class="transaction-info">
+              <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                📝 Aucune transaction récente
+              </p>
+            </div>
+          </li>
+        `;
+      }
     }
   }
 

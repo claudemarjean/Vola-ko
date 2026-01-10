@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/dark.css">
   <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
   <link rel="stylesheet" href="/css/app-layout.css">
 </head>
 <body>
@@ -92,6 +93,12 @@
             <option value="loisirs">🎮 Loisirs</option>
             <option value="autre">📦 Autre</option>
           </select>
+        </div>
+
+        <div class="form-group" id="expense-other-reference-group" style="display: none;">
+          <label for="expense-other-reference">Référence complémentaire (facultatif)</label>
+          <input type="text" id="expense-other-reference" class="form-input" placeholder="Ex: Cadeau, Donation, etc.">
+          <small style="color: var(--text-secondary); font-size: 0.875rem;">Cette information est facultative et reste dans la catégorie "Autre"</small>
         </div>
 
         <div class="form-group">

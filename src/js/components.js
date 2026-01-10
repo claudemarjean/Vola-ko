@@ -120,74 +120,23 @@ export function renderBottomNav(activePage = '') {
 
 /**
  * Show Custom Confirmation Modal
+ * Now uses the new notification system
  */
-export function showConfirmModal(message, options = {}) {
-  return new Promise((resolve) => {
-    const {
-      title = '⚠️ Confirmation',
-      confirmText = 'Confirmer',
-      cancelText = 'Annuler',
-      confirmClass = 'btn-error',
-      danger = false
-    } = options;
+export async function showConfirmModal(message, options = {}) {
+  const { default: notify } = await import('./notifications.js');
+  
+  const {
+    title = '⚠️ Confirmation',
+    confirmText = 'Confirmer',
+    cancelText = 'Annuler',
+    danger = false
+  } = options;
 
-    // Remove existing modal if any
-    const existingModal = document.querySelector('.custom-modal-overlay');
-    if (existingModal) {
-      existingModal.remove();
-    }
-
-    // Create modal overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'custom-modal-overlay';
-    overlay.innerHTML = `
-      <div class="custom-modal">
-        <div class="custom-modal-header">
-          <h3 class="custom-modal-title">${title}</h3>
-        </div>
-        <div class="custom-modal-body">
-          <p>${message}</p>
-        </div>
-        <div class="custom-modal-actions">
-          <button class="btn btn-outline custom-modal-cancel">${cancelText}</button>
-          <button class="btn ${danger ? 'btn-error' : confirmClass} custom-modal-confirm">${confirmText}</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    // Add event listeners
-    const confirmBtn = overlay.querySelector('.custom-modal-confirm');
-    const cancelBtn = overlay.querySelector('.custom-modal-cancel');
-
-    const closeModal = (result) => {
-      overlay.classList.add('fade-out');
-      setTimeout(() => {
-        overlay.remove();
-        resolve(result);
-      }, 200);
-    };
-
-    confirmBtn.addEventListener('click', () => closeModal(true));
-    cancelBtn.addEventListener('click', () => closeModal(false));
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal(false);
-    });
-
-    // Keyboard support
-    const handleKeydown = (e) => {
-      if (e.key === 'Escape') {
-        closeModal(false);
-        document.removeEventListener('keydown', handleKeydown);
-      } else if (e.key === 'Enter') {
-        closeModal(true);
-        document.removeEventListener('keydown', handleKeydown);
-      }
-    };
-    document.addEventListener('keydown', handleKeydown);
-
-    // Trigger animation
-    setTimeout(() => overlay.classList.add('show'), 10);
+  return notify.confirm(message, title, {
+    confirmText,
+    cancelText,
+    type: danger ? 'error' : 'warning',
+    danger
   });
 }
+

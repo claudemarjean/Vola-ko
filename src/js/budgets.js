@@ -5,6 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import FinanceEngine from './financeEngine.js';
 
 class BudgetsManager {
   constructor() {
@@ -52,12 +53,15 @@ class BudgetsManager {
     else if (percentage > 60) progressColor = 'var(--color-warning)';
 
     const icon = this.getCategoryIcon(budget.category);
+    const categoryName = budget.category === 'autre' && budget.otherReference 
+      ? `${this.getCategoryName(budget.category)} (${budget.otherReference})` 
+      : this.getCategoryName(budget.category);
 
     return `
       <div class="budget-card card">
         <div class="budget-header">
           <div>
-            <h3>${icon} ${this.getCategoryName(budget.category)}</h3>
+            <h3>${icon} ${categoryName}</h3>
             <p>Budget mensuel</p>
           </div>
           <button class="btn-icon delete-btn" data-id="${budget.id}">🗑️</button>
@@ -160,25 +164,64 @@ class BudgetsManager {
         this.saveBudget();
       });
     }
+
+    // Toggle "other" reference field
+    const categorySelect = document.getElementById('budget-category');
+    const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    
+    if (categorySelect && otherReferenceGroup) {
+      categorySelect.addEventListener('change', (e) => {
+        if (e.target.value === 'autre') {
+          otherReferenceGroup.style.display = 'block';
+        } else {
+          otherReferenceGroup.style.display = 'none';
+          document.getElementById('budget-other-reference').value = '';
+        }
+      });
+    }
   }
 
   openModal() {
     const modal = document.getElementById('budget-modal');
+    const form = document.getElementById('budget-form');
+    const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    
     if (modal) {
       modal.classList.add('active');
+    }
+    
+    // Réinitialiser le formulaire et masquer le champ "autre"
+    if (form) {
+      form.reset();
+    }
+    
+    if (otherReferenceGroup) {
+      otherReferenceGroup.style.display = 'none';
     }
   }
 
   closeModal() {
     const modal = document.getElementById('budget-modal');
+    const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    
     if (modal) {
       modal.classList.remove('active');
+    }
+    
+    // Réinitialiser le champ "autre" lors de la fermeture
+    if (otherReferenceGroup) {
+      otherReferenceGroup.style.display = 'none';
+      const otherReferenceInput = document.getElementById('budget-other-reference');
+      if (otherReferenceInput) {
+        otherReferenceInput.value = '';
+      }
     }
   }
 
   async saveBudget() {
     const category = document.getElementById('budget-category').value;
     const amount = parseFloat(document.getElementById('budget-amount').value);
+    const otherReference = category === 'autre' ? document.getElementById('budget-other-reference').value : '';
 
     // Check if budget already exists for this category
     const existingIndex = this.budgets.findIndex(b => b.category === category);
@@ -196,6 +239,7 @@ class BudgetsManager {
 
       if (confirmed) {
         this.budgets[existingIndex].amount = amount;
+        this.budgets[existingIndex].otherReference = otherReference || undefined;
       } else {
         return;
       }
@@ -203,7 +247,8 @@ class BudgetsManager {
       const budget = {
         id: Date.now().toString(),
         category,
-        amount
+        amount,
+        otherReference: otherReference || undefined
       };
       this.budgets.push(budget);
     }

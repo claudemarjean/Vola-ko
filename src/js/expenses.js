@@ -5,6 +5,8 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import FinanceEngine from './financeEngine.js';
+import notify from './notifications.js';
 
 class ExpensesManager {
   constructor() {
@@ -84,6 +86,9 @@ class ExpensesManager {
   createExpenseHTML(expense) {
     const icon = this.getCategoryIcon(expense.category);
     const date = new Date(expense.date).toLocaleDateString('fr-FR');
+    const categoryDisplay = expense.category === 'autre' && expense.otherReference 
+      ? `${expense.category} (${expense.otherReference})` 
+      : expense.category;
     
     return `
       <div class="list-item" data-id="${expense.id}">
@@ -91,7 +96,7 @@ class ExpensesManager {
           <div class="item-icon">${icon}</div>
           <div class="item-details">
             <h4>${expense.description}</h4>
-            <p>${date} • ${expense.category}</p>
+            <p>${date} • ${categoryDisplay}</p>
           </div>
         </div>
         <div class="item-actions">
@@ -193,11 +198,28 @@ class ExpensesManager {
     if (dateInput) {
       dateInput.value = new Date().toISOString().split('T')[0];
     }
+
+    // Toggle "other" reference field
+    const categorySelect = document.getElementById('expense-category');
+    const otherReferenceGroup = document.getElementById('expense-other-reference-group');
+    
+    if (categorySelect && otherReferenceGroup) {
+      categorySelect.addEventListener('change', (e) => {
+        if (e.target.value === 'autre') {
+          otherReferenceGroup.style.display = 'block';
+        } else {
+          otherReferenceGroup.style.display = 'none';
+          document.getElementById('expense-other-reference').value = '';
+        }
+      });
+    }
   }
 
   openModal(expense = null) {
     const modal = document.getElementById('expense-modal');
     const form = document.getElementById('expense-form');
+    const otherReferenceGroup = document.getElementById('expense-other-reference-group');
+    const otherReferenceInput = document.getElementById('expense-other-reference');
     
     if (!modal || !form) return;
 
@@ -208,11 +230,26 @@ class ExpensesManager {
       document.getElementById('expense-amount').value = expense.amount;
       document.getElementById('expense-category').value = expense.category;
       document.getElementById('expense-date').value = expense.date;
+      
+      // Afficher le champ "autre" si la catégorie est "autre"
+      if (expense.category === 'autre' && otherReferenceGroup) {
+        otherReferenceGroup.style.display = 'block';
+        if (otherReferenceInput && expense.otherReference) {
+          otherReferenceInput.value = expense.otherReference;
+        }
+      } else if (otherReferenceGroup) {
+        otherReferenceGroup.style.display = 'none';
+      }
     } else {
       // Add mode
       form.reset();
       delete form.dataset.editId;
       document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+      
+      // Masquer le champ "autre" par défaut
+      if (otherReferenceGroup) {
+        otherReferenceGroup.style.display = 'none';
+      }
     }
 
     modal.classList.add('active');
@@ -220,8 +257,19 @@ class ExpensesManager {
 
   closeModal() {
     const modal = document.getElementById('expense-modal');
+    const otherReferenceGroup = document.getElementById('expense-other-reference-group');
+    
     if (modal) {
       modal.classList.remove('active');
+    }
+    
+    // Réinitialiser le champ "autre" lors de la fermeture
+    if (otherReferenceGroup) {
+      otherReferenceGroup.style.display = 'none';
+      const otherReferenceInput = document.getElementById('expense-other-reference');
+      if (otherReferenceInput) {
+        otherReferenceInput.value = '';
+      }
     }
   }
 
@@ -229,19 +277,48 @@ class ExpensesManager {
     const form = document.getElementById('expense-form');
     const editId = form.dataset.editId;
 
+    const amount = parseFloat(document.getElementById('expense-amount').value);
+    const description = document.getElementById('expense-description').value;
+    const category = document.getElementById('expense-category').value;
+    const date = document.getElementById('expense-date').value;
+    const otherReference = category === 'autre' ? document.getElementById('expense-other-reference').value : '';
+
+    // Valider les champs
+    if (!description || !amount || !category || !date) {
+      notify.error('Tous les champs sont requis', 'Champs manquants');
+      return;
+    }
+
+    // VALIDATION FINANCIÈRE via FinanceEngine
+    // Ne valider que pour les nouvelles dépenses (pas pour les éditions)
+    if (!editId && category !== 'epargne') {
+      const validation = FinanceEngine.validateExpense(amount);
+      
+      if (!validation.valid) {
+        notify.alert(
+          `${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`,
+          '❌ Solde insuffisant',
+          'error'
+        );
+        return;
+      }
+    }
+
     const expense = {
       id: editId || Date.now().toString(),
-      description: document.getElementById('expense-description').value,
-      amount: parseFloat(document.getElementById('expense-amount').value),
-      category: document.getElementById('expense-category').value,
-      date: document.getElementById('expense-date').value
+      description,
+      amount,
+      category,
+      date,
+      otherReference: otherReference || undefined,
+      createdAt: editId ? undefined : new Date().toISOString()
     };
 
     if (editId) {
       // Update existing
       const index = this.expenses.findIndex(exp => exp.id === editId);
       if (index !== -1) {
-        this.expenses[index] = expense;
+        this.expenses[index] = { ...this.expenses[index], ...expense };
       }
     } else {
       // Add new

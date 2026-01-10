@@ -264,6 +264,25 @@
   color: var(--text-primary);
 }
 
+/* Override modal-close styles for button elements */
+.btn.modal-close {
+  background: var(--btn-secondary-bg);
+  border: 2px solid var(--color-gray-300);
+  color: var(--btn-secondary-text);
+  font-size: var(--font-size-base);
+  padding: var(--space-sm) var(--space-lg);
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  font-weight: 600;
+}
+
+.btn.modal-close:hover {
+  background-color: var(--btn-secondary-hover);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-900);
+}
+
 .modal-content form {
   padding: var(--space-xl);
 }
