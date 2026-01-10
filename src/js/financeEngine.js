@@ -289,7 +289,7 @@ class FinanceEngine {
     const transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
     transactions.push({
       id: 'tx_' + Date.now(),
-      savingId,
+      savingsId: savingId,
       type: 'add',
       amount: parseFloat(amount),
       description: description || `Ajout à l'épargne: ${saving.name}`,
@@ -359,7 +359,7 @@ class FinanceEngine {
     const transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
     transactions.push({
       id: 'tx_' + Date.now(),
-      savingId,
+      savingsId: savingId,
       type: 'withdraw',
       amount: parseFloat(amount),
       description: description || `Retrait de l'épargne: ${saving.name}`,

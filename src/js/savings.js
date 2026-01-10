@@ -344,6 +344,7 @@ class SavingsManager {
 
     // Recharger les données après les modifications
     this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+    this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
     
     this.closeSavingModal();
     this.updateStats();
@@ -603,16 +604,22 @@ class SavingsManager {
       const symbol = isAdd ? '➕' : '➖';
       const label = isAdd ? 'Ajout' : 'Retrait';
       const amount = this.formatCurrency(t.amount);
-      const dateLabel = new Date(t.date).toLocaleDateString('fr-FR');
+      const dateLabel = new Date(t.date).toLocaleDateString('fr-FR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
       const color = isAdd ? 'var(--success-color, #16a34a)' : 'var(--error-color, #dc2626)';
+      const description = t.description || '';
 
       return `
         <div class="card" style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">
-          <div>
+          <div style="flex: 1;">
             <div style="font-weight: 700;">${symbol} ${label}</div>
-            <div style="font-size: 0.9rem; color: var(--text-muted);">${dateLabel}</div>
+            ${description ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">${description}</div>` : ''}
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">📅 ${dateLabel}</div>
           </div>
-          <div style="font-weight: 800; color: ${color};">${amount}</div>
+          <div style="font-weight: 800; color: ${color}; white-space: nowrap;">${amount}</div>
         </div>
       `;
     }).join('');
