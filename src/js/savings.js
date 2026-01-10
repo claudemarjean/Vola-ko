@@ -6,6 +6,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import notify from './notifications.js';
 
 class SavingsManager {
   constructor() {
@@ -282,27 +283,27 @@ class SavingsManager {
     const autoDate = document.getElementById('auto-withdraw-date').value || null;
 
     if (!name) {
-      alert('❌ Le nom de l\'épargne est requis');
+      notify.error('Le nom de l\'épargne est requis');
       return;
     }
 
     if (initialAmount < 0) {
-      alert('❌ Le montant initial ne peut pas être négatif');
+      notify.error('Le montant initial ne peut pas être négatif');
       return;
     }
 
     if (type === 'goal' && targetAmount > 0 && initialAmount > targetAmount) {
-      alert('❌ Le montant initial ne peut pas dépasser l\'objectif');
+      notify.error('Le montant initial ne peut pas dépasser l\'objectif');
       return;
     }
 
     if (autoEnabled) {
       if (!autoDate) {
-        alert('❌ La date de retrait automatique est requise');
+        notify.error('La date de retrait automatique est requise');
         return;
       }
       if (autoAmount <= 0) {
-        alert('❌ Le montant du retrait automatique doit être supérieur à 0');
+        notify.error('Le montant du retrait automatique doit être supérieur à 0');
         return;
       }
     }
@@ -455,25 +456,25 @@ class SavingsManager {
     const date = document.getElementById('transaction-date').value;
 
     if (!savingId || !type || !amount || !date) {
-      alert('❌ Tous les champs sont requis');
+      notify.error('Tous les champs sont requis');
       return;
     }
 
     if (amount <= 0) {
-      alert('❌ Le montant doit être supérieur à 0');
+      notify.error('Le montant doit être supérieur à 0');
       return;
     }
 
     const saving = this.savings.find(s => s.id === savingId);
     if (!saving) {
-      alert('❌ Épargne introuvable');
+      notify.error('Épargne introuvable');
       return;
     }
 
     const currentBalance = parseFloat(saving.balance || 0);
 
     if (type === 'withdraw' && amount > currentBalance) {
-      alert(`❌ Montant insuffisant. Solde actuel : ${this.formatCurrency(currentBalance)}`);
+      notify.error(`Montant insuffisant. Solde actuel : ${this.formatCurrency(currentBalance)}`);
       return;
     }
 
@@ -638,7 +639,7 @@ class SavingsManager {
     }
 
     if (errors.length > 0) {
-      alert(errors.join('\n'));
+      notify.warning(errors.join('<br>'), 6000);
     }
   }
 
