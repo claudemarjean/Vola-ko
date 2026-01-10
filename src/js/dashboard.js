@@ -50,9 +50,8 @@ class Dashboard {
     // Utiliser le moteur financier pour calculer tous les soldes
     const balances = FinanceEngine.calculateBalances();
 
-    // Mettre à jour l'affichage des deux soldes principaux
+    // Mettre à jour l'affichage du solde disponible
     this.updateElement('balance-available-value', this.formatCurrency(balances.availableBalance));
-    this.updateElement('balance-with-savings-value', this.formatCurrency(balances.totalBalanceWithSavings));
     
     // Mettre à jour les autres statistiques
     this.updateElement('income-value', this.formatCurrency(balances.totalIncome));
