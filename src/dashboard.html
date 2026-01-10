@@ -206,6 +206,24 @@
       color: var(--color-error);
     }
 
+    /* Savings Indicator */
+    .savings-indicator {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm) var(--space-md);
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+      border-left: 3px solid var(--color-secondary);
+      border-radius: var(--radius-sm);
+      margin-top: var(--space-sm);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .savings-indicator span:first-child {
+      font-size: 1.1rem;
+    }
+
     /* Recent Transactions */
     .transactions-card {
       background-color: var(--card-bg);

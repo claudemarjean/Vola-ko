@@ -72,7 +72,7 @@ export function renderSidebar(activePage = '') {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       auth.logout();
-      window.location.href = '/index.html';
+      window.location.href = '/';
     });
   }
 }

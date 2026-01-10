@@ -29,7 +29,7 @@ class SavingsManager {
   checkAuth() {
     const auth = new Auth();
     if (!auth.isAuthenticated()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 
@@ -477,11 +477,32 @@ class SavingsManager {
       return;
     }
 
-    // Update balance
+    /**
+     * LOGIQUE DES TRANSACTIONS:
+     * 
+     * AJOUT (add):
+     * - Augmente le solde de l'épargne
+     * - Crée une dépense avec catégorie "Épargne"
+     * - Le solde disponible DIMINUE (car l'argent est mis de côté)
+     * - L'argent n'est plus disponible à dépenser
+     * 
+     * RETRAIT (withdraw):
+     * - Diminue le solde de l'épargne
+     * - Crée un revenu automatique du même montant
+     * - Le solde disponible AUGMENTE (revenus + retrait)
+     * - L'argent redevient disponible à dépenser
+     */
     if (type === 'add') {
       saving.balance = currentBalance + amount;
+      
+      // Créer une dépense pour réduire le solde disponible
+      this.addSavingAsExpense(amount, date, saving.name);
     } else {
+      // Retrait d'épargne
       saving.balance = currentBalance - amount;
+      
+      // Ajouter le montant retiré comme revenu pour augmenter le solde disponible
+      this.addWithdrawalAsIncome(amount, date, saving.name);
     }
 
     // Record transaction
@@ -493,6 +514,67 @@ class SavingsManager {
     this.closeTransactionModal();
     this.updateStats();
     this.loadSavings();
+  }
+
+  /**
+   * Ajouter un ajout d'épargne comme dépense
+   * 
+   * LOGIQUE:
+   * Quand on ajoute à l'épargne, cet argent quitte le solde disponible.
+   * On crée donc une dépense automatique avec le montant ajouté.
+   * Cela réduit le solde disponible (Revenus - Dépenses).
+   * 
+   * Exemple:
+   * - Solde disponible: 1 000 000 MGA
+   * - Ajout: 500 000 MGA à Épargne Vacances
+   * - → Nouvelle dépense créée: 500 000 MGA "Épargne: Vacances"
+   * - → Solde disponible devient: 500 000 MGA
+   * - → Épargne Vacances: 500 000 MGA
+   */
+  addSavingAsExpense(amount, date, savingName) {
+    const expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+    
+    const newExpense = {
+      id: Date.now().toString(),
+      description: `Épargne: ${savingName}`,
+      amount: amount,
+      category: 'epargne',
+      date: date,
+      createdAt: new Date().toISOString()
+    };
+    
+    expenses.push(newExpense);
+    Storage.set(STORAGE_KEYS.EXPENSES, expenses);
+  }
+
+  /**
+   * Ajouter un retrait d'épargne comme revenu
+   * 
+   * LOGIQUE:
+   * Quand on retire de l'épargne, cet argent devient disponible à dépenser.
+   * On crée donc un revenu automatique avec le montant retiré.
+   * Cela augmente le solde disponible (Revenus - Dépenses).
+   * 
+   * Exemple:
+   * - Épargne Vacances: 500 000 MGA
+   * - Retrait: 100 000 MGA
+   * - → Épargne devient: 400 000 MGA
+   * - → Nouveau revenu créé: 100 000 MGA "Retrait épargne: Vacances"
+   * - → Solde disponible augmente de 100 000 MGA
+   */
+  addWithdrawalAsIncome(amount, date, savingName) {
+    const incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+    
+    const newIncome = {
+      id: Date.now().toString(),
+      source: `Retrait épargne: ${savingName}`,
+      amount: amount,
+      date: date,
+      createdAt: new Date().toISOString()
+    };
+    
+    incomes.push(newIncome);
+    Storage.set(STORAGE_KEYS.INCOMES, incomes);
   }
 
   processAutoWithdrawals() {
@@ -535,6 +617,10 @@ class SavingsManager {
         auto.lastError = null;
         auto.lastRunAt = new Date().toISOString();
         this.recordTransaction(saving.id, amount, 'withdraw', auto.date);
+        
+        // Ajouter le montant retiré comme revenu
+        this.addWithdrawalAsIncome(amount, auto.date, saving.name);
+        
         changed = true;
       } else {
         // Insufficient funds

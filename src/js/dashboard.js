@@ -37,12 +37,29 @@ class Dashboard {
   checkAuth() {
     const auth = new Auth();
     if (!auth.isAuthenticated()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   }
 
   /**
    * Mettre à jour les statistiques
+   * 
+   * LOGIQUE DES CALCULS:
+   * 1. Solde disponible = Revenus du mois - Dépenses du mois
+   *    → C'est l'argent disponible à dépenser
+   *    → Les dépenses incluent les ajouts à l'épargne (catégorie "Épargne")
+   * 
+   * 2. Épargne totale = Somme de tous les soldes d'épargne
+   *    → Affiché séparément comme indicateur
+   *    → L'épargne est de l'argent mis de côté
+   * 
+   * 3. Quand on AJOUTE à l'épargne:
+   *    → Une dépense automatique est créée
+   *    → Le solde disponible diminue
+   * 
+   * 4. Quand on RETIRE de l'épargne:
+   *    → Un revenu automatique est créé
+   *    → Le solde disponible augmente
    */
   updateStats() {
     const now = new Date();
@@ -63,9 +80,11 @@ class Dashboard {
     // Calculer les totaux
     const totalExpenses = monthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
     const totalIncome = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
-    const balance = totalIncome - totalExpenses;
+    
+    // Solde disponible = revenus - dépenses (sans soustraire l'épargne)
+    const availableBalance = totalIncome - totalExpenses;
 
-    // Épargne
+    // Épargne totale (séparée du solde disponible)
     const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
     const activeGoals = this.savings.filter(s => s.type === 'goal').length;
 
@@ -74,12 +93,28 @@ class Dashboard {
     const budgetRemaining = totalBudget - totalExpenses;
 
     // Mettre à jour l'affichage
-    this.updateElement('balance-value', this.formatCurrency(balance));
+    this.updateElement('balance-value', this.formatCurrency(availableBalance));
     this.updateElement('income-value', this.formatCurrency(totalIncome));
     this.updateElement('expenses-value', this.formatCurrency(totalExpenses));
     this.updateElement('savings-value', this.formatCurrency(totalSaved));
     this.updateElement('savings-goals-count', activeGoals);
     this.updateElement('budget-value', this.formatCurrency(budgetRemaining));
+    
+    // Ajouter un indicateur visuel si épargne > 0
+    const balanceCard = document.querySelector('.stat-card');
+    if (balanceCard && totalSaved > 0) {
+      const savingsIndicator = balanceCard.querySelector('.savings-indicator') || document.createElement('div');
+      if (!balanceCard.querySelector('.savings-indicator')) {
+        savingsIndicator.className = 'savings-indicator';
+        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
+        const statHeader = balanceCard.querySelector('.stat-header');
+        if (statHeader) {
+          statHeader.insertAdjacentElement('afterend', savingsIndicator);
+        }
+      } else {
+        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
+      }
+    }
   }
 
   /**
@@ -188,7 +223,7 @@ class Dashboard {
       logoutBtn.addEventListener('click', () => {
         const auth = new Auth();
         auth.logout();
-        window.location.href = '/index.html';
+        window.location.href = '/';
       });
     }
 
