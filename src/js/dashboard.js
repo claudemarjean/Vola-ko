@@ -45,21 +45,26 @@ class Dashboard {
    * Mettre à jour les statistiques
    * 
    * LOGIQUE DES CALCULS:
-   * 1. Solde disponible = Revenus du mois - Dépenses du mois
-   *    → C'est l'argent disponible à dépenser
-   *    → Les dépenses incluent les ajouts à l'épargne (catégorie "Épargne")
+   * 1. Solde disponible (hors épargne) = Revenus du mois - Dépenses du mois
+   *    → C'est l'argent RÉELLEMENT disponible à dépenser
+   *    → Les dépenses incluent les ajouts à l'épargne (catégorie "epargne")
    * 
-   * 2. Épargne totale = Somme de tous les soldes d'épargne
+   * 2. Solde total (avec épargne) = Solde disponible + Épargne totale
+   *    → C'est le patrimoine total incluant l'épargne
+   * 
+   * 3. Épargne totale = Somme de tous les soldes d'épargne
    *    → Affiché séparément comme indicateur
-   *    → L'épargne est de l'argent mis de côté
+   *    → L'épargne est de l'argent mis de côté (non disponible immédiatement)
    * 
-   * 3. Quand on AJOUTE à l'épargne:
-   *    → Une dépense automatique est créée
-   *    → Le solde disponible diminue
+   * 4. Quand on AJOUTE à l'épargne:
+   *    → Une dépense automatique est créée (catégorie "epargne")
+   *    → Le solde disponible diminue (car l'argent n'est plus disponible)
+   *    → L'épargne totale augmente
    * 
-   * 4. Quand on RETIRE de l'épargne:
+   * 5. Quand on RETIRE de l'épargne:
    *    → Un revenu automatique est créé
-   *    → Le solde disponible augmente
+   *    → Le solde disponible augmente (l'argent redevient disponible)
+   *    → L'épargne totale diminue
    */
   updateStats() {
     const now = new Date();
@@ -81,40 +86,31 @@ class Dashboard {
     const totalExpenses = monthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
     const totalIncome = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
     
-    // Solde disponible = revenus - dépenses (sans soustraire l'épargne)
+    // SOLDE DISPONIBLE (hors épargne) = revenus - dépenses
+    // Ce solde diminue quand on ajoute à l'épargne car c'est comptabilisé comme dépense
     const availableBalance = totalIncome - totalExpenses;
 
-    // Épargne totale (séparée du solde disponible)
+    // ÉPARGNE TOTALE (séparée du solde disponible)
     const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
     const activeGoals = this.savings.filter(s => s.type === 'goal').length;
+
+    // SOLDE TOTAL (avec épargne) = solde disponible + épargne
+    const totalBalanceWithSavings = availableBalance + totalSaved;
 
     // Calculer le budget total et utilisé
     const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount), 0);
     const budgetRemaining = totalBudget - totalExpenses;
 
-    // Mettre à jour l'affichage
-    this.updateElement('balance-value', this.formatCurrency(availableBalance));
+    // Mettre à jour l'affichage des deux soldes
+    this.updateElement('balance-available-value', this.formatCurrency(availableBalance));
+    this.updateElement('balance-with-savings-value', this.formatCurrency(totalBalanceWithSavings));
+    
+    // Mettre à jour les autres statistiques
     this.updateElement('income-value', this.formatCurrency(totalIncome));
     this.updateElement('expenses-value', this.formatCurrency(totalExpenses));
     this.updateElement('savings-value', this.formatCurrency(totalSaved));
     this.updateElement('savings-goals-count', activeGoals);
     this.updateElement('budget-value', this.formatCurrency(budgetRemaining));
-    
-    // Ajouter un indicateur visuel si épargne > 0
-    const balanceCard = document.querySelector('.stat-card');
-    if (balanceCard && totalSaved > 0) {
-      const savingsIndicator = balanceCard.querySelector('.savings-indicator') || document.createElement('div');
-      if (!balanceCard.querySelector('.savings-indicator')) {
-        savingsIndicator.className = 'savings-indicator';
-        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
-        const statHeader = balanceCard.querySelector('.stat-header');
-        if (statHeader) {
-          statHeader.insertAdjacentElement('afterend', savingsIndicator);
-        }
-      } else {
-        savingsIndicator.innerHTML = `<span>💾</span> <span>Épargné: ${this.formatCurrency(totalSaved)}</span>`;
-      }
-    }
   }
 
   /**

@@ -135,6 +135,62 @@
       transition: all var(--transition-fast);
     }
 
+    /* Carte principale - Solde disponible */
+    .stat-card-primary {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+      border: 2px solid rgba(16, 185, 129, 0.3);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(40%, -40%);
+    }
+
+    .stat-card-primary:hover {
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.25);
+      transform: translateY(-6px) scale(1.02);
+    }
+
+    .stat-card-primary .stat-label {
+      color: var(--color-primary);
+      font-weight: 700;
+      font-size: var(--font-size-base);
+    }
+
+    .stat-card-primary .stat-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .stat-card-primary .stat-value {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-xs);
+    }
+
     .stat-card:hover {
       box-shadow: var(--shadow-lg);
       transform: translateY(-4px);
@@ -159,6 +215,21 @@
 
     .stat-icon.balance {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .stat-icon.balance-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      animation: pulse-balance 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-balance {
+      0%, 100% {
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
+      }
     }
 
     .stat-icon.income {
@@ -534,23 +605,36 @@
 
       <!-- Stats Grid -->
       <div class="stats-grid">
-        <!-- Balance -->
-        <div class="stat-card animate-fade-in-up">
+        <!-- Solde disponible hors épargne (principal) -->
+        <div class="stat-card stat-card-primary animate-fade-in-up">
           <div class="stat-header">
             <div>
-              <div class="stat-label" data-i18n="dashboard.balance">Solde actuel</div>
-              <div class="stat-value" id="balance-value">0 MGA</div>
+              <div class="stat-label">💸 Solde disponible</div>
+              <div class="stat-subtitle">Hors épargne</div>
+              <div class="stat-value" id="balance-available-value">0 MGA</div>
               <div class="stat-change positive">
                 <span>↑</span>
-                <span>+0%</span>
+                <span id="balance-available-change">+0%</span>
               </div>
+            </div>
+            <div class="stat-icon balance-primary">💳</div>
+          </div>
+        </div>
+
+        <!-- Solde avec épargne -->
+        <div class="stat-card animate-fade-in-up delay-100">
+          <div class="stat-header">
+            <div>
+              <div class="stat-label">Solde total</div>
+              <div class="stat-subtitle">Avec épargne</div>
+              <div class="stat-value" id="balance-with-savings-value">0 MGA</div>
             </div>
             <div class="stat-icon balance">💰</div>
           </div>
         </div>
 
         <!-- Income -->
-        <div class="stat-card animate-fade-in-up delay-100">
+        <div class="stat-card animate-fade-in-up delay-200">
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.income_month">Revenus du mois</div>
@@ -565,7 +649,7 @@
         </div>
 
         <!-- Expenses -->
-        <div class="stat-card animate-fade-in-up delay-200">
+        <div class="stat-card animate-fade-in-up delay-300">
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.expenses_month">Dépenses du mois</div>
@@ -580,7 +664,7 @@
         </div>
 
           <!-- Savings -->
-          <div class="stat-card animate-fade-in-up delay-300">
+          <div class="stat-card animate-fade-in-up delay-400">
             <div class="stat-header">
               <div>
                 <div class="stat-label" data-i18n="savings.total_saved">Total épargné</div>
@@ -595,7 +679,7 @@
           </div>
 
           <!-- Budget -->
-          <div class="stat-card animate-fade-in-up delay-400">
+          <div class="stat-card animate-fade-in-up delay-500">
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.budget_remaining">Budget restant</div>
