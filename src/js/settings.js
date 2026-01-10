@@ -148,13 +148,11 @@ class SettingsManager {
       );
 
       if (secondConfirm) {
-        Storage.remove(STORAGE_KEYS.EXPENSES);
-        Storage.remove(STORAGE_KEYS.INCOMES);
-        Storage.remove(STORAGE_KEYS.BUDGETS);
-        Storage.remove(STORAGE_KEYS.SAVINGS);
-        Storage.remove(STORAGE_KEYS.SAVINGS_TRANSACTIONS);
+        // Supprimer toutes les données de l'application
+        Storage.clear();
         notify.success('Toutes les données ont été supprimées.');
-        setTimeout(() => window.location.reload(), 1500);
+        // Rediriger vers la page de connexion après suppression
+        setTimeout(() => window.location.href = '/login', 1500);
       }
     }
   }

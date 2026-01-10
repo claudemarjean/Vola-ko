@@ -134,8 +134,20 @@ class Dashboard {
 
     // Afficher
     const listElement = document.getElementById('transactions-list');
-    if (listElement && recent.length > 0) {
-      listElement.innerHTML = recent.map(t => this.createTransactionHTML(t)).join('');
+    if (listElement) {
+      if (recent.length > 0) {
+        listElement.innerHTML = recent.map(t => this.createTransactionHTML(t)).join('');
+      } else {
+        listElement.innerHTML = `
+          <li class="transaction-item empty-state">
+            <div class="transaction-info">
+              <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                📝 Aucune transaction récente
+              </p>
+            </div>
+          </li>
+        `;
+      }
     }
   }
 
