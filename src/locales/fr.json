@@ -1,8 +1,8 @@
 {
   "app": {
     "name": "Vola-ko",
-    "tagline": "Maîtrisez votre budget, simplifiez votre vie financière",
-    "description": "Application de gestion de budget personnel simple et efficace"
+    "tagline": "Gérez votre argent intelligemment, partout et sur tous vos appareils",
+    "description": "Votre coach financier personnel, disponible 24/7 sur mobile, tablette et ordinateur"
   },
   "nav": {
     "home": "Accueil",
@@ -13,121 +13,180 @@
   },
   "home": {
     "hero": {
-      "title": "Prenez le contrôle de vos finances",
-      "subtitle": "T-Volako vous aide à gérer votre budget personnel avec simplicité et efficacité",
-      "cta": "Commencer maintenant",
-      "cta_secondary": "En savoir plus"
+      "title": "Votre argent, vos règles, où que vous soyez",
+      "subtitle": "Vola-ko transforme la gestion de votre budget en une expérience simple et agréable. Accessible depuis n'importe quel appareil : smartphone, tablette ou ordinateur.",
+      "cta": "Démarrer gratuitement",
+      "cta_secondary": "Découvrir les fonctionnalités"
     },
     "features": {
-      "title": "Pourquoi choisir T-Volako ?",
-      "subtitle": "Une solution complète pour gérer votre argent intelligemment",
+      "title": "Pourquoi Vola-ko révolutionne votre budget ?",
+      "subtitle": "Toute la puissance d'une gestion financière pro, accessible partout",
       "feature1": {
-        "title": "Simple et intuitif",
-        "description": "Interface moderne et facile à utiliser, accessible depuis n'importe quel appareil"
+        "title": "100% Web, 100% Mobile",
+        "description": "Aucune installation nécessaire ! Accédez à vos finances depuis votre smartphone, tablette ou PC. Synchronisation automatique entre tous vos appareils."
       },
       "feature2": {
-        "title": "Sécurisé",
-        "description": "Vos données sont protégées avec les meilleures pratiques de sécurité"
+        "title": "Vos données, votre vie privée",
+        "description": "Authentification sécurisée et protection de vos données. Vos informations financières restent privées et sous votre contrôle."
       },
       "feature3": {
-        "title": "Multilingue",
-        "description": "Disponible en français et en malgache pour votre confort"
+        "title": "Parlez votre langue",
+        "description": "Interface bilingue français-malgache pour une expérience naturelle et confortable, quelle que soit votre préférence."
       },
       "feature4": {
-        "title": "Suivi en temps réel",
-        "description": "Visualisez vos dépenses et revenus instantanément"
+        "title": "Vision instantanée",
+        "description": "Consultez votre situation financière en temps réel : solde, dépenses, revenus... tout est à jour automatiquement."
       },
       "feature5": {
-        "title": "Rapports détaillés",
-        "description": "Analysez vos habitudes financières avec des graphiques clairs"
+        "title": "Graphiques qui parlent",
+        "description": "Comprenez vos finances en un coup d'œil grâce à des visualisations interactives et colorées."
       },
       "feature6": {
-        "title": "Objectifs personnalisés",
-        "description": "Définissez et suivez vos objectifs d'épargne facilement"
+        "title": "Vos rêves à portée de main",
+        "description": "Créez vos objectifs d'épargne et suivez vos progrès jour après jour. Votre prochaine réussite commence ici."
+      },
+      "card1": {
+        "title": "100% Web, 100% Mobile",
+        "description": "Aucune installation nécessaire ! Accédez à vos finances depuis votre smartphone, tablette ou PC. Synchronisation automatique entre tous vos appareils.",
+        "link": "Découvrir l'expérience →"
+      },
+      "card2": {
+        "title": "Vos données, votre vie privée",
+        "description": "Authentification sécurisée et protection de vos données. Vos informations financières restent privées et sous votre contrôle.",
+        "link": "Sécurité & Paramètres →"
+      },
+      "card3": {
+        "title": "Parlez votre langue",
+        "description": "Interface bilingue français-malgache pour une expérience naturelle et confortable, quelle que soit votre préférence.",
+        "link": "Paramètres de langue →"
+      },
+      "card4": {
+        "title": "Vision instantanée",
+        "description": "Consultez votre situation financière en temps réel : solde, dépenses, revenus... tout est à jour automatiquement.",
+        "link": "Détails Dashboard →"
+      },
+      "card5": {
+        "title": "Chaque ariary compte",
+        "description": "Traquez vos sorties d'argent par catégorie avec filtres intelligents et recherche avancée.",
+        "link": "Détails Dépenses →"
+      },
+      "card6": {
+        "title": "Restez dans les rails",
+        "description": "Définissez vos limites mensuelles et dépensez en toute sérénité avec des alertes visuelles intelligentes.",
+        "link": "Détails Budgets →"
+      },
+      "card7": {
+        "title": "Vos rêves deviennent réalité",
+        "description": "Créez vos objectifs d'épargne et suivez vos progrès jour après jour. Votre prochaine réussite commence ici.",
+        "link": "Détails Épargne →"
+      },
+      "card8": {
+        "title": "Graphiques qui parlent",
+        "description": "Comprenez vos finances en un coup d'œil grâce à des visualisations interactives et colorées.",
+        "link": "Détails Rapports →"
+      },
+      "pills": {
+        "smartphone": "📱 Smartphone",
+        "pc": "💻 PC",
+        "tablet": "📡 Tablette",
+        "auth": "Authentification",
+        "secure": "Sécurisé",
+        "french": "🇫🇷 Français",
+        "malagasy": "🇲🇬 Malagasy",
+        "realtime": "Temps réel",
+        "charts": "Graphiques",
+        "categories": "Catégories",
+        "history": "Historique",
+        "alerts": "Alertes couleurs",
+        "envelopes": "Enveloppes",
+        "goals": "Objectifs",
+        "withdrawals": "Retraits",
+        "interactive": "Interactif",
+        "12months": "12 mois"
       }
     },
     "cta": {
-      "title": "Prêt à transformer votre gestion financière ?",
-      "subtitle": "Rejoignez des milliers d'utilisateurs qui maîtrisent déjà leur budget",
-      "button": "Créer un compte gratuit"
+      "title": "Votre meilleure décision financière commence maintenant",
+      "subtitle": "Accessible partout, sur tous vos appareils. Gratuit, sécurisé et sans engagement.",
+      "button": "Commencer gratuitement"
     },
     "demos": {
       "dashboard": {
-        "title": "Dashboard - Vue d'ensemble",
-        "subtitle": "Visualisez toute votre situation financière en un coup d'œil",
-        "feature1_title": "Solde disponible",
-        "feature1_desc": "Consultez votre solde disponible à dépenser (revenus - dépenses du mois) avec un indicateur d'épargne séparé. L'épargne n'est pas déduite du solde disponible.",
-        "feature2_title": "Graphiques interactifs",
-        "feature2_desc": "Camembert des dépenses par catégorie, courbe de tendance 7 jours, barres de budget utilisé, évolution mensuelle sur 12 mois glissants.",
-        "feature3_title": "Transactions récentes",
-        "feature3_desc": "Les 5 dernières opérations (dépenses et revenus) avec catégorie, montant et date, pour un suivi rapide.",
-        "example": "Exemple : Solde de 1 250 000 MGA, 3 graphiques colorés, liste des dernières transactions"
+        "title": "Tableau de bord - Tout en un clin d'œil",
+        "subtitle": "Votre situation financière complète sur une seule page, actualisée en temps réel",
+        "feature1_title": "Votre argent disponible",
+        "feature1_desc": "Sachez exactement combien vous pouvez dépenser ce mois-ci. Le solde affiche vos revenus moins vos dépenses, avec votre épargne suivie séparément pour une vision claire.",
+        "feature2_title": "Des graphiques qui racontent votre histoire",
+        "feature2_desc": "Où part votre argent ? Explorez vos dépenses par catégorie en un clic, suivez votre tendance sur 7 jours, surveillez vos budgets et visualisez votre évolution sur l'année.",
+        "feature3_title": "Vos derniers mouvements",
+        "feature3_desc": "Gardez un œil sur vos 5 dernières transactions. Chaque dépense et revenu est affiché avec sa catégorie, son montant et sa date.",
+        "example": "Exemple : 1 250 000 MGA disponibles, graphiques dynamiques, historique instantané"
       },
       "expenses": {
-        "title": "Dépenses - Maîtrisez vos sorties",
-        "subtitle": "Suivez chaque ariary dépensé avec précision",
-        "feature1_title": "Catégorisation automatique",
-        "feature1_desc": "Alimentation, Transport, Logement, Santé, Loisirs, Épargne, Autre. Filtrez par catégorie pour voir où part votre argent.",
-        "feature2_title": "Filtres temporels",
-        "feature2_desc": "Affichez les dépenses de cette semaine, ce mois, les 12 derniers mois ou tout l'historique. Recherche par description.",
-        "feature3_title": "Édition rapide",
-        "feature3_desc": "Modifiez ou supprimez une dépense en un clic avec confirmation de sécurité.",
-        "example": "Exemple : Liste de 15 dépenses avec catégories colorées, total mensuel affiché"
+        "title": "Dépenses - Chaque ariary compte",
+        "subtitle": "Traquez vos sorties d'argent et reprenez le contrôle",
+        "feature1_title": "Tout est classé pour vous",
+        "feature1_desc": "Alimentation, Transport, Logement, Santé, Loisirs... Chaque dépense trouve sa place. Filtrez par catégorie et découvrez vos habitudes de consommation.",
+        "feature2_title": "Voyagez dans le temps",
+        "feature2_desc": "Consultez vos dépenses de la semaine, du mois, de l'année ou de toute votre histoire. La recherche intelligente vous aide à retrouver n'importe quelle transaction.",
+        "feature3_title": "Modification en 2 clics",
+        "feature3_desc": "Une erreur ? Pas de souci ! Modifiez ou supprimez n'importe quelle dépense instantanément avec notre système sécurisé.",
+        "example": "Exemple : Historique complet, catégories en couleur, total du mois en un coup d'œil"
       },
       "incomes": {
-        "title": "Revenus - Gardez le cap",
-        "subtitle": "Centralisez toutes vos sources de revenus",
-        "feature1_title": "Statistiques mensuelles",
-        "feature1_desc": "Total du mois en cours et des 12 derniers mois pour comparer votre évolution.",
-        "feature2_title": "Sources multiples",
-        "feature2_desc": "Salaire, freelance, investissements, cadeaux... Gardez trace de tout ce qui rentre.",
-        "feature3_title": "Historique complet",
-        "feature3_desc": "Liste triée par date avec montant et source, modifiable à tout moment.",
-        "example": "Exemple : 3 revenus ce mois (Salaire 800 000 MGA, Freelance 200 000 MGA, Prime 150 000 MGA)"
+        "title": "Revenus - Célébrez chaque entrée",
+        "subtitle": "Tous vos gains au même endroit, pour mieux planifier l'avenir",
+        "feature1_title": "Vos performances en chiffres",
+        "feature1_desc": "Comparez vos revenus du mois avec votre moyenne sur 12 mois. Progressez-vous ? Les chiffres parlent d'eux-mêmes !",
+        "feature2_title": "Toutes vos rentrées d'argent",
+        "feature2_desc": "Salaire, missions freelance, revenus passifs, primes, cadeaux... Ne laissez aucun ariary passer inaperçu !",
+        "feature3_title": "Votre journal de réussite",
+        "feature3_desc": "Retracez toute votre histoire financière. Chaque revenu est enregistré, modifiable et consultable à volonté.",
+        "example": "Exemple : Salaire 800 000 MGA + Freelance 200 000 MGA + Prime 150 000 = 1 150 000 MGA ce mois"
       },
       "budgets": {
-        "title": "Budgets - Fixez vos limites",
-        "subtitle": "Enveloppes mensuelles pour éviter les dérapages",
-        "feature1_title": "Budget par catégorie",
-        "feature1_desc": "Définissez un montant maximum mensuel pour chaque catégorie de dépenses (ex: 300 000 MGA pour Alimentation).",
-        "feature2_title": "Progression visuelle",
-        "feature2_desc": "Barre de progression colorée : verte (&lt; 50%), orange (50-90%), rouge (&gt; 90%). Affichez dépensé/restant.",
-        "feature3_title": "Alertes automatiques",
-        "feature3_desc": "Si vous dépassez votre budget, la carte devient rouge pour vous alerter visuellement.",
-        "example": "Exemple : Budget Alimentation 250/300k (83%, orange), Transport 120/150k (80%, orange)"
+        "title": "Budgets - Restez dans les rails",
+        "subtitle": "Définissez vos limites mensuelles et dépensez en toute sérénité",
+        "feature1_title": "Une enveloppe pour chaque besoin",
+        "feature1_desc": "Combien pour l'alimentation ? Le transport ? Les loisirs ? Fixez un plafond mensuel pour chaque catégorie et respectez-le facilement.",
+        "feature2_title": "Des couleurs qui vous guident",
+        "feature2_desc": "Vert = tout va bien, Orange = attention, Rouge = limite dépassée ! Votre budget s'affiche en couleur pour une lecture instantanée.",
+        "feature3_title": "Alertes visuelles intelligentes",
+        "feature3_desc": "Pas de mauvaise surprise ! L'interface vous prévient automatiquement quand vous approchez ou dépassez vos limites.",
+        "example": "Exemple : Alimentation 250k/300k (83%), Transport 120k/150k (80%) - Vous gérez !"
       },
       "savings": {
-        "title": "Épargnes - Construisez votre avenir",
-        "subtitle": "Objectifs et épargnes libres avec suivi détaillé",
-        "feature1_title": "Objectifs personnalisés",
-        "feature1_desc": "Épargne libre ou avec objectif (montant cible + date). Barre de progression pour suivre l'avancement.",
-        "feature2_title": "Retrait automatique",
-        "feature2_desc": "Planifiez un retrait à une date choisie. Le système vérifie le solde et enregistre la transaction ou signale l'échec.",
-        "feature3_title": "Historique des mouvements",
-        "feature3_desc": "Modal dédié avec totaux (ajouté, retiré, solde actuel) et liste chronologique de toutes les opérations.",
-        "example": "Exemple : Épargne Vacances 2026 : 750k/1M MGA (75%), retrait auto le 15 juin"
+        "title": "Épargne - Vos rêves deviennent réalité",
+        "subtitle": "Définissez vos objectifs et regardez-les grandir jour après jour",
+        "feature1_title": "Vos projets, vos objectifs",
+        "feature1_desc": "Vacances, voiture, mariage, urgences... Créez autant d'objectifs d'épargne que vous voulez. Suivez votre progression avec des barres colorées motivantes !",
+        "feature2_title": "Retraits planifiés",
+        "feature2_desc": "Programmez vos retraits futurs à l'avance. Le jour J, le système vérifie automatiquement votre solde et traite votre demande en toute sécurité.",
+        "feature3_title": "Chaque mouvement compte",
+        "feature3_desc": "Consultez l'historique complet de chaque épargne : montants ajoutés, retraits effectués, solde actuel. Votre parcours financier en toute transparence.",
+        "example": "Exemple : Objectif Vacances 2026 → 750 000/1 000 000 MGA (75% atteint !)"
       },
       "reports": {
-        "title": "Rapports - Analysez vos habitudes",
-        "subtitle": "Graphiques avancés pour comprendre vos finances",
-        "feature1_title": "Dépenses par catégorie",
-        "feature1_desc": "Camembert interactif avec pourcentages pour voir la répartition de votre budget.",
-        "feature2_title": "Comparaisons & tendances",
-        "feature2_desc": "Barres revenus vs dépenses mois par mois, courbe cumulative, top 5 des plus grosses dépenses.",
-        "feature3_title": "Période flexible",
-        "feature3_desc": "Filtres : ce mois, trimestre, 12 derniers mois, année en cours. Les données s'adaptent automatiquement.",
-        "example": "Exemple : 5 graphiques colorés avec données des 12 derniers mois"
+        "title": "Rapports - Devenez expert de vos finances",
+        "subtitle": "Visualisez vos données comme jamais auparavant",
+        "feature1_title": "Où part vraiment votre argent ?",
+        "feature1_desc": "Un superbe camembert interactif vous révèle la répartition exacte de vos dépenses. Cliquez, explorez, comprenez !",
+        "feature2_title": "Comparez, progressez",
+        "feature2_desc": "Revenus vs dépenses mois par mois, évolution sur l'année, top 5 de vos plus grosses dépenses... Les chiffres qui comptent vraiment.",
+        "feature3_title": "Votre période, vos analyses",
+        "feature3_desc": "Ce mois, ce trimestre, cette année ou les 12 derniers mois ? Choisissez votre période et les graphiques s'adaptent instantanément.",
+        "example": "Exemple : Analyses détaillées sur 12 mois, 5 graphiques interactifs, insights automatiques"
       },
       "settings": {
-        "title": "Paramètres - Personnalisez votre expérience",
-        "subtitle": "Thème, langue et préférences à portée de main",
-        "feature1_title": "Mode clair / sombre",
-        "feature1_desc": "Basculez entre thème clair et sombre selon vos préférences ou l'heure de la journée.",
-        "feature2_title": "Français & Malgache",
-        "feature2_desc": "Interface disponible en 2 langues. Toutes les pages et labels se traduisent automatiquement.",
-        "feature3_title": "Sécurité",
-        "feature3_desc": "Déconnexion sécurisée, gestion du profil, changement de devise (MGA par défaut).",
-        "example": "Exemple : Boutons thème, sélecteur langue, informations profil"
+        "title": "Paramètres - Vola-ko à votre image",
+        "subtitle": "Personnalisez chaque détail pour une expérience unique",
+        "feature1_title": "Lumière ou obscurité",
+        "feature1_desc": "Travaillez le jour en mode clair, détendez-vous le soir en mode sombre. Un clic suffit pour changer d'ambiance !",
+        "feature2_title": "Français & Malagasy, au choix",
+        "feature2_desc": "Changez de langue en un instant. L'application entière se traduit automatiquement pour parler votre langue préférée.",
+        "feature3_title": "Sécurité et confidentialité",
+        "feature3_desc": "Déconnexion sécurisée, gestion de profil, préférences de devise... Votre compte, vos règles, votre tranquillité d'esprit.",
+        "example": "Exemple : Thème adaptatif, 2 langues, paramètres de sécurité avancés"
       }
     }
   },

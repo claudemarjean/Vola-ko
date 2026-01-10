@@ -1,8 +1,8 @@
 {
   "app": {
     "name": "Vola-ko",
-    "tagline": "Fehezoy ny tetibolanao, tsotra ny fiainanao ara-bola",
-    "description": "Fampiharana tsotra sy mahomby amin'ny fitantanana ny teti-bola manokana"
+    "tagline": "Tantano tsara ny volanao, eny amin'ny fitaovana rehetra",
+    "description": "Mpanoro hevitra ara-bola manokana ho anao, azo idirana 24/7 amin'ny finday, tablette ary ordinatera"
   },
   "nav": {
     "home": "Fandraisana",
@@ -13,121 +13,180 @@
   },
   "home": {
     "hero": {
-      "title": "Fehezoy ny volao",
-      "subtitle": "T-Volako dia manampy anao hitantana ny teti-bolanao amin'ny fomba tsotra sy mahomby",
-      "cta": "Hanomboka izao",
-      "cta_secondary": "Hahafantatra bebe kokoa"
+      "title": "Ny volanao, ny fitsipikanao, na aiza na aiza ianareo",
+      "subtitle": "Vola-ko dia manova ny fitantanana ny teti-bolanao ho zavatra tsotra sy mahafinaritra. Azo idirana amin'ny fitaovana rehetra: finday, tablette na ordinatera.",
+      "cta": "Hanomboka maimaimpoana",
+      "cta_secondary": "Hijery ny endri-javatra"
     },
     "features": {
-      "title": "Nahoana no hisafidy an'i T-Volako?",
-      "subtitle": "Vahaolana feno mba hitantana ny volanao amin'ny fomba manan-tsaina",
+      "title": "Nahoana no manova zavatra i Vola-ko?",
+      "subtitle": "Hery feno amin'ny fitantanana vola matihanina, azo idirana na aiza na aiza",
       "feature1": {
-        "title": "Tsotra sy mora ampiasaina",
-        "description": "Interface maoderina sy mora ampiasaina, azo idirana amin'ny fitaovana rehetra"
+        "title": "100% Web, 100% Finday",
+        "description": "Tsy mila mametraka na inona na inona! Jereo ny volanao amin'ny finday, tablette na ordinatera. Mifanaraka ho azy eo amin'ny fitaovana rehetra."
       },
       "feature2": {
-        "title": "Azo antoka",
-        "description": "Voaaro ny angon-drakitrao amin'ny fomba tsara indrindra momba ny fiarovana"
+        "title": "Ny angon-drakitrao, ny fiainanao manokana",
+        "description": "Fidirana azo antoka sy fiarovana ny angon-drakitrao. Miaro tsara ny mombamombanao ara-bola ary eo ambany fifehezan'ny tenanao."
       },
       "feature3": {
-        "title": "Amin'ny fiteny maro",
-        "description": "Misy amin'ny teny frantsay sy malagasy ho an'ny fahamaimanao"
+        "title": "Mitenena amin'ny fiteninao",
+        "description": "Interface roa teny frantsay-malagasy mba hahafinaritra kokoa ny fampiasana, na inona na inona safidy tianao."
       },
       "feature4": {
-        "title": "Fanaraha-maso amin'ny fotoana tena izy",
-        "description": "Jereo avy hatrany ny fandanianao sy ny fidiranao"
+        "title": "Fahitana avy hatrany",
+        "description": "Jereo ny toe-bolanao amin'ny fotoana tena izy: vola misy, fandaniana, fidiram-bola... zava-drehetra efa vaovao."
       },
       "feature5": {
-        "title": "Tatitra feno antsipiriany",
-        "description": "Analisao ny fahazaranao ara-bola miaraka amin'ny sary mazava"
+        "title": "Sary miteny",
+        "description": "Fantaro ny volanao indray mandeha monja miaraka amin'ny sary miloko sy interactive."
       },
       "feature6": {
-        "title": "Tanjona manokana",
-        "description": "Farito sy araho mora foana ny tanjonao momba ny fitsitsiana"
+        "title": "Ny nofinofinao ao am-pelatananao",
+        "description": "Mamorona tanjona fitsitsiana ary araho ny fandrosoanao isan'andro. Manomboka eto ny fahombiazanao manaraka."
+      },
+      "card1": {
+        "title": "100% Web, 100% Finday",
+        "description": "Tsy mila mametraka na inona na inona! Jereo ny volanao amin'ny finday, tablette na ordinatera. Mifanaraka ho azy eo amin'ny fitaovana rehetra.",
+        "link": "Hijery ny traikefa →"
+      },
+      "card2": {
+        "title": "Ny angon-drakitrao, ny fiainanao manokana",
+        "description": "Fidirana azo antoka sy fiarovana ny angon-drakitrao. Miaro tsara ny mombamombanao ara-bola ary eo ambany fifehezan'ny tenanao.",
+        "link": "Fiarovana & Fandrindrana →"
+      },
+      "card3": {
+        "title": "Mitenena amin'ny fiteninao",
+        "description": "Interface roa teny frantsay-malagasy mba hahafinaritra kokoa ny fampiasana, na inona na inona safidy tianao.",
+        "link": "Fandrindran'ny fiteny →"
+      },
+      "card4": {
+        "title": "Fahitana avy hatrany",
+        "description": "Jereo ny toe-bolanao amin'ny fotoana tena izy: vola misy, fandaniana, fidiram-bola... zava-drehetra efa vaovao.",
+        "link": "Antsipirihan'ny Dashboard →"
+      },
+      "card5": {
+        "title": "Ariary tsirairay dia manan-danja",
+        "description": "Araho ny vola lany araka ny sokajy miaraka amin'ny sivana marani-tsaina sy fikarohana mandroso.",
+        "link": "Antsipirihan'ny Fandaniana →"
+      },
+      "card6": {
+        "title": "Mijanona eo amin'ny lalana",
+        "description": "Farito ny fetra isan-volana ary mandany amim-pahatoniana miaraka amin'ny fanairana hita maso marani-tsaina.",
+        "link": "Antsipirihan'ny Teti-bola →"
+      },
+      "card7": {
+        "title": "Mivantana amin'ny zava-tianao ho tontosa",
+        "description": "Mamorona tanjona fitsitsiana ary araho ny fandrosoanao isan'andro. Manomboka eto ny fahombiazanao manaraka.",
+        "link": "Antsipirihan'ny Fitsitsiana →"
+      },
+      "card8": {
+        "title": "Sary miteny",
+        "description": "Fantaro ny volanao indray mandeha monja miaraka amin'ny sary miloko sy interactive.",
+        "link": "Antsipirihan'ny Tatitra →"
+      },
+      "pills": {
+        "smartphone": "📱 Finday",
+        "pc": "💻 Ordinatera",
+        "tablet": "📡 Tablette",
+        "auth": "Fidirana",
+        "secure": "Azo antoka",
+        "french": "🇫🇷 Frantsay",
+        "malagasy": "🇲🇬 Malagasy",
+        "realtime": "Fotoana tena izy",
+        "charts": "Sary",
+        "categories": "Sokajy",
+        "history": "Tantara",
+        "alerts": "Fanairana miloko",
+        "envelopes": "Valopy",
+        "goals": "Tanjona",
+        "withdrawals": "Fakana",
+        "interactive": "Interactive",
+        "12months": "12 volana"
       }
     },
     "cta": {
-      "title": "Vonona ny hanova ny fitantananao ny vola?",
-      "subtitle": "Miaraka amin'ireo mpampiasa an'arivony izay efa mahay ny teti-bolany",
-      "button": "Hamorona kaonty maimaim-poana"
+      "title": "Ny fanapahan-kevitra tsara indrindra ara-bola dia manomboka izao",
+      "subtitle": "Azo idirana na aiza na aiza, amin'ny fitaovana rehetra. Maimaimpoana, azo antoka ary tsy misy fanoloran-tena.",
+      "button": "Hanomboka maimaimpoana"
     },
     "demos": {
       "dashboard": {
-        "title": "Dashboard - Topimaso",
-        "subtitle": "Jereo ny toe-draharahanao ara-bola rehetra indray mandeha",
-        "feature1_title": "Vola misy avy hatrany",
-        "feature1_desc": "Jereo ny totalinao (fidiram-bola - fandaniana) amin'ity volana ity miaraka amin'ny mari-pana hita maso: maitso raha tsara, mena raha ratsy.",
-        "feature2_title": "Sary asa interactive",
-        "feature2_desc": "Kisarisary ny fandaniana isaky ny sokajy, fiolahana 7 andro, bara teti-bola nampiasaina, fivoarana isan-volana 12 volana lasa.",
-        "feature3_title": "Fifampiraharahana farany",
-        "feature3_desc": "Ireo asa 5 farany (fandaniana sy fidiram-bola) miaraka amin'ny sokajy, vidiny ary daty, ho an'ny fanaraha-maso haingana.",
-        "example": "Ohatra: Vola misy 1 250 000 MGA, sary 3 miloko, lisitra ny fifampiraharahana farany"
+        "title": "Dashboard - Zava-drehetra indray mandeha",
+        "subtitle": "Ny toe-bolanao tanteraka eo amin'ny pejy iray, vaovao amin'ny fotoana tena izy",
+        "feature1_title": "Ny volanao azo lany",
+        "feature1_desc": "Fantaro tsara indrindra ny vola azonao lany amin'ity volana ity. Ny vola misy dia mampiseho ny fidiram-bola latsaka ny fandaniana, ary ny fitsitsiana dia arahi-maso misaraka.",
+        "feature2_title": "Sary mitantara ny tantaranao",
+        "feature2_desc": "Aiza no lasan'ny volanao? Hijery ny fandanianao isaky ny sokajy, araho ny fironana 7 andro, jereo ny teti-bola ary fantaro ny fivoaranao mandritra ny taona.",
+        "feature3_title": "Ny fihetsika farany nataonao",
+        "feature3_desc": "Araho maso ny fifampiraharahana 5 farany. Ny fandaniana sy fidiram-bola tsirairay dia aseho miaraka amin'ny sokajy, vidiny ary daty.",
+        "example": "Ohatra: 1 250 000 MGA azo lany, sary dynamique, tantara avy hatrany"
       },
       "expenses": {
-        "title": "Fandaniana - Fehezoy ny fivoahanao",
-        "subtitle": "Araho tsara ny vola lany rehetra",
-        "feature1_title": "Fanasokajiana mandeha ho azy",
-        "feature1_desc": "Sakafo, Fitaterana, Trano, Fahasalamana, Fialamboly, Hafa. Sivao araka ny sokajy hahitana izay lasan'ny volanao.",
-        "feature2_title": "Sivana araka ny fotoana",
-        "feature2_desc": "Asehoy ny fandaniana amin'ity herinandro ity, ity volana ity, 12 volana lasa na tantara rehetra. Fikarohana araka ny famaritana.",
-        "feature3_title": "Fanovana haingana",
-        "feature3_desc": "Ovay na fafao ny fandaniana amin'ny kitiho iray miaraka amin'ny fanamafisana fiarovana.",
-        "example": "Ohatra: Lisitra fandaniana 15 misy sokajy miloko, totalin'ny volana aseho"
+        "title": "Fandaniana - Ariary tsirairay dia manan-danja",
+        "subtitle": "Araho ny vola lany ary raiso indray ny fifehezana",
+        "feature1_title": "Voalamina tsara ho anao daholo",
+        "feature1_desc": "Sakafo, Fitaterana, Trano, Fahasalamana, Fialamboly... Ny fandaniana tsirairay dia manana ny toerany. Sivao araka ny sokajy ary fantaro ny fahazaranao.",
+        "feature2_title": "Mitsangatsangana amin'ny fotoana",
+        "feature2_desc": "Jereo ny fandaniana tamin'ny herinandro, volana, taona na ny tantara manontolo. Ny fikarohana marani-tsaina dia manampy anao hahita fifampiraharahana rehetra.",
+        "feature3_title": "Fanovana mora foana",
+        "feature3_desc": "Nisy fahadisoana? Tsy misy olana! Ovay na fafao ny fandaniana rehetra avy hatrany miaraka amin'ny rafitra azo antoka.",
+        "example": "Ohatra: Tantara feno, sokajy miloko, totalin'ny volana indray mandeha"
       },
       "incomes": {
-        "title": "Fidiram-bola - Tano ny lalana",
-        "subtitle": "Angonio ny loharanom-bola rehetra",
-        "feature1_title": "Antontan'isa isan-volana",
-        "feature1_desc": "Totalin'ity volana ity sy 12 volana lasa mba hampitahana ny fivoaranao.",
-        "feature2_title": "Loharano maro",
-        "feature2_desc": "Karama, asa freelance, fampiasam-bola, fanomezana... Araho izay rehetra miditra.",
-        "feature3_title": "Tantara feno",
-        "feature3_desc": "Lisitra voalamina araka ny daty miaraka amin'ny vidiny sy loharano, azo ovaina amin'ny fotoana rehetra.",
-        "example": "Ohatra: Fidiram-bola 3 amin'ity volana ity (Karama 800 000 MGA, Freelance 200 000 MGA, Tamby 150 000 MGA)"
+        "title": "Fidiram-bola - Ankafizo ny fidirana tsirairay",
+        "subtitle": "Ny vola miditra rehetra eo amin'ny toerana iray, mba hamolavolana tsara ny ho avy",
+        "feature1_title": "Ny fandrosoanao amin'ny tarehimarika",
+        "feature1_desc": "Ampitahao ny fidiram-bolanao amin'ity volana ity amin'ny salasalanao 12 volana. Mandroso ve ianao? Ny tarehimarika dia miteny ho azy!",
+        "feature2_title": "Ny fidiram-bolanao rehetra",
+        "feature2_desc": "Karama, asa freelance, fidiram-bola tsy mivantana, tamby, fanomezana... Aza avela hisy ariary tsy tsapanao!",
+        "feature3_title": "Boky tantaran'ny fahombiazanao",
+        "feature3_desc": "Avereno jerena ny tantaranao ara-bola manontolo. Ny fidiram-bola tsirairay dia voarakitra, azo ovaina ary jerena isaky ny ilaina.",
+        "example": "Ohatra: Karama 800k + Freelance 200k + Tamby 150k = 1 150 000 MGA amin'ity volana ity"
       },
       "budgets": {
-        "title": "Teti-bola - Farito ny fetra",
-        "subtitle": "Valopy isan-volana mba hialana amin'ny fandaniana tafahoatra",
-        "feature1_title": "Teti-bola isaky ny sokajy",
-        "feature1_desc": "Farito ny vidiny ambony indrindra isan-volana isaky ny sokajy fandaniana (oh: 300 000 MGA ho an'ny Sakafo).",
-        "feature2_title": "Fivoarana hita maso",
-        "feature2_desc": "Bara fivoarana miloko: maitso (&lt; 50%), volomboasary (50-90%), mena (&gt; 90%). Asehoy ny lany/sisa.",
-        "feature3_title": "Fanairana mandeha ho azy",
-        "feature3_desc": "Raha mihoatra ny teti-bolanao dia lasa mena ny karatra mba hampitandrina anao.",
-        "example": "Ohatra: Teti-bola Sakafo 250/300k (83%, volomboasary), Fitaterana 120/150k (80%, volomboasary)"
+        "title": "Teti-bola - Mijanona eo amin'ny lalana",
+        "subtitle": "Farito ny fetra isan-volana ary mandany amim-pahatoniana",
+        "feature1_title": "Valopy iray isaky ny filana",
+        "feature1_desc": "Ohatrinona ho an'ny sakafo? Ny fitaterana? Ny fialamboly? Ferao ny ambony indrindra isan-volana isaky ny sokajy ary hajao mora foana.",
+        "feature2_title": "Loko mitarika anao",
+        "feature2_desc": "Maitso = tsara daholo, Volomboasary = mitandrina, Mena = tafahoatra! Ny teti-bolanao dia miseho amin'ny loko ho vakiana avy hatrany.",
+        "feature3_title": "Fanairana hita maso marani-tsaina",
+        "feature3_desc": "Tsy misy tarehy ratsy! Manome toky anao ho azy ny interface rehefa manakaiky na mihoatra ny fetrao.",
+        "example": "Ohatra: Sakafo 250k/300k (83%), Fitaterana 120k/150k (80%) - Mitantana tsara ianao!"
       },
       "savings": {
-        "title": "Fitsitsiana - Manangàna ny ho avinao",
-        "subtitle": "Tanjona sy fitsitsiana malalaka miaraka amin'ny fanaraha-maso feno",
-        "feature1_title": "Tanjona manokana",
-        "feature1_desc": "Fitsitsiana malalaka na misy tanjona (vidiny kendrena + daty). Bara fivoarana hanaraha-maso ny fivoarana.",
-        "feature2_title": "Fakana mandeha ho azy",
-        "feature2_desc": "Manomàna fakana amin'ny daty voafidy. Hamarinin'ny rafitra ny vola ary miraketray ny fifampiraharahana na milaza ny tsy fahombiazana.",
-        "feature3_title": "Tantaran'ny fihetseham-bola",
-        "feature3_desc": "Modal manokana miaraka amin'ny totaly (nanampy, nalaina, vola misy) sy lisitra araka ny daty ny asa rehetra.",
-        "example": "Ohatra: Fitsitsiana Fitsangantsanganana 2026: 750k/1M MGA (75%), fakana mandeha ho azy 15 Jona"
+        "title": "Fitsitsiana - Mivantana amin'ny zava-tianao ho tontosa",
+        "subtitle": "Farito ny tanjonareo ary jereo izy ireo mitombo isan'andro",
+        "feature1_title": "Ny tetikasareo, ny tanjonareo",
+        "feature1_desc": "Fitsangantsanganana, fiara, fampakaram-bady, ho an'ny maika... Mamorona tanjona fitsitsiana araka izay tianao. Araho ny fandrosoanao miaraka amin'ny bara miloko mamporisika!",
+        "feature2_title": "Fakana voalamina mialoha",
+        "feature2_desc": "Manomana ny fakana ho avy mialoha. Amin'ny andro J, ny rafitra dia manamarina ny volanao ary mikarakara ny fangatahana amim-pahatoniana.",
+        "feature3_title": "Fihetseham-bola tsirairay dia manan-danja",
+        "feature3_desc": "Jereo ny tantara feno ny fitsitsiana tsirairay: vola nanampy, nakana, vola misy ankehitriny. Ny dianao ara-bola amin'ny mazava tanteraka.",
+        "example": "Ohatra: Tanjona Fitsangantsanganana 2026 → 750 000/1 000 000 MGA (75% tratra!)"
       },
       "reports": {
-        "title": "Tatitra - Analisao ny fanao",
-        "subtitle": "Sary mandroso mba hahazoana ny volao",
-        "feature1_title": "Fandaniana isaky ny sokajy",
-        "feature1_desc": "Kisarisary interactive miaraka amin'ny isan-jato mba hahitana ny fizarazaran'ny teti-bolanao.",
-        "feature2_title": "Fampitahana sy fironana",
-        "feature2_desc": "Bara fidiram-bola sy fandaniana isan-volana, fiolahana fanangonam-bokatra, top 5 ny fandaniana lehibe indrindra.",
-        "feature3_title": "Fotoana azo ovaina",
-        "feature3_desc": "Sivana: ity volana ity, telovolana, 12 volana lasa, taona ankehitriny. Mifanaraka ho azy ny angon-drakitra.",
-        "example": "Ohatra: Sary 5 miloko miaraka amin'ny angon-drakitra 12 volana lasa"
+        "title": "Tatitra - Maha-manam-pahaizana momba ny volanao",
+        "subtitle": "Jereo ny angon-drakitrao tsy toy ny hatramin'izao",
+        "feature1_title": "Aiza marina ny lasan'ny volanao?",
+        "feature1_desc": "Kisarisary interactive mahafinaritra dia mampiseho ny fizarazaran'ny fandanianao marina. Kitiho, zahao, fantaro!",
+        "feature2_title": "Ampitahao, mandroso",
+        "feature2_desc": "Fidiram-bola sy fandaniana isan-volana, fivoarana mandritra ny taona, top 5 fandaniana lehibe indrindra... Ny tarehimarika manan-danja tokoa.",
+        "feature3_title": "Ny fotoanareo, ny famakafakana",
+        "feature3_desc": "Ity volana ity, telovolana, taona na 12 volana lasa? Safidio ny fotoanareo ary ny sary dia mifanaraka avy hatrany.",
+        "example": "Ohatra: Famakafakana amin'ny antsipiriany 12 volana, sary interactive 5, insights ho azy"
       },
       "settings": {
-        "title": "Fandrindrana - Ampifanaraho ny traikefao",
-        "subtitle": "Loko, fiteny ary safidy eo am-pelatananao",
-        "feature1_title": "Fomba mazava / maizina",
-        "feature1_desc": "Mifindra eo amin'ny loko mazava sy maizina araka ny tianao na ny ora amin'ny andro.",
-        "feature2_title": "Frantsay & Malagasy",
-        "feature2_desc": "Interface misy amin'ny fiteny 2. Ny pejy rehetra sy ny marika dia adika mandeha ho azy.",
-        "feature3_title": "Fiarovana",
-        "feature3_desc": "Fivoahana azo antoka, fitantanana ny mombamomba, fanovana vola (MGA ho azy).",
-        "example": "Ohatra: Bokotra loko, mpifidy fiteny, fampahalalana momba ny mombamomba"
+        "title": "Fandrindrana - Vola-ko araka ny sarinao",
+        "subtitle": "Amboary ny antsipiriany rehetra ho an'ny traikefa tokana",
+        "feature1_title": "Mazava na maizina",
+        "feature1_desc": "Miasa amin'ny andro amin'ny fomba mazava, miala sasatra amin'ny alina amin'ny fomba maizina. Kitiho iray dia ampy hanova ny ambiance!",
+        "feature2_title": "Frantsay & Malagasy, araka ny safidy",
+        "feature2_desc": "Ovay fiteny avy hatrany. Ny fampiharana manontolo dia adika ho azy mba hiteny ny fiteny tianao.",
+        "feature3_title": "Fiarovana sy tsiambaratelo",
+        "feature3_desc": "Fivoahana azo antoka, fitantanana mombamomba, safidy momba ny vola... Ny kaontinao, ny fitsipikanao, ny fiadananao.",
+        "example": "Ohatra: Loko mifanaraka, fiteny 2, fandrindrana fiarovana mandroso"
       }
     }
   },

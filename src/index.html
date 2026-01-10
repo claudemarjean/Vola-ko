@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Vola-ko - Application de gestion de budget personnel simple et efficace">
+  <meta name="description" content="Vola-ko - Votre coach financier personnel, disponible 24/7 sur mobile, tablette et ordinateur">
   <meta name="theme-color" content="#10b981">
-  <title>Vola-ko - Maîtrisez votre budget</title>
+  <title>Vola-ko - Gérez votre argent intelligemment, partout et sur tous vos appareils</title>
   
   <!-- CSS -->
   <link rel="stylesheet" href="/css/base.css">
@@ -401,17 +401,17 @@
   <section class="hero">
     <div class="hero-content container">
       <h1 class="hero-title animate-fade-in-down" data-i18n="home.hero.title">
-        Prenez le contrôle de vos finances
+        Votre argent, vos règles, où que vous soyez
       </h1>
       <p class="hero-subtitle animate-fade-in-down delay-100" data-i18n="home.hero.subtitle">
-        Vola-ko vous aide à gérer votre budget personnel avec simplicité et efficacité
+        Vola-ko transforme la gestion de votre budget en une expérience simple et agréable. Accessible depuis n'importe quel appareil : smartphone, tablette ou ordinateur.
       </p>
       <div class="hero-buttons animate-fade-in-up delay-200">
         <a href="/register" class="btn btn-primary btn-lg ripple" data-i18n="home.hero.cta">
-          Commencer maintenant
+          Démarrer gratuitement
         </a>
         <a href="#features" class="btn btn-outline btn-lg" data-i18n="home.hero.cta_secondary">
-          En savoir plus
+          Découvrir les fonctionnalités
         </a>
       </div>
     </div>
@@ -421,30 +421,91 @@
   <section id="features" class="features-section">
     <div class="container">
       <h2 class="section-title" data-i18n="home.features.title">
-        Pourquoi choisir Vola-ko ?
+        Pourquoi Vola-ko révolutionne votre budget ?
       </h2>
       <p class="section-subtitle" data-i18n="home.features.subtitle">
-        Une solution complète pour gérer votre argent intelligemment
+        Toute la puissance d'une gestion financière pro, accessible partout
       </p>
 
       <div class="features-grid">
-        <!-- Dashboard -->
+        <!-- Disponibilité multiplateforme -->
         <div class="feature-card card hover-lift">
           <div class="feature-header">
-            <div class="feature-icon">📌</div>
+            <div class="feature-icon">🌍</div>
             <div>
-              <h3 class="feature-title">Dashboard clair</h3>
+              <h3 class="feature-title" data-i18n="home.features.card1.title">100% Web, 100% Mobile</h3>
               <div class="feature-meta">
-                <span class="pill">Vue 360°</span>
-                <span class="pill">Solde instantané</span>
+                <span class="pill" data-i18n="home.features.pills.smartphone">📱 Smartphone</span>
+                <span class="pill" data-i18n="home.features.pills.pc">💻 PC</span>
+                <span class="pill" data-i18n="home.features.pills.tablet">📡 Tablette</span>
               </div>
             </div>
           </div>
-          <p class="feature-description">
-            Un aperçu global : solde, revenus, dépenses, objectifs et budgets en un coup d'œil.
+          <p class="feature-description" data-i18n="home.features.card1.description">
+            Aucune installation nécessaire ! Accédez à vos finances depuis votre smartphone, tablette ou PC. Synchronisation automatique entre tous vos appareils.
           </p>
           <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-dashboard">Détails Dashboard →</a>
+            <a class="btn-ghost" href="#demo-dashboard" data-i18n="home.features.card1.link">Découvrir l'expérience →</a>
+          </div>
+        </div>
+
+        <!-- Sécurité -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-header">
+            <div class="feature-icon">🔒</div>
+            <div>
+              <h3 class="feature-title" data-i18n="home.features.card2.title">Vos données, votre vie privée</h3>
+              <div class="feature-meta">
+                <span class="pill" data-i18n="home.features.pills.auth">Authentification</span>
+                <span class="pill" data-i18n="home.features.pills.secure">Sécurisé</span>
+              </div>
+            </div>
+          </div>
+          <p class="feature-description" data-i18n="home.features.card2.description">
+            Authentification sécurisée et protection de vos données. Vos informations financières restent privées et sous votre contrôle.
+          </p>
+          <div class="feature-actions">
+            <a class="btn-ghost" href="#demo-settings" data-i18n="home.features.card2.link">Sécurité & Paramètres →</a>
+          </div>
+        </div>
+
+        <!-- Multilingue -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-header">
+            <div class="feature-icon">🌏</div>
+            <div>
+              <h3 class="feature-title" data-i18n="home.features.card3.title">Parlez votre langue</h3>
+              <div class="feature-meta">
+                <span class="pill" data-i18n="home.features.pills.french">🇫🇷 Français</span>
+                <span class="pill" data-i18n="home.features.pills.malagasy">🇲🇬 Malagasy</span>
+              </div>
+            </div>
+          </div>
+          <p class="feature-description" data-i18n="home.features.card3.description">
+            Interface bilingue français-malgache pour une expérience naturelle et confortable, quelle que soit votre préférence.
+          </p>
+          <div class="feature-actions">
+            <a class="btn-ghost" href="#demo-settings" data-i18n="home.features.card3.link">Paramètres de langue →</a>
+          </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-header">
+            <div class="feature-icon">📊</div>
+            <div>
+              <h3 class="feature-title" data-i18n="home.features.card4.title">Vision instantanée</h3>
+              <div class="feature-meta">
+                <span class="pill" data-i18n="home.features.pills.realtime">Temps réel</span>
+                <span class="pill" data-i18n="home.features.pills.charts">Graphiques</span>
+              </div>
+            </div>
+          </div>
+          <p class="feature-description" data-i18n="home.features.card4.description">
+            Consultez votre situation financière en temps réel : solde, dépenses, revenus... tout est à jour automatiquement.
+          </p>
+          <div class="feature-actions">
+            <a class="btn-ghost" href="#demo-dashboard" data-i18n="home.features.card4.link">Détails Dashboard →</a>
           </div>
         </div>
 
@@ -453,38 +514,18 @@
           <div class="feature-header">
             <div class="feature-icon">💸</div>
             <div>
-              <h3 class="feature-title">Dépenses maîtrisées</h3>
+              <h3 class="feature-title" data-i18n="home.features.card5.title">Chaque ariary compte</h3>
               <div class="feature-meta">
-                <span class="pill">Catégories</span>
-                <span class="pill">Filtres période</span>
+                <span class="pill" data-i18n="home.features.pills.categories">Catégories</span>
+                <span class="pill" data-i18n="home.features.pills.history">Historique</span>
               </div>
             </div>
           </div>
-          <p class="feature-description">
-            Suivez vos sorties d'argent par catégorie, filtrez par semaine, mois ou 12 mois glissants.
+          <p class="feature-description" data-i18n="home.features.card5.description">
+            Traquez vos sorties d'argent par catégorie avec filtres intelligents et recherche avancée.
           </p>
           <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-expenses">Détails Dépenses →</a>
-          </div>
-        </div>
-
-        <!-- Revenus -->
-        <div class="feature-card card hover-lift">
-          <div class="feature-header">
-            <div class="feature-icon">💰</div>
-            <div>
-              <h3 class="feature-title">Revenus suivis</h3>
-              <div class="feature-meta">
-                <span class="pill">Sources</span>
-                <span class="pill">12 derniers mois</span>
-              </div>
-            </div>
-          </div>
-          <p class="feature-description">
-            Centralisez vos revenus, comparez mois en cours et cumul 12 mois pour garder le cap.
-          </p>
-          <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-incomes">Détails Revenus →</a>
+            <a class="btn-ghost" href="#demo-expenses" data-i18n="home.features.card5.link">Détails Dépenses →</a>
           </div>
         </div>
 
@@ -493,18 +534,18 @@
           <div class="feature-header">
             <div class="feature-icon">🧭</div>
             <div>
-              <h3 class="feature-title">Budgets mensuels</h3>
+              <h3 class="feature-title" data-i18n="home.features.card6.title">Restez dans les rails</h3>
               <div class="feature-meta">
-                <span class="pill">Alertes visuelles</span>
-                <span class="pill">Catégories clés</span>
+                <span class="pill" data-i18n="home.features.pills.alerts">Alertes couleurs</span>
+                <span class="pill" data-i18n="home.features.pills.envelopes">Enveloppes</span>
               </div>
             </div>
           </div>
-          <p class="feature-description">
-            Fixez des enveloppes par catégorie et suivez le reste à dépenser en temps réel.
+          <p class="feature-description" data-i18n="home.features.card6.description">
+            Définissez vos limites mensuelles et dépensez en toute sérénité avec des alertes visuelles intelligentes.
           </p>
           <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-budgets">Détails Budgets →</a>
+            <a class="btn-ghost" href="#demo-budgets" data-i18n="home.features.card6.link">Détails Budgets →</a>
           </div>
         </div>
 
@@ -513,18 +554,18 @@
           <div class="feature-header">
             <div class="feature-icon">💾</div>
             <div>
-              <h3 class="feature-title">Épargnes & objectifs</h3>
+              <h3 class="feature-title" data-i18n="home.features.card7.title">Vos rêves deviennent réalité</h3>
               <div class="feature-meta">
-                <span class="pill">Objectifs</span>
-                <span class="pill">Retrait auto</span>
+                <span class="pill" data-i18n="home.features.pills.goals">Objectifs</span>
+                <span class="pill" data-i18n="home.features.pills.withdrawals">Retraits</span>
               </div>
             </div>
           </div>
-          <p class="feature-description">
-            Créez des épargnes libres ou avec objectifs, planifiez des retraits automatiques et suivez l'historique.
+          <p class="feature-description" data-i18n="home.features.card7.description">
+            Créez vos objectifs d'épargne et suivez vos progrès jour après jour. Votre prochaine réussite commence ici.
           </p>
           <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-savings">Détails Épargne →</a>
+            <a class="btn-ghost" href="#demo-savings" data-i18n="home.features.card7.link">Détails Épargne →</a>
           </div>
         </div>
 
@@ -533,38 +574,18 @@
           <div class="feature-header">
             <div class="feature-icon">📊</div>
             <div>
-              <h3 class="feature-title">Rapports visuels</h3>
+              <h3 class="feature-title" data-i18n="home.features.card8.title">Graphiques qui parlent</h3>
               <div class="feature-meta">
-                <span class="pill">Catégories</span>
-                <span class="pill">12 mois</span>
+                <span class="pill" data-i18n="home.features.pills.interactive">Interactif</span>
+                <span class="pill" data-i18n="home.features.pills.12months">12 mois</span>
               </div>
             </div>
           </div>
-          <p class="feature-description">
-            Graphiques interactifs (catégories, comparaisons, tendances, top dépenses, hebdo) sur les 12 derniers mois.
+          <p class="feature-description" data-i18n="home.features.card8.description">
+            Comprenez vos finances en un coup d'œil grâce à des visualisations interactives et colorées.
           </p>
           <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-reports">Détails Rapports →</a>
-          </div>
-        </div>
-
-        <!-- Paramètres & sécurité -->
-        <div class="feature-card card hover-lift">
-          <div class="feature-header">
-            <div class="feature-icon">🛡️</div>
-            <div>
-              <h3 class="feature-title">Paramètres & sécurité</h3>
-              <div class="feature-meta">
-                <span class="pill">Thème clair/sombre</span>
-                <span class="pill">Langues FR/MG</span>
-              </div>
-            </div>
-          </div>
-          <p class="feature-description">
-            Gérez thème, langue, déconnexion sécurisée et préférences pour un confort total.
-          </p>
-          <div class="feature-actions">
-            <a class="btn-ghost" href="#demo-settings">Détails Paramètres →</a>
+            <a class="btn-ghost" href="#demo-reports" data-i18n="home.features.card8.link">Détails Rapports →</a>
           </div>
         </div>
       </div>
@@ -884,13 +905,13 @@
   <section class="cta-section">
     <div class="container">
       <h2 class="section-title animate-fade-in-up" data-i18n="home.cta.title">
-        Prêt à transformer votre gestion financière ?
+        Votre meilleure décision financière commence maintenant
       </h2>
       <p class="section-subtitle animate-fade-in-up delay-100" data-i18n="home.cta.subtitle">
-        Rejoignez des milliers d'utilisateurs qui maîtrisent déjà leur budget
+        Accessible partout, sur tous vos appareils. Gratuit, sécurisé et sans engagement.
       </p>
       <a href="/register" class="btn btn-primary btn-lg ripple animate-fade-in-up delay-200" data-i18n="home.cta.button">
-        Créer un compte gratuit
+        Commencer gratuitement
       </a>
     </div>
   </section>
