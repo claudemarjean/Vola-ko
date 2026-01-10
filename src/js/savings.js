@@ -238,6 +238,9 @@ class SavingsManager {
       title.textContent = 'Créer une épargne';
       form.reset();
       document.getElementById('goal-fields').style.display = 'none';
+      // Définir la date du jour par défaut
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('saving-initial-date').value = today;
     }
 
     modal.classList.add('active');
@@ -257,6 +260,7 @@ class SavingsManager {
     const initialAmount = parseFloat(document.getElementById('saving-initial').value) || 0;
     const targetAmount = type === 'goal' ? parseFloat(document.getElementById('saving-target').value) || 0 : 0;
     const targetDate = type === 'goal' ? document.getElementById('saving-target-date').value : null;
+    const initialDate = document.getElementById('saving-initial-date').value;
 
     if (!name) {
       notify.error('Le nom de l\'épargne est requis');
@@ -321,12 +325,11 @@ class SavingsManager {
       // Si montant initial > 0, utiliser le moteur financier pour l'ajouter
       // Cela créera automatiquement la dépense correspondante
       if (initialAmount > 0) {
-        const today = new Date().toISOString().split('T')[0];
         const result = FinanceEngine.addToSaving(
           saving.id,
           initialAmount,
           `Montant initial de ${name}`,
-          today
+          initialDate
         );
 
         if (!result.success) {
