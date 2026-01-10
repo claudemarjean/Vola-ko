@@ -239,10 +239,11 @@ class FinanceEngine {
    * Crée automatiquement une dépense correspondante
    * @param {string} savingId - ID de l'épargne
    * @param {number} amount - Montant à ajouter
-   * @param {string} description - Description
+  * @param {string} description - Description
+  * @param {string} transactionDate - Date de la transaction (ISO ou YYYY-MM-DD)
    * @returns {Object} { success: boolean, message: string }
    */
-  static addToSaving(savingId, amount, description = '') {
+  static addToSaving(savingId, amount, description = '', transactionDate = null) {
     // Valider l'opération
     const validation = this.validateSavingAddition(amount);
     if (!validation.valid) {
@@ -270,13 +271,14 @@ class FinanceEngine {
     // Créer une DÉPENSE automatique (catégorie 'epargne')
     const expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
     const expenseId = 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const expenseDate = transactionDate || new Date().toISOString();
     
     const expense = {
       id: expenseId,
       amount: parseFloat(amount),
       category: 'epargne',
       description: description || `Ajout à l'épargne: ${saving.name}`,
-      date: new Date().toISOString(),
+      date: expenseDate,
       createdAt: new Date().toISOString()
     };
 
@@ -291,7 +293,7 @@ class FinanceEngine {
       type: 'add',
       amount: parseFloat(amount),
       description: description || `Ajout à l'épargne: ${saving.name}`,
-      date: new Date().toISOString(),
+      date: expenseDate,
       balanceAfter: saving.balance
     });
     Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, transactions);
@@ -307,10 +309,11 @@ class FinanceEngine {
    * Crée automatiquement un revenu correspondant
    * @param {string} savingId - ID de l'épargne
    * @param {number} amount - Montant à retirer
-   * @param {string} description - Description
+  * @param {string} description - Description
+  * @param {string} transactionDate - Date de la transaction (ISO ou YYYY-MM-DD)
    * @returns {Object} { success: boolean, message: string }
    */
-  static withdrawFromSaving(savingId, amount, description = '') {
+  static withdrawFromSaving(savingId, amount, description = '', transactionDate = null) {
     // Valider l'opération
     const validation = this.validateSavingWithdrawal(savingId, amount);
     if (!validation.valid) {
@@ -338,13 +341,14 @@ class FinanceEngine {
     // Créer un REVENU automatique (catégorie 'epargne_retrait')
     const incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
     const incomeId = 'inc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const incomeDate = transactionDate || new Date().toISOString();
     
     const income = {
       id: incomeId,
       amount: parseFloat(amount),
       category: 'epargne_retrait',
       description: description || `Retrait de l'épargne: ${saving.name}`,
-      date: new Date().toISOString(),
+      date: incomeDate,
       createdAt: new Date().toISOString()
     };
 
@@ -359,7 +363,7 @@ class FinanceEngine {
       type: 'withdraw',
       amount: parseFloat(amount),
       description: description || `Retrait de l'épargne: ${saving.name}`,
-      date: new Date().toISOString(),
+      date: incomeDate,
       balanceAfter: saving.balance
     });
     Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, transactions);

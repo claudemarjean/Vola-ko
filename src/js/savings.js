@@ -321,10 +321,12 @@ class SavingsManager {
       // Si montant initial > 0, utiliser le moteur financier pour l'ajouter
       // Cela créera automatiquement la dépense correspondante
       if (initialAmount > 0) {
+        const today = new Date().toISOString().split('T')[0];
         const result = FinanceEngine.addToSaving(
           saving.id,
           initialAmount,
-          `Montant initial de ${name}`
+          `Montant initial de ${name}`,
+          today
         );
 
         if (!result.success) {
@@ -374,10 +376,12 @@ class SavingsManager {
       // Si l'épargne a un solde > 0, retirer tout le montant pour créer un revenu
       // Cela restitue l'argent au solde disponible
       if (balance > 0) {
+        const today = new Date().toISOString().split('T')[0];
         const result = FinanceEngine.withdrawFromSaving(
           id,
           balance,
-          `Restitution suite à suppression de l'épargne: ${saving.name}`
+          `Restitution suite à suppression de l'épargne: ${saving.name}`,
+          today
         );
 
         if (!result.success) {
@@ -483,7 +487,8 @@ class SavingsManager {
       const result = FinanceEngine.addToSaving(
         savingId,
         amount,
-        description || `Ajout à ${saving.name}`
+        description || `Ajout à ${saving.name}`,
+        date
       );
 
       if (!result.success) {
@@ -507,7 +512,8 @@ class SavingsManager {
       const result = FinanceEngine.withdrawFromSaving(
         savingId,
         amount,
-        description || `Retrait de ${saving.name}`
+        description || `Retrait de ${saving.name}`,
+        date
       );
 
       if (!result.success) {
