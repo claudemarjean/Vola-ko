@@ -357,11 +357,25 @@ class SavingsManager {
       }
     } else {
       // Create new
+      // VALIDATION: Si montant initial > 0, vérifier le solde disponible
+      if (initialAmount > 0) {
+        const validation = FinanceEngine.validateSavingAddition(initialAmount);
+        if (!validation.valid) {
+          notify.alert(
+            `${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`,
+            '❌ Solde insuffisant',
+            'error'
+          );
+          return;
+        }
+      }
+
+      // Créer l'épargne avec balance à 0 d'abord
       const saving = {
         id: Date.now().toString(),
         name,
         type,
-        balance: initialAmount,
+        balance: 0,
         targetAmount,
         targetDate,
         autoWithdraw: buildAutoWithdraw(),
@@ -369,14 +383,30 @@ class SavingsManager {
       };
 
       this.savings.push(saving);
+      Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
 
-      // Record initial transaction if amount > 0
+      // Si montant initial > 0, utiliser le moteur financier pour l'ajouter
+      // Cela créera automatiquement la dépense correspondante
       if (initialAmount > 0) {
-        this.recordTransaction(saving.id, initialAmount, 'add', new Date().toISOString().split('T')[0]);
+        const result = FinanceEngine.addToSaving(
+          saving.id,
+          initialAmount,
+          `Montant initial de ${name}`
+        );
+
+        if (!result.success) {
+          // Si l'ajout échoue, supprimer l'épargne créée
+          this.savings = this.savings.filter(s => s.id !== saving.id);
+          Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
+          notify.error(result.message);
+          return;
+        }
       }
     }
 
-    Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
+    // Recharger les données après les modifications
+    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+    
     this.closeSavingModal();
     this.updateStats();
     this.loadSavings();

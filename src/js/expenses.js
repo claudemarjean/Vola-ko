@@ -6,6 +6,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import FinanceEngine from './financeEngine.js';
+import notify from './notifications.js';
 
 class ExpensesManager {
   constructor() {
@@ -284,7 +285,7 @@ class ExpensesManager {
 
     // Valider les champs
     if (!description || !amount || !category || !date) {
-      alert('Tous les champs sont requis');
+      notify.error('Tous les champs sont requis', 'Champs manquants');
       return;
     }
 
@@ -294,7 +295,11 @@ class ExpensesManager {
       const validation = FinanceEngine.validateExpense(amount);
       
       if (!validation.valid) {
-        alert(`❌ ${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`);
+        notify.alert(
+          `${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`,
+          '❌ Solde insuffisant',
+          'error'
+        );
         return;
       }
     }

@@ -45,7 +45,7 @@ class FinanceEngine {
     const allExpenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
     const savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
 
-    // Filtrer les transactions de la période
+    // Filtrer les transactions de la période pour les STATISTIQUES
     const periodIncomes = allIncomes.filter(inc => {
       const date = new Date(inc.date);
       return date >= start && date <= end;
@@ -56,9 +56,14 @@ class FinanceEngine {
       return date >= start && date <= end;
     });
 
-    // Calculer les totaux de la période
+    // Calculer les totaux de la période (pour affichage dashboard)
     const totalIncome = periodIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount || 0), 0);
     const totalExpenses = periodExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+
+    // CALCUL DU SOLDE DISPONIBLE RÉEL (TOUS LES TEMPS)
+    // Prendre TOUS les revenus et TOUTES les dépenses peu importe la date
+    const allTimeIncome = allIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount || 0), 0);
+    const allTimeExpenses = allExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
 
     // Calculer le total épargné (toutes périodes confondues)
     const totalSaved = savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
@@ -75,13 +80,12 @@ class FinanceEngine {
     // CALCULS FINANCIERS OFFICIELS
     // =============================
     
-    // Solde de la période = Revenus - Dépenses
-    // (Les ajouts épargne sont déjà dans les dépenses, les retraits dans les revenus)
+    // Solde de la période = Revenus - Dépenses (pour statistiques du mois)
     const periodBalance = totalIncome - totalExpenses;
 
-    // Solde disponible HORS épargne = Solde de la période
-    // C'est l'argent RÉELLEMENT disponible pour dépenser
-    const availableBalance = periodBalance;
+    // Solde disponible HORS épargne = TOUS les revenus - TOUTES les dépenses
+    // C'est l'argent RÉELLEMENT disponible pour dépenser (cumul depuis toujours)
+    const availableBalance = allTimeIncome - allTimeExpenses;
 
     // Solde AVEC épargne = Solde disponible + Total épargné
     const totalBalanceWithSavings = availableBalance + totalSaved;
@@ -91,10 +95,14 @@ class FinanceEngine {
       periodStart: start,
       periodEnd: end,
 
-      // Revenus et dépenses
+      // Revenus et dépenses DE LA PÉRIODE (pour affichage)
       totalIncome,
       totalExpenses,
       periodBalance,
+
+      // Revenus et dépenses GLOBAUX (tous les temps)
+      allTimeIncome,
+      allTimeExpenses,
 
       // Épargne
       totalSaved,
@@ -102,7 +110,7 @@ class FinanceEngine {
       periodSavingsWithdrawn,
 
       // Soldes principaux
-      availableBalance,           // SOLDE HORS ÉPARGNE (argent disponible)
+      availableBalance,           // SOLDE HORS ÉPARGNE (cumul de tous les temps)
       totalBalanceWithSavings,    // SOLDE AVEC ÉPARGNE (patrimoine total)
 
       // Détails
