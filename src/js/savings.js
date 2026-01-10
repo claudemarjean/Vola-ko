@@ -7,6 +7,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import notify from './notifications.js';
+import FinanceEngine from './financeEngine.js';
 
 class SavingsManager {
   constructor() {
@@ -454,7 +455,9 @@ class SavingsManager {
     const type = document.getElementById('transaction-type').value;
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const date = document.getElementById('transaction-date').value;
+    const description = document.getElementById('transaction-description')?.value || '';
 
+    // Validation basique
     if (!savingId || !type || !amount || !date) {
       notify.error('Tous les champs sont requis');
       return;
@@ -471,111 +474,66 @@ class SavingsManager {
       return;
     }
 
-    const currentBalance = parseFloat(saving.balance || 0);
-
-    if (type === 'withdraw' && amount > currentBalance) {
-      notify.error(`Montant insuffisant. Solde actuel : ${this.formatCurrency(currentBalance)}`);
-      return;
-    }
-
     /**
-     * LOGIQUE DES TRANSACTIONS:
-     * 
-     * AJOUT (add):
-     * - Augmente le solde de l'épargne
-     * - Crée une dépense avec catégorie "Épargne"
-     * - Le solde disponible DIMINUE (car l'argent est mis de côté)
-     * - L'argent n'est plus disponible à dépenser
-     * 
-     * RETRAIT (withdraw):
-     * - Diminue le solde de l'épargne
-     * - Crée un revenu automatique du même montant
-     * - Le solde disponible AUGMENTE (revenus + retrait)
-     * - L'argent redevient disponible à dépenser
+     * UTILISATION DU MOTEUR FINANCIER
+     * Toutes les validations et opérations passent par FinanceEngine
      */
     if (type === 'add') {
-      saving.balance = currentBalance + amount;
+      // AJOUT À L'ÉPARGNE
+      // Valider que le solde disponible est suffisant
+      const validation = FinanceEngine.validateSavingAddition(amount);
       
-      // Créer une dépense pour réduire le solde disponible
-      this.addSavingAsExpense(amount, date, saving.name);
-    } else {
-      // Retrait d'épargne
-      saving.balance = currentBalance - amount;
+      if (!validation.valid) {
+        notify.error(validation.message);
+        return;
+      }
+
+      // Effectuer l'opération via le moteur financier
+      const result = FinanceEngine.addToSaving(
+        savingId,
+        amount,
+        description || `Ajout à ${saving.name}`
+      );
+
+      if (!result.success) {
+        notify.error(result.message);
+        return;
+      }
+
+      notify.success(result.message);
+
+    } else if (type === 'withdraw') {
+      // RETRAIT DE L'ÉPARGNE
+      // Valider que l'épargne a suffisamment de solde
+      const validation = FinanceEngine.validateSavingWithdrawal(savingId, amount);
       
-      // Ajouter le montant retiré comme revenu pour augmenter le solde disponible
-      this.addWithdrawalAsIncome(amount, date, saving.name);
+      if (!validation.valid) {
+        notify.error(validation.message);
+        return;
+      }
+
+      // Effectuer l'opération via le moteur financier
+      const result = FinanceEngine.withdrawFromSaving(
+        savingId,
+        amount,
+        description || `Retrait de ${saving.name}`
+      );
+
+      if (!result.success) {
+        notify.error(result.message);
+        return;
+      }
+
+      notify.success(result.message);
     }
 
-    // Record transaction
-    this.recordTransaction(savingId, amount, type, date);
-
-    // Save
-    Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
+    // Recharger les données
+    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+    this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
 
     this.closeTransactionModal();
     this.updateStats();
     this.loadSavings();
-  }
-
-  /**
-   * Ajouter un ajout d'épargne comme dépense
-   * 
-   * LOGIQUE:
-   * Quand on ajoute à l'épargne, cet argent quitte le solde disponible.
-   * On crée donc une dépense automatique avec le montant ajouté.
-   * Cela réduit le solde disponible (Revenus - Dépenses).
-   * 
-   * Exemple:
-   * - Solde disponible: 1 000 000 MGA
-   * - Ajout: 500 000 MGA à Épargne Vacances
-   * - → Nouvelle dépense créée: 500 000 MGA "Épargne: Vacances"
-   * - → Solde disponible devient: 500 000 MGA
-   * - → Épargne Vacances: 500 000 MGA
-   */
-  addSavingAsExpense(amount, date, savingName) {
-    const expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
-    
-    const newExpense = {
-      id: Date.now().toString(),
-      description: `Épargne: ${savingName}`,
-      amount: amount,
-      category: 'epargne',
-      date: date,
-      createdAt: new Date().toISOString()
-    };
-    
-    expenses.push(newExpense);
-    Storage.set(STORAGE_KEYS.EXPENSES, expenses);
-  }
-
-  /**
-   * Ajouter un retrait d'épargne comme revenu
-   * 
-   * LOGIQUE:
-   * Quand on retire de l'épargne, cet argent devient disponible à dépenser.
-   * On crée donc un revenu automatique avec le montant retiré.
-   * Cela augmente le solde disponible (Revenus - Dépenses).
-   * 
-   * Exemple:
-   * - Épargne Vacances: 500 000 MGA
-   * - Retrait: 100 000 MGA
-   * - → Épargne devient: 400 000 MGA
-   * - → Nouveau revenu créé: 100 000 MGA "Retrait épargne: Vacances"
-   * - → Solde disponible augmente de 100 000 MGA
-   */
-  addWithdrawalAsIncome(amount, date, savingName) {
-    const incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
-    
-    const newIncome = {
-      id: Date.now().toString(),
-      source: `Retrait épargne: ${savingName}`,
-      amount: amount,
-      date: date,
-      createdAt: new Date().toISOString()
-    };
-    
-    incomes.push(newIncome);
-    Storage.set(STORAGE_KEYS.INCOMES, incomes);
   }
 
   processAutoWithdrawals() {
@@ -611,18 +569,27 @@ class SavingsManager {
       const balance = parseFloat(saving.balance) || 0;
 
       if (balance >= amount) {
-        // Execute withdrawal
-        saving.balance = balance - amount;
-        auto.executed = true;
-        auto.status = 'done';
-        auto.lastError = null;
-        auto.lastRunAt = new Date().toISOString();
-        this.recordTransaction(saving.id, amount, 'withdraw', auto.date);
-        
-        // Ajouter le montant retiré comme revenu
-        this.addWithdrawalAsIncome(amount, auto.date, saving.name);
-        
-        changed = true;
+        // Execute withdrawal via FinanceEngine
+        const result = FinanceEngine.withdrawFromSaving(
+          saving.id,
+          amount,
+          `Retrait automatique: ${saving.name}`
+        );
+
+        if (result.success) {
+          auto.executed = true;
+          auto.status = 'done';
+          auto.lastError = null;
+          auto.lastRunAt = new Date().toISOString();
+          changed = true;
+        } else {
+          auto.executed = true;
+          auto.status = 'failed';
+          auto.lastError = result.message;
+          auto.lastRunAt = new Date().toISOString();
+          changed = true;
+          errors.push(`❌ Retrait automatique échoué pour "${saving.name}" : ${result.message}`);
+        }
       } else {
         // Insufficient funds
         auto.executed = true;
@@ -635,6 +602,8 @@ class SavingsManager {
     });
 
     if (changed) {
+      // Recharger les savings après les modifications du FinanceEngine
+      this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
       Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
     }
 

@@ -5,6 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import FinanceEngine from './financeEngine.js';
 
 class BudgetsManager {
   constructor() {

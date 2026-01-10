@@ -6,6 +6,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { CATEGORIES } from './utils.js';
 import { Chart, registerables } from 'chart.js';
+import FinanceEngine from './financeEngine.js';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -43,73 +44,25 @@ class Dashboard {
 
   /**
    * Mettre à jour les statistiques
-   * 
-   * LOGIQUE DES CALCULS:
-   * 1. Solde disponible (hors épargne) = Revenus du mois - Dépenses du mois
-   *    → C'est l'argent RÉELLEMENT disponible à dépenser
-   *    → Les dépenses incluent les ajouts à l'épargne (catégorie "epargne")
-   * 
-   * 2. Solde total (avec épargne) = Solde disponible + Épargne totale
-   *    → C'est le patrimoine total incluant l'épargne
-   * 
-   * 3. Épargne totale = Somme de tous les soldes d'épargne
-   *    → Affiché séparément comme indicateur
-   *    → L'épargne est de l'argent mis de côté (non disponible immédiatement)
-   * 
-   * 4. Quand on AJOUTE à l'épargne:
-   *    → Une dépense automatique est créée (catégorie "epargne")
-   *    → Le solde disponible diminue (car l'argent n'est plus disponible)
-   *    → L'épargne totale augmente
-   * 
-   * 5. Quand on RETIRE de l'épargne:
-   *    → Un revenu automatique est créé
-   *    → Le solde disponible augmente (l'argent redevient disponible)
-   *    → L'épargne totale diminue
+   * Utilise FinanceEngine pour garantir des calculs cohérents
    */
   updateStats() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    // Utiliser le moteur financier pour calculer tous les soldes
+    const balances = FinanceEngine.calculateBalances();
 
-    // Filtrer les transactions du mois en cours
-    const monthExpenses = this.expenses.filter(exp => {
-      const date = new Date(exp.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    const monthIncomes = this.incomes.filter(inc => {
-      const date = new Date(inc.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    // Calculer les totaux
-    const totalExpenses = monthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
-    const totalIncome = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
-    
-    // SOLDE DISPONIBLE (hors épargne) = revenus - dépenses
-    // Ce solde diminue quand on ajoute à l'épargne car c'est comptabilisé comme dépense
-    const availableBalance = totalIncome - totalExpenses;
-
-    // ÉPARGNE TOTALE (séparée du solde disponible)
-    const totalSaved = this.savings.reduce((sum, s) => sum + parseFloat(s.balance || 0), 0);
-    const activeGoals = this.savings.filter(s => s.type === 'goal').length;
-
-    // SOLDE TOTAL (avec épargne) = solde disponible + épargne
-    const totalBalanceWithSavings = availableBalance + totalSaved;
-
-    // Calculer le budget total et utilisé
-    const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount), 0);
-    const budgetRemaining = totalBudget - totalExpenses;
-
-    // Mettre à jour l'affichage des deux soldes
-    this.updateElement('balance-available-value', this.formatCurrency(availableBalance));
-    this.updateElement('balance-with-savings-value', this.formatCurrency(totalBalanceWithSavings));
+    // Mettre à jour l'affichage des deux soldes principaux
+    this.updateElement('balance-available-value', this.formatCurrency(balances.availableBalance));
+    this.updateElement('balance-with-savings-value', this.formatCurrency(balances.totalBalanceWithSavings));
     
     // Mettre à jour les autres statistiques
-    this.updateElement('income-value', this.formatCurrency(totalIncome));
-    this.updateElement('expenses-value', this.formatCurrency(totalExpenses));
-    this.updateElement('savings-value', this.formatCurrency(totalSaved));
-    this.updateElement('savings-goals-count', activeGoals);
+    this.updateElement('income-value', this.formatCurrency(balances.totalIncome));
+    this.updateElement('expenses-value', this.formatCurrency(balances.totalExpenses));
+    this.updateElement('savings-value', this.formatCurrency(balances.totalSaved));
+    this.updateElement('savings-goals-count', balances.savingsCount);
+
+    // Calculer le budget restant
+    const totalBudget = this.budgets.reduce((sum, budget) => sum + parseFloat(budget.amount || 0), 0);
+    const budgetRemaining = totalBudget - balances.totalExpenses;
     this.updateElement('budget-value', this.formatCurrency(budgetRemaining));
   }
 

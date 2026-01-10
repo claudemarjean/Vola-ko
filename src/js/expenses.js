@@ -5,6 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import FinanceEngine from './financeEngine.js';
 
 class ExpensesManager {
   constructor() {
@@ -229,19 +230,42 @@ class ExpensesManager {
     const form = document.getElementById('expense-form');
     const editId = form.dataset.editId;
 
+    const amount = parseFloat(document.getElementById('expense-amount').value);
+    const description = document.getElementById('expense-description').value;
+    const category = document.getElementById('expense-category').value;
+    const date = document.getElementById('expense-date').value;
+
+    // Valider les champs
+    if (!description || !amount || !category || !date) {
+      alert('Tous les champs sont requis');
+      return;
+    }
+
+    // VALIDATION FINANCIÈRE via FinanceEngine
+    // Ne valider que pour les nouvelles dépenses (pas pour les éditions)
+    if (!editId && category !== 'epargne') {
+      const validation = FinanceEngine.validateExpense(amount);
+      
+      if (!validation.valid) {
+        alert(`❌ ${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`);
+        return;
+      }
+    }
+
     const expense = {
       id: editId || Date.now().toString(),
-      description: document.getElementById('expense-description').value,
-      amount: parseFloat(document.getElementById('expense-amount').value),
-      category: document.getElementById('expense-category').value,
-      date: document.getElementById('expense-date').value
+      description,
+      amount,
+      category,
+      date,
+      createdAt: editId ? undefined : new Date().toISOString()
     };
 
     if (editId) {
       // Update existing
       const index = this.expenses.findIndex(exp => exp.id === editId);
       if (index !== -1) {
-        this.expenses[index] = expense;
+        this.expenses[index] = { ...this.expenses[index], ...expense };
       }
     } else {
       // Add new
