@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/dark.css">
   <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
   <link rel="stylesheet" href="/css/app-layout.css">
 </head>
 <body>
@@ -92,6 +93,11 @@
           <input type="number" id="saving-initial" class="form-input" required min="0" value="0">
         </div>
 
+        <div class="form-group">
+          <label for="saving-initial-date">Date du montant initial</label>
+          <input type="date" id="saving-initial-date" class="form-input" required>
+        </div>
+
         <div id="goal-fields" style="display: none;">
           <div class="form-group">
             <label for="saving-target" data-i18n="savings.target_amount">Montant cible (MGA)</label>
@@ -101,26 +107,6 @@
           <div class="form-group">
             <label for="saving-target-date" data-i18n="savings.target_date">Date cible</label>
             <input type="date" id="saving-target-date" class="form-input">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="auto-withdraw-enabled">Retrait automatique</label>
-          <div style="display: flex; align-items: center; gap: var(--space-sm);">
-            <input type="checkbox" id="auto-withdraw-enabled">
-            <span>Activer un retrait automatique à une date choisie</span>
-          </div>
-        </div>
-
-        <div id="auto-withdraw-fields" style="display: none;">
-          <div class="form-group">
-            <label for="auto-withdraw-amount">Montant à retirer (MGA)</label>
-            <input type="number" id="auto-withdraw-amount" class="form-input" min="0" value="0">
-          </div>
-
-          <div class="form-group">
-            <label for="auto-withdraw-date">Date de retrait automatique</label>
-            <input type="date" id="auto-withdraw-date" class="form-input">
           </div>
         </div>
 

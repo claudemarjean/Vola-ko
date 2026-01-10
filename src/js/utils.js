@@ -3,8 +3,6 @@
  * Fonctions utilitaires partagées
  */
 
-import { showConfirmModal } from './components.js';
-
 /**
  * Categories Configuration
  */
@@ -177,25 +175,45 @@ export function groupByCategory(items) {
 }
 
 /**
- * Show notification (simple alert for now, can be improved)
+ * Show notification using the new notification system
  */
-export function showNotification(message, type = 'info') {
-  // TODO: Implement better notification system (toast, etc.)
-  console.log(`[${type.toUpperCase()}] ${message}`);
+export async function showNotification(message, type = 'info') {
+  const { default: notify } = await import('./notifications.js');
   
-  // Simple alert for now
-  if (type === 'error') {
-    alert(`❌ ${message}`);
-  } else if (type === 'success') {
-    alert(`✅ ${message}`);
+  switch (type) {
+    case 'error':
+      notify.error(message);
+      break;
+    case 'success':
+      notify.success(message);
+      break;
+    case 'warning':
+      notify.warning(message);
+      break;
+    default:
+      notify.info(message);
   }
 }
 
 /**
- * Confirm action
+ * Confirm action using the new notification system
  */
 export async function confirmAction(message, options = {}) {
-  return await showConfirmModal(message, options);
+  const { default: notify } = await import('./notifications.js');
+  
+  const {
+    title = '⚠️ Confirmation',
+    confirmText = 'Confirmer',
+    cancelText = 'Annuler',
+    danger = false
+  } = options;
+
+  return await notify.confirm(message, title, {
+    confirmText,
+    cancelText,
+    type: danger ? 'error' : 'warning',
+    danger
+  });
 }
 
 export default {
