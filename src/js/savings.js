@@ -22,7 +22,6 @@ class SavingsManager {
     this.checkAuth();
     renderSidebar('savings');
     renderBottomNav('savings');
-    this.processAutoWithdrawals();
     this.updateStats();
     this.loadSavings();
     this.setupEventListeners();
@@ -106,7 +105,6 @@ class SavingsManager {
   createSavingCard(saving) {
     const balance = parseFloat(saving.balance || 0);
     const isGoal = saving.type === 'goal';
-    const hasAutoWithdraw = saving.autoWithdraw && saving.autoWithdraw.enabled;
     const targetAmount = parseFloat(saving.targetAmount || 0);
     const progress = isGoal && targetAmount > 0 ? (balance / targetAmount) * 100 : 0;
     const progressClamped = Math.min(progress, 100);
@@ -148,7 +146,6 @@ class SavingsManager {
               <h3 class="saving-name">${saving.name}</h3>
               <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px;">
                 <span class="saving-type-badge">${isGoal ? 'Objectif' : 'Libre'}</span>
-                ${hasAutoWithdraw ? `<span class="saving-type-badge" title="Retrait automatique planifié">⏱️ Auto</span>` : ''}
               </div>
             </div>
           </div>
@@ -200,13 +197,6 @@ class SavingsManager {
       goalFields.style.display = e.target.value === 'goal' ? 'block' : 'none';
     });
 
-    // Auto withdraw toggle
-    const autoToggle = document.getElementById('auto-withdraw-enabled');
-    const autoFields = document.getElementById('auto-withdraw-fields');
-    autoToggle.addEventListener('change', () => {
-      autoFields.style.display = autoToggle.checked ? 'block' : 'none';
-    });
-
     // Transaction modal
     document.getElementById('close-transaction-modal').addEventListener('click', () => this.closeTransactionModal());
     document.getElementById('transaction-form').addEventListener('submit', (e) => this.saveTransaction(e));
@@ -244,22 +234,10 @@ class SavingsManager {
       
       const goalFields = document.getElementById('goal-fields');
       goalFields.style.display = saving.type === 'goal' ? 'block' : 'none';
-
-      const autoToggle = document.getElementById('auto-withdraw-enabled');
-      const autoFields = document.getElementById('auto-withdraw-fields');
-      const auto = saving.autoWithdraw || { enabled: false };
-      autoToggle.checked = !!auto.enabled;
-      autoFields.style.display = autoToggle.checked ? 'block' : 'none';
-      document.getElementById('auto-withdraw-amount').value = auto.amount ?? 0;
-      document.getElementById('auto-withdraw-date').value = auto.date || '';
     } else {
       title.textContent = 'Créer une épargne';
       form.reset();
       document.getElementById('goal-fields').style.display = 'none';
-      document.getElementById('auto-withdraw-enabled').checked = false;
-      document.getElementById('auto-withdraw-fields').style.display = 'none';
-      document.getElementById('auto-withdraw-amount').value = 0;
-      document.getElementById('auto-withdraw-date').value = '';
     }
 
     modal.classList.add('active');
@@ -279,9 +257,6 @@ class SavingsManager {
     const initialAmount = parseFloat(document.getElementById('saving-initial').value) || 0;
     const targetAmount = type === 'goal' ? parseFloat(document.getElementById('saving-target').value) || 0 : 0;
     const targetDate = type === 'goal' ? document.getElementById('saving-target-date').value : null;
-    const autoEnabled = document.getElementById('auto-withdraw-enabled').checked;
-    const autoAmount = parseFloat(document.getElementById('auto-withdraw-amount').value) || 0;
-    const autoDate = document.getElementById('auto-withdraw-date').value || null;
 
     if (!name) {
       notify.error('Le nom de l\'épargne est requis');
@@ -298,58 +273,17 @@ class SavingsManager {
       return;
     }
 
-    if (autoEnabled) {
-      if (!autoDate) {
-        notify.error('La date de retrait automatique est requise');
-        return;
-      }
-      if (autoAmount <= 0) {
-        notify.error('Le montant du retrait automatique doit être supérieur à 0');
-        return;
-      }
-    }
-
-    const buildAutoWithdraw = (previous = null) => {
-      if (!autoEnabled) return { enabled: false };
-
-      const base = {
-        enabled: true,
-        amount: autoAmount,
-        date: autoDate
-      };
-
-      if (!previous || previous.date !== autoDate) {
-        return {
-          ...base,
-          executed: false,
-          status: 'scheduled',
-          lastRunAt: null,
-          lastError: null
-        };
-      }
-
-      return {
-        ...base,
-        executed: previous.executed || false,
-        status: previous.status || 'scheduled',
-        lastRunAt: previous.lastRunAt || null,
-        lastError: previous.lastError || null
-      };
-    };
-
     if (this.editingId) {
       // Update existing
       const index = this.savings.findIndex(s => s.id === this.editingId);
       if (index !== -1) {
         const oldBalance = this.savings[index].balance || 0;
-        const previousAuto = this.savings[index].autoWithdraw || null;
         this.savings[index] = {
           ...this.savings[index],
           name,
           type,
           targetAmount,
           targetDate,
-          autoWithdraw: buildAutoWithdraw(previousAuto),
           updatedAt: new Date().toISOString()
         };
         // Keep the existing balance when editing
@@ -378,7 +312,6 @@ class SavingsManager {
         balance: 0,
         targetAmount,
         targetDate,
-        autoWithdraw: buildAutoWithdraw(),
         createdAt: new Date().toISOString()
       };
 
@@ -423,9 +356,11 @@ class SavingsManager {
     const saving = this.savings.find(s => s.id === id);
     if (!saving) return;
 
+    const balance = parseFloat(saving.balance || 0);
+    
     const confirmed = await showConfirmModal(
       `Êtes-vous sûr de vouloir supprimer l'épargne "${saving.name}" ?${
-        saving.balance > 0 ? `\n\nSolde actuel : ${this.formatCurrency(saving.balance)}` : ''
+        balance > 0 ? `\n\nSolde actuel : ${this.formatCurrency(balance)}\nCe montant sera restitué à votre solde disponible.` : ''
       }`,
       {
         title: '⚠️ Supprimer l\'épargne',
@@ -436,12 +371,38 @@ class SavingsManager {
     );
 
     if (confirmed) {
+      // Si l'épargne a un solde > 0, retirer tout le montant pour créer un revenu
+      // Cela restitue l'argent au solde disponible
+      if (balance > 0) {
+        const result = FinanceEngine.withdrawFromSaving(
+          id,
+          balance,
+          `Restitution suite à suppression de l'épargne: ${saving.name}`
+        );
+
+        if (!result.success) {
+          notify.error(`Erreur lors de la restitution du solde: ${result.message}`);
+          return;
+        }
+      }
+
+      // Recharger les données après le retrait
+      this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+      this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
+
+      // Supprimer l'épargne et ses transactions
       this.savings = this.savings.filter(s => s.id !== id);
       this.transactions = this.transactions.filter(t => t.savingsId !== id);
       
       Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
       Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, this.transactions);
       
+      notify.success(
+        balance > 0 
+          ? `Épargne supprimée. ${this.formatCurrency(balance)} restitué au solde disponible.`
+          : 'Épargne supprimée.'
+      );
+
       this.updateStats();
       this.loadSavings();
     }
@@ -564,82 +525,6 @@ class SavingsManager {
     this.closeTransactionModal();
     this.updateStats();
     this.loadSavings();
-  }
-
-  processAutoWithdrawals() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let changed = false;
-    const errors = [];
-
-    this.savings.forEach(saving => {
-      const auto = saving.autoWithdraw;
-      if (!auto || !auto.enabled || !auto.date || auto.executed) {
-        return;
-      }
-
-      const scheduled = new Date(auto.date);
-      scheduled.setHours(0, 0, 0, 0);
-
-      if (scheduled > today) {
-        return; // not due yet
-      }
-
-      const amount = parseFloat(auto.amount) || 0;
-      if (amount <= 0) {
-        auto.executed = true;
-        auto.status = 'failed';
-        auto.lastError = 'Montant invalide';
-        auto.lastRunAt = new Date().toISOString();
-        changed = true;
-        return;
-      }
-
-      const balance = parseFloat(saving.balance) || 0;
-
-      if (balance >= amount) {
-        // Execute withdrawal via FinanceEngine
-        const result = FinanceEngine.withdrawFromSaving(
-          saving.id,
-          amount,
-          `Retrait automatique: ${saving.name}`
-        );
-
-        if (result.success) {
-          auto.executed = true;
-          auto.status = 'done';
-          auto.lastError = null;
-          auto.lastRunAt = new Date().toISOString();
-          changed = true;
-        } else {
-          auto.executed = true;
-          auto.status = 'failed';
-          auto.lastError = result.message;
-          auto.lastRunAt = new Date().toISOString();
-          changed = true;
-          errors.push(`❌ Retrait automatique échoué pour "${saving.name}" : ${result.message}`);
-        }
-      } else {
-        // Insufficient funds
-        auto.executed = true;
-        auto.status = 'failed';
-        auto.lastError = 'Solde insuffisant';
-        auto.lastRunAt = new Date().toISOString();
-        changed = true;
-        errors.push(`❌ Retrait automatique échoué pour "${saving.name}" : solde insuffisant (${this.formatCurrency(balance)} < ${this.formatCurrency(amount)})`);
-      }
-    });
-
-    if (changed) {
-      // Recharger les savings après les modifications du FinanceEngine
-      this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
-      Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
-    }
-
-    if (errors.length > 0) {
-      notify.warning(errors.join('<br>'), 6000);
-    }
   }
 
   recordTransaction(savingId, amount, type, date) {
