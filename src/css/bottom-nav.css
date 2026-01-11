@@ -1,0 +1,142 @@
+/* ==============================================
+   BOTTOM-NAV.CSS - Mobile Bottom Navigation
+   ============================================== */
+
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--border-primary);
+  padding: var(--space-xs) 0;
+  z-index: 100;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bottom-nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-xs);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  flex: 1;
+  max-width: 80px;
+  position: relative;
+  min-height: 52px;
+}
+
+.bottom-nav-item .icon {
+  font-size: 1.25rem;
+  transition: transform var(--transition-fast);
+}
+
+.bottom-nav-item span:not(.icon) {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.bottom-nav-item:hover {
+  color: var(--color-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.bottom-nav-item.active .icon {
+  transform: scale(1.1);
+}
+
+/* Show bottom nav only on mobile */
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: block;
+  }
+  
+  /* Add padding to main content to prevent overlap */
+  .main-content {
+    padding-bottom: calc(var(--space-xl) + 60px);
+  }
+  
+  /* Hide regular sidebar on very small screens */
+  .sidebar-nav {
+    padding-bottom: var(--space-2xl);
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .bottom-nav-item {
+    padding: var(--space-xs) 4px;
+    max-width: 70px;
+  }
+  
+  .bottom-nav-item .icon {
+    font-size: 1.125rem;
+  }
+  
+  .bottom-nav-item span:not(.icon) {
+    font-size: 0.563rem;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .bottom-nav {
+    padding: 4px 0;
+  }
+  
+  .bottom-nav-item {
+    min-height: 44px;
+  }
+  
+  .bottom-nav-item span:not(.icon) {
+    display: none;
+  }
+  
+  .bottom-nav-item .icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Provide visual feedback on touch */
+@media (hover: none) and (pointer: coarse) {
+  .bottom-nav-item:active {
+    transform: scale(0.95);
+    background-color: var(--bg-tertiary);
+  }
+}
