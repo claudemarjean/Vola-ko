@@ -5,6 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import { generateUUID } from './sync.js';
 import FinanceEngine from './financeEngine.js';
 
 class BudgetsManager {
@@ -344,11 +345,14 @@ class BudgetsManager {
         }
       } else {
         const budget = {
-          id: Date.now().toString(),
+          id: generateUUID(),
           category,
           amount,
-          otherReference: otherReference || undefined,
-          notes: notes || undefined
+          other_reference: otherReference || null,
+          notes: notes || null,
+          synced: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         this.budgets.push(budget);
       }

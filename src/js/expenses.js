@@ -7,6 +7,7 @@ import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import FinanceEngine from './financeEngine.js';
 import notify from './notifications.js';
+import { generateUUID } from './sync.js';
 
 class ExpensesManager {
   constructor() {
@@ -305,20 +306,21 @@ class ExpensesManager {
     }
 
     const expense = {
-      id: editId || Date.now().toString(),
+      id: editId || generateUUID(),
       description,
       amount,
       category,
       date,
-      otherReference: otherReference || undefined,
-      createdAt: editId ? undefined : new Date().toISOString()
+      other_reference: otherReference || null,
+      synced: false,
+      created_at: new Date().toISOString()
     };
 
     if (editId) {
       // Update existing
       const index = this.expenses.findIndex(exp => exp.id === editId);
       if (index !== -1) {
-        this.expenses[index] = { ...this.expenses[index], ...expense };
+        this.expenses[index] = { ...expense, modified: true, synced: false };
       }
     } else {
       // Add new

@@ -7,6 +7,22 @@ import { supabase, SUPABASE_TABLES, getCurrentUser } from './supabase.js';
 import { Storage, STORAGE_KEYS } from './storage.js';
 import notify from './notifications.js';
 
+/**
+ * Générer un UUID valide pour Supabase
+ */
+export function generateUUID() {
+  // Utiliser crypto.randomUUID si disponible (navigateurs modernes)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback pour anciens navigateurs
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 class SyncManager {
   constructor() {
     this.syncInterval = null;
@@ -286,15 +302,24 @@ class SyncManager {
    */
   async syncIncomes(userId) {
     const localIncomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+    
+    if (localIncomes.length === 0) {
+      console.log('Aucun revenu local à synchroniser');
+      return;
+    }
 
     // Récupérer les revenus existants dans Supabase
-    const { data: remoteIncomes } = await supabase
+    const { data: remoteIncomes, error: fetchError } = await supabase
       .from(SUPABASE_TABLES.INCOMES)
       .select('*')
       .eq('user_id', userId);
 
+    if (fetchError) {
+      console.error('Erreur lors de la récupération des revenus:', fetchError);
+      throw fetchError;
+    }
+
     const remoteIds = new Set(remoteIncomes?.map(i => i.id) || []);
-    const localIds = new Set(localIncomes.map(i => i.id));
 
     // Insérer les nouveaux revenus locaux
     const toInsert = localIncomes.filter(income => {
@@ -302,6 +327,8 @@ class SyncManager {
     });
 
     if (toInsert.length > 0) {
+      console.log(`💾 Insertion de ${toInsert.length} revenu(s)...`);
+      
       const insertData = toInsert.map(income => ({
         id: income.id,
         user_id: userId,
@@ -311,7 +338,14 @@ class SyncManager {
         created_at: income.created_at || new Date().toISOString()
       }));
 
-      await supabase.from(SUPABASE_TABLES.INCOMES).insert(insertData);
+      const { error: insertError } = await supabase
+        .from(SUPABASE_TABLES.INCOMES)
+        .insert(insertData);
+
+      if (insertError) {
+        console.error('Erreur lors de l\'insertion des revenus:', insertError);
+        throw insertError;
+      }
 
       // Marquer comme synchronisés
       localIncomes.forEach(income => {
@@ -320,6 +354,7 @@ class SyncManager {
         }
       });
       Storage.set(STORAGE_KEYS.INCOMES, localIncomes);
+      console.log(`✅ ${toInsert.length} revenu(s) synchronisé(s)`);
     }
 
     // Mettre à jour les revenus modifiés
@@ -591,6 +626,42 @@ class SyncManager {
     }
 
     // Les transactions ne sont généralement pas modifiées, seulement ajoutées
+  }
+
+  /**
+   * Synchroniser toutes les données avant déconnexion
+   */
+  async syncBeforeLogout() {
+    const user = await getCurrentUser();
+    if (!user) {
+      console.log('Utilisateur non authentifié - synchronisation ignorée');
+      return;
+    }
+
+    // Vérifier la connexion
+    const isOnline = await this.checkOnlineStatus();
+    if (!isOnline) {
+      console.log('⚠️ Hors ligne - impossible de synchroniser avant déconnexion');
+      notify.warning('Vous êtes hors ligne. Certaines données pourraient ne pas être synchronisées.');
+      return;
+    }
+
+    try {
+      console.log('🔄 Synchronisation finale avant déconnexion...');
+
+      // Synchroniser chaque type de données
+      await this.syncUserSettings(user.id);
+      await this.syncIncomes(user.id);
+      await this.syncExpenses(user.id);
+      await this.syncBudgets(user.id);
+      await this.syncSavings(user.id);
+      await this.syncSavingsTransactions(user.id);
+
+      console.log('✅ Synchronisation finale terminée');
+    } catch (error) {
+      console.error('❌ Erreur lors de la synchronisation finale:', error);
+      // Ne pas bloquer la déconnexion en cas d'erreur
+    }
   }
 
   /**

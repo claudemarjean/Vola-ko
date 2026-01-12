@@ -8,6 +8,7 @@ import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import notify from './notifications.js';
 import FinanceEngine from './financeEngine.js';
+import { generateUUID } from './sync.js';
 
 class SavingsManager {
   constructor() {
@@ -310,13 +311,15 @@ class SavingsManager {
 
       // Créer l'épargne avec balance à 0 d'abord
       const saving = {
-        id: Date.now().toString(),
+        id: generateUUID(),
         name,
         type,
         balance: 0,
-        targetAmount,
-        targetDate,
-        createdAt: new Date().toISOString()
+        target_amount: targetAmount,
+        target_date: targetDate,
+        synced: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       this.savings.push(saving);
@@ -539,12 +542,13 @@ class SavingsManager {
 
   recordTransaction(savingId, amount, type, date) {
     const transaction = {
-      id: Date.now().toString(),
-      savingsId: savingId,
+      id: generateUUID(),
+      savings_id: savingId,
       amount,
       type,
       date,
-      createdAt: new Date().toISOString()
+      synced: false,
+      created_at: new Date().toISOString()
     };
 
     this.transactions.push(transaction);

@@ -5,6 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
+import { generateUUID } from './sync.js';
 
 class IncomesManager {
   constructor() {
@@ -167,16 +168,18 @@ class IncomesManager {
     const editId = form.dataset.editId;
 
     const income = {
-      id: editId || Date.now().toString(),
+      id: editId || generateUUID(),
       source: document.getElementById('income-source').value,
       amount: parseFloat(document.getElementById('income-amount').value),
-      date: document.getElementById('income-date').value
+      date: document.getElementById('income-date').value,
+      synced: false,
+      created_at: new Date().toISOString()
     };
 
     if (editId) {
       const index = this.incomes.findIndex(inc => inc.id === editId);
       if (index !== -1) {
-        this.incomes[index] = income;
+        this.incomes[index] = { ...income, modified: true, synced: false };
       }
     } else {
       this.incomes.unshift(income);

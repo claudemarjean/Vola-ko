@@ -74,6 +74,11 @@ class Auth {
     
     // Purger toutes les données locales
     await syncManager.clearLocalData();
+    
+    // Rediriger vers la page d'accueil
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      window.location.href = '/';
+    }
   }
 
   /**
@@ -214,6 +219,10 @@ class Auth {
    */
   async logout() {
     try {
+      // Synchroniser toutes les données avant de se déconnecter
+      notify.info('Synchronisation des données avant déconnexion...');
+      await syncManager.syncBeforeLogout();
+      
       // Déconnexion de Supabase
       const { error } = await supabase.auth.signOut();
 
