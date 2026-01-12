@@ -12,6 +12,7 @@ class BudgetsManager {
     this.budgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
     this.expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
+    this.editingBudgetId = null;
   }
 
   init() {
@@ -53,8 +54,11 @@ class BudgetsManager {
     else if (percentage > 60) progressColor = 'var(--color-warning)';
 
     const icon = this.getCategoryIcon(budget.category);
+    const safeOtherReference = budget.otherReference ? this.escapeHtml(budget.otherReference) : '';
+    const safeNotes = budget.notes ? this.escapeHtml(budget.notes) : '';
+    const formattedNotes = safeNotes ? safeNotes.replace(/\n/g, '<br>') : '';
     const categoryName = budget.category === 'autre' && budget.otherReference 
-      ? `${this.getCategoryName(budget.category)} (${budget.otherReference})` 
+      ? `${this.getCategoryName(budget.category)} (${safeOtherReference})` 
       : this.getCategoryName(budget.category);
 
     return `
@@ -64,7 +68,10 @@ class BudgetsManager {
             <h3>${icon} ${categoryName}</h3>
             <p>Budget mensuel</p>
           </div>
-          <button class="btn-icon delete-btn" data-id="${budget.id}">🗑️</button>
+          <div class="budget-actions">
+            <button class="btn-icon edit-btn" data-id="${budget.id}" title="Modifier le budget">✏️</button>
+            <button class="btn-icon delete-btn" data-id="${budget.id}" title="Supprimer le budget">🗑️</button>
+          </div>
         </div>
         
         <div class="budget-progress">
@@ -87,6 +94,8 @@ class BudgetsManager {
             <span class="stat-value">${this.formatCurrency(spent)}</span>
           </div>
         </div>
+
+        ${formattedNotes ? `<div class="budget-notes"><span class="stat-label">Détails</span><p>${formattedNotes}</p></div>` : ''}
       </div>
     `;
   }
@@ -150,8 +159,18 @@ class BudgetsManager {
   attachEventListeners() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const id = e.target.dataset.id;
+        const id = e.currentTarget.dataset.id;
         this.deleteBudget(id);
+      });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const budget = this.budgets.find(b => b.id === id);
+        if (budget) {
+          this.openModal(budget);
+        }
       });
     });
   }
@@ -181,10 +200,18 @@ class BudgetsManager {
     }
   }
 
-  openModal() {
+  openModal(budget = null) {
     const modal = document.getElementById('budget-modal');
     const form = document.getElementById('budget-form');
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    const otherReferenceInput = document.getElementById('budget-other-reference');
+    const categorySelect = document.getElementById('budget-category');
+    const amountInput = document.getElementById('budget-amount');
+    const notesInput = document.getElementById('budget-notes');
+    const modalTitle = document.getElementById('budget-modal-title');
+    const submitBtn = document.getElementById('budget-submit');
+
+    this.editingBudgetId = budget?.id || null;
     
     if (modal) {
       modal.classList.add('active');
@@ -198,11 +225,55 @@ class BudgetsManager {
     if (otherReferenceGroup) {
       otherReferenceGroup.style.display = 'none';
     }
+
+    const isEditing = Boolean(budget);
+
+    if (modalTitle) {
+      modalTitle.textContent = isEditing ? 'Modifier un budget' : 'Créer un budget';
+    }
+
+    if (submitBtn) {
+      submitBtn.textContent = isEditing ? 'Mettre à jour' : 'Enregistrer';
+    }
+
+    if (categorySelect) {
+      categorySelect.disabled = isEditing;
+    }
+
+    if (notesInput) {
+      notesInput.value = budget?.notes || '';
+    }
+
+    if (budget) {
+      if (categorySelect) {
+        categorySelect.value = budget.category;
+      }
+
+      if (amountInput) {
+        amountInput.value = budget.amount;
+      }
+
+      if (budget.category === 'autre') {
+        if (otherReferenceGroup) {
+          otherReferenceGroup.style.display = 'block';
+        }
+
+        if (otherReferenceInput) {
+          otherReferenceInput.value = budget.otherReference || '';
+        }
+      }
+    } else {
+      if (categorySelect) {
+        categorySelect.disabled = false;
+      }
+    }
   }
 
   closeModal() {
     const modal = document.getElementById('budget-modal');
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    const categorySelect = document.getElementById('budget-category');
+    const notesInput = document.getElementById('budget-notes');
     
     if (modal) {
       modal.classList.remove('active');
@@ -216,46 +287,82 @@ class BudgetsManager {
         otherReferenceInput.value = '';
       }
     }
+
+    if (categorySelect) {
+      categorySelect.disabled = false;
+      categorySelect.value = '';
+    }
+
+    if (notesInput) {
+      notesInput.value = '';
+    }
+
+    this.editingBudgetId = null;
   }
 
   async saveBudget() {
     const category = document.getElementById('budget-category').value;
     const amount = parseFloat(document.getElementById('budget-amount').value);
     const otherReference = category === 'autre' ? document.getElementById('budget-other-reference').value : '';
+    const notes = document.getElementById('budget-notes')?.value.trim() || '';
 
-    // Check if budget already exists for this category
-    const existingIndex = this.budgets.findIndex(b => b.category === category);
-    
-    if (existingIndex !== -1) {
-      const confirmed = await showConfirmModal(
-        'Un budget existe déjà pour cette catégorie. Le remplacer ?',
-        {
-          title: '⚠️ Budget existant',
-          confirmText: 'Remplacer',
-          cancelText: 'Annuler',
-          danger: false
-        }
-      );
+    if (!category || Number.isNaN(amount) || amount < 0) {
+      return;
+    }
 
-      if (confirmed) {
-        this.budgets[existingIndex].amount = amount;
-        this.budgets[existingIndex].otherReference = otherReference || undefined;
-      } else {
-        return;
+    if (this.editingBudgetId) {
+      const budgetIndex = this.budgets.findIndex(b => b.id === this.editingBudgetId);
+      if (budgetIndex !== -1) {
+        this.budgets[budgetIndex] = {
+          ...this.budgets[budgetIndex],
+          amount,
+          otherReference: otherReference || undefined,
+          notes: notes || undefined
+        };
       }
     } else {
-      const budget = {
-        id: Date.now().toString(),
-        category,
-        amount,
-        otherReference: otherReference || undefined
-      };
-      this.budgets.push(budget);
+      // Check if budget already exists for this category
+      const existingIndex = this.budgets.findIndex(b => b.category === category);
+
+      if (existingIndex !== -1) {
+        const confirmed = await showConfirmModal(
+          'Un budget existe déjà pour cette catégorie. Le remplacer ?',
+          {
+            title: '⚠️ Budget existant',
+            confirmText: 'Remplacer',
+            cancelText: 'Annuler',
+            danger: false
+          }
+        );
+
+        if (confirmed) {
+          this.budgets[existingIndex].amount = amount;
+          this.budgets[existingIndex].otherReference = otherReference || undefined;
+          this.budgets[existingIndex].notes = notes || undefined;
+        } else {
+          return;
+        }
+      } else {
+        const budget = {
+          id: Date.now().toString(),
+          category,
+          amount,
+          otherReference: otherReference || undefined,
+          notes: notes || undefined
+        };
+        this.budgets.push(budget);
+      }
     }
 
     Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
     this.loadBudgets();
     this.closeModal();
+  }
+
+  escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
   }
 
   async deleteBudget(id) {
