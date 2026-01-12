@@ -7,6 +7,7 @@ import ThemeManager from './theme.js';
 import I18n from './i18n.js';
 import Router from './router.js';
 import Auth from './auth.js';
+import { registerOfflineCapabilities } from './offline.js';
 
 class App {
   constructor() {
@@ -30,6 +31,9 @@ class App {
 
       // Initialiser l'authentification
       this.auth = new Auth();
+
+      // Préparer le mode hors ligne si déjà authentifié
+      await registerOfflineCapabilities(this.auth.isAuthenticated());
 
       // Initialiser le routeur (si nécessaire)
       // this.router = new Router();
@@ -144,6 +148,7 @@ class App {
 
     if (result.success) {
       // Redirection vers le dashboard (à implémenter)
+      await registerOfflineCapabilities(true);
       window.location.href = '/dashboard';
     } else {
       if (errorEl) {
@@ -177,6 +182,7 @@ class App {
 
     if (result.success) {
       // Redirection vers le dashboard (à implémenter)
+      await registerOfflineCapabilities(true);
       window.location.href = '/dashboard';
     } else {
       if (errorEl) {
