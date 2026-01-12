@@ -22,6 +22,7 @@
     "vite-plugin-static-copy": "^3.1.4"
   },
   "dependencies": {
-    "chart.js": "^4.5.1"
+    "chart.js": "^4.5.1",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

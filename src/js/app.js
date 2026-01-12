@@ -8,6 +8,7 @@ import I18n from './i18n.js';
 import Router from './router.js';
 import Auth from './auth.js';
 import { registerOfflineCapabilities } from './offline.js';
+import { syncStatusMonitor } from './sync-status.js';
 
 class App {
   constructor() {
@@ -31,6 +32,13 @@ class App {
 
       // Initialiser l'authentification
       this.auth = new Auth();
+
+      // Initialiser le moniteur de statut de synchronisation
+      if (this.auth.isAuthenticated()) {
+        syncStatusMonitor.show();
+      } else {
+        syncStatusMonitor.hide();
+      }
 
       // Préparer le mode hors ligne si déjà authentifié
       await registerOfflineCapabilities(this.auth.isAuthenticated());

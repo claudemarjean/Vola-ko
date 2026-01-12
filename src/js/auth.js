@@ -1,14 +1,79 @@
 /**
  * AUTH.JS - Authentication Management
- * Gestion de l'authentification (préparé pour Supabase)
+ * Gestion de l'authentification avec Supabase
  */
 
 import { Storage, STORAGE_KEYS } from './storage.js';
+import { supabase, getCurrentUser, getCurrentSession } from './supabase.js';
+import { syncManager } from './sync.js';
+import notify from './notifications.js';
 
 class Auth {
   constructor() {
     this.user = Storage.get(STORAGE_KEYS.USER);
     this.token = Storage.get(STORAGE_KEYS.TOKEN);
+    this.initializeAuth();
+  }
+
+  /**
+   * Initialiser l'authentification Supabase
+   */
+  async initializeAuth() {
+    // Écouter les changements d'état d'authentification
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_IN' && session) {
+        await this.handleSignIn(session);
+      } else if (event === 'SIGNED_OUT') {
+        await this.handleSignOut();
+      }
+    });
+
+    // Vérifier si une session existe déjà
+    const session = await getCurrentSession();
+    if (session) {
+      await this.handleSignIn(session);
+    }
+  }
+
+  /**
+   * Gérer la connexion
+   */
+  async handleSignIn(session) {
+    const user = session.user;
+    
+    this.user = {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.email.split('@')[0]
+    };
+    
+    this.token = session.access_token;
+    
+    Storage.set(STORAGE_KEYS.USER, this.user);
+    Storage.set(STORAGE_KEYS.TOKEN, this.token);
+
+    // Charger les données depuis Supabase
+    try {
+      await syncManager.loadFromSupabase(user.id);
+      // Démarrer la synchronisation automatique
+      syncManager.startAutoSync();
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      notify.error('Erreur lors du chargement des données');
+    }
+  }
+
+  /**
+   * Gérer la déconnexion
+   */
+  async handleSignOut() {
+    this.user = null;
+    this.token = null;
+    
+    // Purger toutes les données locales
+    await syncManager.clearLocalData();
   }
 
   /**
@@ -66,7 +131,7 @@ class Auth {
   }
 
   /**
-   * Connexion (simulation - à connecter avec Supabase)
+   * Connexion avec Supabase
    */
   async login(email, password) {
     try {
@@ -79,36 +144,27 @@ class Auth {
         throw new Error('Mot de passe requis');
       }
 
-      // TODO: Intégration avec Supabase
-      // const { data, error } = await supabase.auth.signInWithPassword({
-      //   email,
-      //   password
-      // });
+      // Connexion avec Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      // Simulation pour le développement
-      const mockUser = {
-        id: '123',
-        email: email,
-        name: email.split('@')[0]
-      };
+      if (error) {
+        throw error;
+      }
 
-      const mockToken = 'mock_token_' + Date.now();
-
-      // Sauvegarder
-      this.user = mockUser;
-      this.token = mockToken;
-      Storage.set(STORAGE_KEYS.USER, mockUser);
-      Storage.set(STORAGE_KEYS.TOKEN, mockToken);
-
-      return { success: true, user: mockUser };
+      // La session sera gérée par onAuthStateChange
+      return { success: true, user: data.user };
     } catch (error) {
       console.error('Login error:', error);
+      notify.error(error.message || 'Erreur lors de la connexion');
       return { success: false, error: error.message };
     }
   }
 
   /**
-   * Inscription (simulation - à connecter avec Supabase)
+   * Inscription avec Supabase
    */
   async register(name, email, password, confirmPassword) {
     try {
@@ -130,53 +186,47 @@ class Auth {
         throw new Error('Les mots de passe ne correspondent pas');
       }
 
-      // TODO: Intégration avec Supabase
-      // const { data, error } = await supabase.auth.signUp({
-      //   email,
-      //   password,
-      //   options: {
-      //     data: { name }
-      //   }
-      // });
+      // Inscription avec Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
 
-      // Simulation pour le développement
-      const mockUser = {
-        id: '123',
-        email: email,
-        name: name
-      };
+      if (error) {
+        throw error;
+      }
 
-      const mockToken = 'mock_token_' + Date.now();
-
-      // Sauvegarder
-      this.user = mockUser;
-      this.token = mockToken;
-      Storage.set(STORAGE_KEYS.USER, mockUser);
-      Storage.set(STORAGE_KEYS.TOKEN, mockToken);
-
-      return { success: true, user: mockUser };
+      // La session sera gérée par onAuthStateChange
+      notify.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
+      return { success: true, user: data.user };
     } catch (error) {
       console.error('Register error:', error);
+      notify.error(error.message || 'Erreur lors de l\'inscription');
       return { success: false, error: error.message };
     }
   }
 
   /**
-   * Déconnexion
+   * Déconnexion avec Supabase
    */
   async logout() {
     try {
-      // TODO: Intégration avec Supabase
-      // await supabase.auth.signOut();
+      // Déconnexion de Supabase
+      const { error } = await supabase.auth.signOut();
 
-      this.user = null;
-      this.token = null;
-      Storage.remove(STORAGE_KEYS.USER);
-      Storage.remove(STORAGE_KEYS.TOKEN);
+      if (error) {
+        throw error;
+      }
 
+      // La purge des données sera gérée par handleSignOut via onAuthStateChange
+      notify.success('Déconnexion réussie');
       return { success: true };
     } catch (error) {
       console.error('Logout error:', error);
+      notify.error(error.message || 'Erreur lors de la déconnexion');
       return { success: false, error: error.message };
     }
   }
