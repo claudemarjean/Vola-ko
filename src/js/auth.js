@@ -12,6 +12,7 @@ class Auth {
   constructor() {
     this.user = Storage.get(STORAGE_KEYS.USER);
     this.token = Storage.get(STORAGE_KEYS.TOKEN);
+    this.isInitialized = false; // Éviter les initialisations multiples
     this.initializeAuth();
   }
 
@@ -43,6 +44,12 @@ class Auth {
   async handleSignIn(session) {
     const user = session.user;
     
+    // Éviter les initialisations multiples pour le même utilisateur
+    if (this.isInitialized && this.user && this.user.id === user.id) {
+      console.log('⏭️ Utilisateur déjà initialisé, synchronisation ignorée');
+      return;
+    }
+    
     this.user = {
       id: user.id,
       email: user.email,
@@ -54,8 +61,8 @@ class Auth {
     Storage.set(STORAGE_KEYS.USER, this.user);
     Storage.set(STORAGE_KEYS.TOKEN, this.token);
 
-    // Afficher un indicateur de chargement
-    notify.info('Chargement de vos données...', 'Authentification réussie');
+    // Afficher un indicateur de chargement (disparaît automatiquement après 3s)
+    notify.info('Chargement de vos données...', 3000);
     console.log('📥 Début du chargement des données utilisateur...');
 
     // Charger les données depuis Supabase
@@ -66,16 +73,20 @@ class Auth {
       
       console.log(`✅ Données chargées en ${loadDuration}s`);
       
-      // Démarrer la synchronisation automatique
-      syncManager.startAutoSync();
+      // Démarrer la synchronisation automatique (sans sync immédiate car on vient de charger)
+      syncManager.startAutoSync(true);
+      
+      // Marquer comme initialisé
+      this.isInitialized = true;
       
       // Notification de succès (déjà gérée dans loadFromSupabase, mais on peut ajouter un délai)
       console.log('🔄 Synchronisation automatique démarrée');
     } catch (error) {
       console.error('❌ Erreur lors du chargement des données:', error);
-      notify.error('Erreur lors du chargement des données. Certaines données pourraient ne pas être disponibles.');
+      // Notification d'erreur avec auto-fermeture après 5 secondes
+      notify.error('Erreur lors du chargement des données. Certaines données pourraient ne pas être disponibles.', 5000);
       
-      // Même en cas d'erreur, démarrer la sync auto pour réessayer
+      // Même en cas d'erreur, démarrer la sync auto pour réessayer (avec sync immédiate)
       syncManager.startAutoSync();
     }
   }
@@ -86,6 +97,7 @@ class Auth {
   async handleSignOut() {
     this.user = null;
     this.token = null;
+    this.isInitialized = false; // Réinitialiser le drapeau
     
     // Purger toutes les données locales
     await syncManager.clearLocalData();
@@ -235,7 +247,7 @@ class Auth {
   async logout() {
     try {
       // Synchroniser toutes les données avant de se déconnecter
-      notify.info('Synchronisation des données avant déconnexion...');
+      notify.info('Synchronisation des données avant déconnexion...', 3000);
       const syncResult = await syncManager.syncBeforeLogout();
       
       if (syncResult.success) {

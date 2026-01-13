@@ -56,7 +56,9 @@ class IncomesManager {
     const listElement = document.getElementById('incomes-list');
     if (!listElement) return;
 
-    const sorted = [...this.incomes].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Filtrer les revenus supprimés
+    const activeIncomes = this.incomes.filter(inc => !inc.deleted);
+    const sorted = [...activeIncomes].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (sorted.length === 0) {
       listElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary);">Aucun revenu à afficher</p>';
@@ -210,10 +212,14 @@ class IncomesManager {
     );
 
     if (confirmed) {
-      this.incomes = this.incomes.filter(inc => inc.id !== id);
-      Storage.set(STORAGE_KEYS.INCOMES, this.incomes);
-      this.updateStats();
-      this.loadIncomes();
+      // Marquer comme supprimé pour synchronisation avec Supabase
+      const index = this.incomes.findIndex(inc => inc.id === id);
+      if (index !== -1) {
+        this.incomes[index] = { ...this.incomes[index], deleted: true, synced: false };
+        Storage.set(STORAGE_KEYS.INCOMES, this.incomes);
+        this.updateStats();
+        this.loadIncomes();
+      }
     }
   }
 }

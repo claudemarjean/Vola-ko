@@ -36,12 +36,15 @@ class BudgetsManager {
     const gridElement = document.getElementById('budgets-grid');
     if (!gridElement) return;
 
-    if (this.budgets.length === 0) {
+    // Filtrer les budgets supprimés
+    const activeBudgets = this.budgets.filter(b => !b.deleted);
+
+    if (activeBudgets.length === 0) {
       gridElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary); grid-column: 1/-1;">Aucun budget défini</p>';
       return;
     }
 
-    gridElement.innerHTML = this.budgets.map(budget => this.createBudgetHTML(budget)).join('');
+    gridElement.innerHTML = activeBudgets.map(budget => this.createBudgetHTML(budget)).join('');
     this.attachEventListeners();
   }
 
@@ -381,9 +384,13 @@ class BudgetsManager {
     );
 
     if (confirmed) {
-      this.budgets = this.budgets.filter(b => b.id !== id);
-      Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
-      this.loadBudgets();
+      // Marquer comme supprimé pour synchronisation avec Supabase
+      const index = this.budgets.findIndex(b => b.id === id);
+      if (index !== -1) {
+        this.budgets[index] = { ...this.budgets[index], deleted: true, synced: false };
+        Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
+        this.loadBudgets();
+      }
     }
   }
 }

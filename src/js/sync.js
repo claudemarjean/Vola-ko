@@ -74,13 +74,16 @@ class SyncManager {
   /**
    * Démarrer la synchronisation automatique
    */
-  startAutoSync() {
+  startAutoSync(skipFirstSync = false) {
     if (this.syncInterval) {
-      this.stopAutoSync();
+      console.log('⏭️ Auto-sync déjà démarré, ignoré');
+      return;
     }
 
-    // Synchroniser immédiatement
-    this.sync();
+    // Synchroniser immédiatement (sauf si on vient de charger les données)
+    if (!skipFirstSync) {
+      this.sync();
+    }
 
     // Puis toutes les 60 secondes
     this.syncInterval = setInterval(() => {
@@ -299,7 +302,8 @@ class SyncManager {
       }
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      notify.success(`${totalRemote} donnée(s) chargée(s) avec succès`);
+      // Notification avec auto-fermeture après 3 secondes
+      notify.success(`${totalRemote} donnée(s) chargée(s) avec succès`, 3000);
     } catch (error) {
       console.error('❌ Erreur lors du chargement depuis Supabase:', error);
       throw error;
@@ -435,7 +439,7 @@ class SyncManager {
 
     // Mettre à jour les revenus modifiés
     const toUpdate = localIncomes.filter(income => {
-      return income.id && remoteIds.has(income.id) && income.modified && !income.synced;
+      return income.id && remoteIds.has(income.id) && income.modified && !income.synced && !income.deleted;
     });
 
     for (const income of toUpdate) {
@@ -455,6 +459,31 @@ class SyncManager {
 
     if (toUpdate.length > 0) {
       Storage.set(STORAGE_KEYS.INCOMES, localIncomes);
+    }
+
+    // Supprimer les revenus marqués comme supprimés
+    const toDelete = localIncomes.filter(income => {
+      return income.id && income.deleted && !income.synced;
+    });
+
+    if (toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${toDelete.length} revenu(s) de Supabase...`);
+      
+      const deleteIds = toDelete.map(i => i.id);
+      const { error: deleteError } = await supabase
+        .from(SUPABASE_TABLES.INCOMES)
+        .delete()
+        .in('id', deleteIds)
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        console.error('Erreur lors de la suppression des revenus:', deleteError);
+      } else {
+        // Supprimer définitivement du cache local après synchronisation réussie
+        const remainingIncomes = localIncomes.filter(income => !income.deleted);
+        Storage.set(STORAGE_KEYS.INCOMES, remainingIncomes);
+        console.log(`✅ ${toDelete.length} revenu(s) supprimé(s) de Supabase`);
+      }
     }
   }
 
@@ -502,7 +531,7 @@ class SyncManager {
 
     // Mettre à jour les dépenses modifiées
     const toUpdate = localExpenses.filter(expense => {
-      return expense.id && remoteIds.has(expense.id) && expense.modified && !expense.synced;
+      return expense.id && remoteIds.has(expense.id) && expense.modified && !expense.synced && !expense.deleted;
     });
 
     for (const expense of toUpdate) {
@@ -524,6 +553,31 @@ class SyncManager {
 
     if (toUpdate.length > 0) {
       Storage.set(STORAGE_KEYS.EXPENSES, localExpenses);
+    }
+
+    // Supprimer les dépenses marquées comme supprimées
+    const toDelete = localExpenses.filter(expense => {
+      return expense.id && expense.deleted && !expense.synced;
+    });
+
+    if (toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${toDelete.length} dépense(s) de Supabase...`);
+      
+      const deleteIds = toDelete.map(e => e.id);
+      const { error: deleteError } = await supabase
+        .from(SUPABASE_TABLES.EXPENSES)
+        .delete()
+        .in('id', deleteIds)
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        console.error('Erreur lors de la suppression des dépenses:', deleteError);
+      } else {
+        // Supprimer définitivement du cache local après synchronisation réussie
+        const remainingExpenses = localExpenses.filter(expense => !expense.deleted);
+        Storage.set(STORAGE_KEYS.EXPENSES, remainingExpenses);
+        console.log(`✅ ${toDelete.length} dépense(s) supprimée(s) de Supabase`);
+      }
     }
   }
 
@@ -571,7 +625,7 @@ class SyncManager {
 
     // Mettre à jour les budgets modifiés
     const toUpdate = localBudgets.filter(budget => {
-      return budget.id && remoteIds.has(budget.id) && budget.modified && !budget.synced;
+      return budget.id && remoteIds.has(budget.id) && budget.modified && !budget.synced && !budget.deleted;
     });
 
     for (const budget of toUpdate) {
@@ -593,6 +647,31 @@ class SyncManager {
 
     if (toUpdate.length > 0) {
       Storage.set(STORAGE_KEYS.BUDGETS, localBudgets);
+    }
+
+    // Supprimer les budgets marqués comme supprimés
+    const toDelete = localBudgets.filter(budget => {
+      return budget.id && budget.deleted && !budget.synced;
+    });
+
+    if (toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${toDelete.length} budget(s) de Supabase...`);
+      
+      const deleteIds = toDelete.map(b => b.id);
+      const { error: deleteError } = await supabase
+        .from(SUPABASE_TABLES.BUDGETS)
+        .delete()
+        .in('id', deleteIds)
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        console.error('Erreur lors de la suppression des budgets:', deleteError);
+      } else {
+        // Supprimer définitivement du cache local après synchronisation réussie
+        const remainingBudgets = localBudgets.filter(budget => !budget.deleted);
+        Storage.set(STORAGE_KEYS.BUDGETS, remainingBudgets);
+        console.log(`✅ ${toDelete.length} budget(s) supprimé(s) de Supabase`);
+      }
     }
   }
 
@@ -641,7 +720,7 @@ class SyncManager {
 
     // Mettre à jour les économies modifiées
     const toUpdate = localSavings.filter(saving => {
-      return saving.id && remoteIds.has(saving.id) && saving.modified && !saving.synced;
+      return saving.id && remoteIds.has(saving.id) && saving.modified && !saving.synced && !saving.deleted;
     });
 
     for (const saving of toUpdate) {
@@ -664,6 +743,31 @@ class SyncManager {
 
     if (toUpdate.length > 0) {
       Storage.set(STORAGE_KEYS.SAVINGS, localSavings);
+    }
+
+    // Supprimer les économies marquées comme supprimées
+    const toDelete = localSavings.filter(saving => {
+      return saving.id && saving.deleted && !saving.synced;
+    });
+
+    if (toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${toDelete.length} économie(s) de Supabase...`);
+      
+      const deleteIds = toDelete.map(s => s.id);
+      const { error: deleteError } = await supabase
+        .from(SUPABASE_TABLES.SAVINGS)
+        .delete()
+        .in('id', deleteIds)
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        console.error('Erreur lors de la suppression des économies:', deleteError);
+      } else {
+        // Supprimer définitivement du cache local après synchronisation réussie
+        const remainingSavings = localSavings.filter(saving => !saving.deleted);
+        Storage.set(STORAGE_KEYS.SAVINGS, remainingSavings);
+        console.log(`✅ ${toDelete.length} économie(s) supprimée(s) de Supabase`);
+      }
     }
   }
 
@@ -709,7 +813,30 @@ class SyncManager {
       Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, localTransactions);
     }
 
-    // Les transactions ne sont généralement pas modifiées, seulement ajoutées
+    // Supprimer les transactions marquées comme supprimées
+    const toDelete = localTransactions.filter(transaction => {
+      return transaction.id && transaction.deleted && !transaction.synced;
+    });
+
+    if (toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${toDelete.length} transaction(s) de Supabase...`);
+      
+      const deleteIds = toDelete.map(t => t.id);
+      const { error: deleteError } = await supabase
+        .from(SUPABASE_TABLES.SAVINGS_TRANSACTIONS)
+        .delete()
+        .in('id', deleteIds)
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        console.error('Erreur lors de la suppression des transactions:', deleteError);
+      } else {
+        // Supprimer définitivement du cache local après synchronisation réussie
+        const remainingTransactions = localTransactions.filter(transaction => !transaction.deleted);
+        Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, remainingTransactions);
+        console.log(`✅ ${toDelete.length} transaction(s) supprimée(s) de Supabase`);
+      }
+    }
   }
 
   /**
@@ -787,7 +914,8 @@ class SyncManager {
       await this.syncSavingsTransactions(user.id);
 
       console.log('✅ Synchronisation finale terminée avec succès');
-      notify.success(`${totalUnsynced} donnée(s) synchronisée(s) avec succès`);
+      // Notification avec auto-fermeture après 3 secondes
+      notify.success(`${totalUnsynced} donnée(s) synchronisée(s) avec succès`, 3000);
       
       this.notifySyncStatus({
         online: true,

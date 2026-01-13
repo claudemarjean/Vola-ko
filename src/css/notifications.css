@@ -27,6 +27,9 @@
     right: var(--space-md);
     left: var(--space-md);
     max-width: none;
+    /* Support pour les encoches (iPhone X et plus récents) */
+    top: max(var(--space-md), env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
   }
 }
 
@@ -393,22 +396,33 @@
   .notification {
     padding: var(--space-sm) var(--space-md);
     min-height: 54px;
+    font-size: var(--font-size-sm);
   }
 
   .notification-icon {
     width: 28px;
     height: 28px;
     font-size: 1rem;
+    flex-shrink: 0;
   }
 
   .notification-message {
     font-size: var(--font-size-sm);
+    line-height: 1.4;
+  }
+
+  .notification-close {
+    padding: var(--space-xs);
+    font-size: 1rem;
+    flex-shrink: 0;
   }
 
   .notification-modal {
     max-width: 100%;
     margin: 0;
     border-radius: var(--radius-lg);
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   .notification-modal-header {

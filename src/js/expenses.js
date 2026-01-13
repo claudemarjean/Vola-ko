@@ -48,7 +48,8 @@ class ExpensesManager {
   }
 
   filterExpenses() {
-    let filtered = [...this.expenses];
+    // D'abord filtrer les dépenses supprimées
+    let filtered = this.expenses.filter(exp => !exp.deleted);
 
     // Filtre par catégorie
     if (this.currentFilter.category) {
@@ -351,9 +352,13 @@ class ExpensesManager {
     );
 
     if (confirmed) {
-      this.expenses = this.expenses.filter(exp => exp.id !== id);
-      Storage.set(STORAGE_KEYS.EXPENSES, this.expenses);
-      this.loadExpenses();
+      // Marquer comme supprimé pour synchronisation avec Supabase
+      const index = this.expenses.findIndex(exp => exp.id === id);
+      if (index !== -1) {
+        this.expenses[index] = { ...this.expenses[index], deleted: true, synced: false };
+        Storage.set(STORAGE_KEYS.EXPENSES, this.expenses);
+        this.loadExpenses();
+      }
     }
   }
 }

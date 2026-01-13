@@ -60,14 +60,17 @@ class SavingsManager {
     const container = document.getElementById('savings-list');
     const emptyState = document.getElementById('empty-state');
 
-    if (this.savings.length === 0) {
+    // Filtrer les économies supprimées
+    const activeSavings = this.savings.filter(s => !s.deleted);
+
+    if (activeSavings.length === 0) {
       container.innerHTML = '';
       emptyState.style.display = 'block';
       return;
     }
 
     emptyState.style.display = 'none';
-    container.innerHTML = this.savings.map(saving => this.createSavingCard(saving)).join('');
+    container.innerHTML = activeSavings.map(saving => this.createSavingCard(saving)).join('');
     
     // Attach event listeners to buttons
     this.attachCardEventListeners();
@@ -401,9 +404,16 @@ class SavingsManager {
       this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
       this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
 
-      // Supprimer l'épargne et ses transactions
-      this.savings = this.savings.filter(s => s.id !== id);
-      this.transactions = this.transactions.filter(t => t.savingsId !== id);
+      // Marquer l'épargne comme supprimée pour synchronisation
+      const savingIndex = this.savings.findIndex(s => s.id === id);
+      if (savingIndex !== -1) {
+        this.savings[savingIndex] = { ...this.savings[savingIndex], deleted: true, synced: false };
+      }
+
+      // Marquer les transactions associées comme supprimées
+      this.transactions = this.transactions.map(t => 
+        t.savingsId === id ? { ...t, deleted: true, synced: false } : t
+      );
       
       Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
       Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, this.transactions);
