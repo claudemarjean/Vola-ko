@@ -54,14 +54,29 @@ class Auth {
     Storage.set(STORAGE_KEYS.USER, this.user);
     Storage.set(STORAGE_KEYS.TOKEN, this.token);
 
+    // Afficher un indicateur de chargement
+    notify.info('Chargement de vos données...', 'Authentification réussie');
+    console.log('📥 Début du chargement des données utilisateur...');
+
     // Charger les données depuis Supabase
     try {
+      const loadStartTime = Date.now();
       await syncManager.loadFromSupabase(user.id);
+      const loadDuration = ((Date.now() - loadStartTime) / 1000).toFixed(2);
+      
+      console.log(`✅ Données chargées en ${loadDuration}s`);
+      
       // Démarrer la synchronisation automatique
       syncManager.startAutoSync();
+      
+      // Notification de succès (déjà gérée dans loadFromSupabase, mais on peut ajouter un délai)
+      console.log('🔄 Synchronisation automatique démarrée');
     } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-      notify.error('Erreur lors du chargement des données');
+      console.error('❌ Erreur lors du chargement des données:', error);
+      notify.error('Erreur lors du chargement des données. Certaines données pourraient ne pas être disponibles.');
+      
+      // Même en cas d'erreur, démarrer la sync auto pour réessayer
+      syncManager.startAutoSync();
     }
   }
 
@@ -221,7 +236,13 @@ class Auth {
     try {
       // Synchroniser toutes les données avant de se déconnecter
       notify.info('Synchronisation des données avant déconnexion...');
-      await syncManager.syncBeforeLogout();
+      const syncResult = await syncManager.syncBeforeLogout();
+      
+      if (syncResult.success) {
+        console.log('✅ Synchronisation pré-déconnexion réussie:', syncResult.message);
+      } else {
+        console.warn('⚠️ Synchronisation pré-déconnexion échouée:', syncResult.message);
+      }
       
       // Déconnexion de Supabase
       const { error } = await supabase.auth.signOut();

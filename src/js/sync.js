@@ -157,6 +157,12 @@ class SyncManager {
 
     try {
       console.log('🔄 Début de la synchronisation...');
+      console.log(`📊 État avant synchronisation:`);
+      console.log(`  - Revenus: ${Storage.get(STORAGE_KEYS.INCOMES, []).length}`);
+      console.log(`  - Dépenses: ${Storage.get(STORAGE_KEYS.EXPENSES, []).length}`);
+      console.log(`  - Budgets: ${Storage.get(STORAGE_KEYS.BUDGETS, []).length}`);
+      console.log(`  - Économies: ${Storage.get(STORAGE_KEYS.SAVINGS, []).length}`);
+      console.log(`  - Transactions: ${Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []).length}`);
 
       // Synchroniser chaque type de données
       await this.syncUserSettings(user.id);
@@ -209,55 +215,119 @@ class SyncManager {
         Storage.set(STORAGE_KEYS.CURRENCY, settings.currency || 'MGA');
       }
 
-      // Charger les revenus
-      const { data: incomes } = await supabase
+      // Charger les revenus et fusionner avec les données locales non-synchronisées
+      const { data: remoteIncomes } = await supabase
         .from(SUPABASE_TABLES.INCOMES)
         .select('*')
         .eq('user_id', userId)
         .order('date', { ascending: false });
 
-      Storage.set(STORAGE_KEYS.INCOMES, incomes || []);
+      const localIncomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+      const unsyncedIncomes = localIncomes.filter(item => !item.synced);
+      const mergedIncomes = this.mergeData(remoteIncomes || [], unsyncedIncomes);
+      Storage.set(STORAGE_KEYS.INCOMES, mergedIncomes);
+      console.log(`📊 Revenus: ${remoteIncomes?.length || 0} distant(s), ${unsyncedIncomes.length} non-synchronisé(s)`);
 
-      // Charger les dépenses
-      const { data: expenses } = await supabase
+      // Charger les dépenses et fusionner avec les données locales non-synchronisées
+      const { data: remoteExpenses } = await supabase
         .from(SUPABASE_TABLES.EXPENSES)
         .select('*')
         .eq('user_id', userId)
         .order('date', { ascending: false });
 
-      Storage.set(STORAGE_KEYS.EXPENSES, expenses || []);
+      const localExpenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+      const unsyncedExpenses = localExpenses.filter(item => !item.synced);
+      const mergedExpenses = this.mergeData(remoteExpenses || [], unsyncedExpenses);
+      Storage.set(STORAGE_KEYS.EXPENSES, mergedExpenses);
+      console.log(`📊 Dépenses: ${remoteExpenses?.length || 0} distant(s), ${unsyncedExpenses.length} non-synchronisé(s)`);
 
-      // Charger les budgets
-      const { data: budgets } = await supabase
+      // Charger les budgets et fusionner avec les données locales non-synchronisées
+      const { data: remoteBudgets } = await supabase
         .from(SUPABASE_TABLES.BUDGETS)
         .select('*')
         .eq('user_id', userId);
 
-      Storage.set(STORAGE_KEYS.BUDGETS, budgets || []);
+      const localBudgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
+      const unsyncedBudgets = localBudgets.filter(item => !item.synced);
+      const mergedBudgets = this.mergeData(remoteBudgets || [], unsyncedBudgets);
+      Storage.set(STORAGE_KEYS.BUDGETS, mergedBudgets);
+      console.log(`📊 Budgets: ${remoteBudgets?.length || 0} distant(s), ${unsyncedBudgets.length} non-synchronisé(s)`);
 
-      // Charger les économies
-      const { data: savings } = await supabase
+      // Charger les économies et fusionner avec les données locales non-synchronisées
+      const { data: remoteSavings } = await supabase
         .from(SUPABASE_TABLES.SAVINGS)
         .select('*')
         .eq('user_id', userId);
 
-      Storage.set(STORAGE_KEYS.SAVINGS, savings || []);
+      const localSavings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+      const unsyncedSavings = localSavings.filter(item => !item.synced);
+      const mergedSavings = this.mergeData(remoteSavings || [], unsyncedSavings);
+      Storage.set(STORAGE_KEYS.SAVINGS, mergedSavings);
+      console.log(`📊 Économies: ${remoteSavings?.length || 0} distant(s), ${unsyncedSavings.length} non-synchronisé(s)`);
 
-      // Charger les transactions d'économies
-      const { data: savingsTransactions } = await supabase
+      // Charger les transactions d'économies et fusionner avec les données locales non-synchronisées
+      const { data: remoteSavingsTransactions } = await supabase
         .from(SUPABASE_TABLES.SAVINGS_TRANSACTIONS)
         .select('*')
         .eq('user_id', userId)
         .order('date', { ascending: false });
 
-      Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, savingsTransactions || []);
+      const localTransactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
+      const unsyncedTransactions = localTransactions.filter(item => !item.synced);
+      const mergedTransactions = this.mergeData(remoteSavingsTransactions || [], unsyncedTransactions);
+      Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, mergedTransactions);
+      console.log(`📊 Transactions: ${remoteSavingsTransactions?.length || 0} distant(s), ${unsyncedTransactions.length} non-synchronisé(s)`);
 
-      console.log('✅ Données chargées depuis Supabase');
-      notify.success('Données synchronisées avec succès');
+      // Afficher un résumé du chargement
+      const totalRemote = (remoteIncomes?.length || 0) + 
+                         (remoteExpenses?.length || 0) + 
+                         (remoteBudgets?.length || 0) + 
+                         (remoteSavings?.length || 0) + 
+                         (remoteSavingsTransactions?.length || 0);
+      
+      const totalUnsynced = unsyncedIncomes.length + 
+                           unsyncedExpenses.length + 
+                           unsyncedBudgets.length + 
+                           unsyncedSavings.length + 
+                           unsyncedTransactions.length;
+
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log(`✅ Données chargées depuis Supabase`);
+      console.log(`   📦 ${totalRemote} donnée(s) récupérée(s)`);
+      if (totalUnsynced > 0) {
+        console.log(`   ⏳ ${totalUnsynced} donnée(s) locale(s) en attente de synchronisation`);
+      }
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      notify.success(`${totalRemote} donnée(s) chargée(s) avec succès`);
     } catch (error) {
       console.error('❌ Erreur lors du chargement depuis Supabase:', error);
       throw error;
     }
+  }
+
+  /**
+   * Fusionner les données distantes avec les données locales non-synchronisées
+   * Les données distantes sont marquées comme synced: true
+   * Les données locales non-synchronisées sont conservées
+   */
+  mergeData(remoteData, localUnsyncedData) {
+    // Marquer toutes les données distantes comme synchronisées
+    const remoteMarked = remoteData.map(item => ({ ...item, synced: true }));
+    
+    // Combiner les données distantes avec les données locales non-synchronisées
+    // Les données locales non-synchronisées sont ajoutées en premier pour être prioritaires
+    const merged = [...localUnsyncedData, ...remoteMarked];
+    
+    // Dédupliquer par ID (garder le premier, qui sera le local non-synchronisé si doublon)
+    const uniqueIds = new Set();
+    return merged.filter(item => {
+      if (uniqueIds.has(item.id)) {
+        return false;
+      }
+      uniqueIds.add(item.id);
+      return true;
+    });
   }
 
   /**
@@ -302,6 +372,7 @@ class SyncManager {
    */
   async syncIncomes(userId) {
     const localIncomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+    console.log(`🔍 Synchronisation des revenus: ${localIncomes.length} revenu(s) local/locaux`);
     
     if (localIncomes.length === 0) {
       console.log('Aucun revenu local à synchroniser');
@@ -323,11 +394,16 @@ class SyncManager {
 
     // Insérer les nouveaux revenus locaux
     const toInsert = localIncomes.filter(income => {
-      return income.id && !remoteIds.has(income.id) && !income.synced;
+      const shouldInsert = income.id && !remoteIds.has(income.id) && !income.synced;
+      if (!shouldInsert && !income.synced) {
+        console.log(`⏭️ Revenu ignoré: id=${income.id}, existe=${remoteIds.has(income.id)}, synced=${income.synced}`);
+      }
+      return shouldInsert;
     });
 
+    console.log(`📝 ${toInsert.length} revenu(s) à insérer, ${localIncomes.filter(i => i.synced).length} déjà synchronisé(s)`);
     if (toInsert.length > 0) {
-      console.log(`💾 Insertion de ${toInsert.length} revenu(s)...`);
+      console.log(`💾 Insertion de ${toInsert.length} revenu(s)...`);  
       
       const insertData = toInsert.map(income => ({
         id: income.id,
@@ -387,6 +463,7 @@ class SyncManager {
    */
   async syncExpenses(userId) {
     const localExpenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+    console.log(`🔍 Synchronisation des dépenses: ${localExpenses.length} dépense(s) locale(s)`);
 
     const { data: remoteExpenses } = await supabase
       .from(SUPABASE_TABLES.EXPENSES)
@@ -400,6 +477,7 @@ class SyncManager {
       return expense.id && !remoteIds.has(expense.id) && !expense.synced;
     });
 
+    console.log(`📝 ${toInsert.length} dépense(s) à insérer, ${localExpenses.filter(e => e.synced).length} déjà synchronisée(s)`);
     if (toInsert.length > 0) {
       const insertData = toInsert.map(expense => ({
         id: expense.id,
@@ -454,6 +532,7 @@ class SyncManager {
    */
   async syncBudgets(userId) {
     const localBudgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
+    console.log(`🔍 Synchronisation des budgets: ${localBudgets.length} budget(s) local/locaux`);
 
     const { data: remoteBudgets } = await supabase
       .from(SUPABASE_TABLES.BUDGETS)
@@ -467,6 +546,7 @@ class SyncManager {
       return budget.id && !remoteIds.has(budget.id) && !budget.synced;
     });
 
+    console.log(`📝 ${toInsert.length} budget(s) à insérer, ${localBudgets.filter(b => b.synced).length} déjà synchronisé(s)`);
     if (toInsert.length > 0) {
       const insertData = toInsert.map(budget => ({
         id: budget.id,
@@ -521,6 +601,7 @@ class SyncManager {
    */
   async syncSavings(userId) {
     const localSavings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+    console.log(`🔍 Synchronisation des économies: ${localSavings.length} économie(s) locale(s)`);
 
     const { data: remoteSavings } = await supabase
       .from(SUPABASE_TABLES.SAVINGS)
@@ -534,6 +615,7 @@ class SyncManager {
       return saving.id && !remoteIds.has(saving.id) && !saving.synced;
     });
 
+    console.log(`📝 ${toInsert.length} économie(s) à insérer, ${localSavings.filter(s => s.synced).length} déjà synchronisée(s)`);
     if (toInsert.length > 0) {
       const insertData = toInsert.map(saving => ({
         id: saving.id,
@@ -590,6 +672,7 @@ class SyncManager {
    */
   async syncSavingsTransactions(userId) {
     const localTransactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
+    console.log(`🔍 Synchronisation des transactions: ${localTransactions.length} transaction(s) locale(s)`);
 
     const { data: remoteTransactions } = await supabase
       .from(SUPABASE_TABLES.SAVINGS_TRANSACTIONS)
@@ -603,6 +686,7 @@ class SyncManager {
       return transaction.id && !remoteIds.has(transaction.id) && !transaction.synced;
     });
 
+    console.log(`📝 ${toInsert.length} transaction(s) à insérer, ${localTransactions.filter(t => t.synced).length} déjà synchronisée(s)`);
     if (toInsert.length > 0) {
       const insertData = toInsert.map(transaction => ({
         id: transaction.id,
@@ -635,7 +719,7 @@ class SyncManager {
     const user = await getCurrentUser();
     if (!user) {
       console.log('Utilisateur non authentifié - synchronisation ignorée');
-      return;
+      return { success: true, message: 'Pas de données à synchroniser' };
     }
 
     // Vérifier la connexion
@@ -643,11 +727,56 @@ class SyncManager {
     if (!isOnline) {
       console.log('⚠️ Hors ligne - impossible de synchroniser avant déconnexion');
       notify.warning('Vous êtes hors ligne. Certaines données pourraient ne pas être synchronisées.');
-      return;
+      return { success: false, message: 'Hors ligne' };
     }
+
+    // Arrêter la synchronisation automatique pendant la sync finale
+    const wasAutoSyncRunning = !!this.syncInterval;
+    if (wasAutoSyncRunning) {
+      this.stopAutoSync();
+    }
+
+    // Notifier le début de la synchronisation
+    this.notifySyncStatus({
+      online: true,
+      syncing: true,
+      lastSync: this.lastSyncTime,
+      finalSync: true
+    });
 
     try {
       console.log('🔄 Synchronisation finale avant déconnexion...');
+      console.log(`📊 Données à synchroniser:`);
+      
+      // Compter les données non-synchronisées
+      const incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+      const expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+      const budgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
+      const savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
+      const transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
+      
+      const unsyncedCount = {
+        incomes: incomes.filter(i => !i.synced).length,
+        expenses: expenses.filter(e => !e.synced).length,
+        budgets: budgets.filter(b => !b.synced).length,
+        savings: savings.filter(s => !s.synced).length,
+        transactions: transactions.filter(t => !t.synced).length
+      };
+      
+      const totalUnsynced = Object.values(unsyncedCount).reduce((sum, count) => sum + count, 0);
+      
+      console.log(`  - Revenus non-synchronisés: ${unsyncedCount.incomes}`);
+      console.log(`  - Dépenses non-synchronisées: ${unsyncedCount.expenses}`);
+      console.log(`  - Budgets non-synchronisés: ${unsyncedCount.budgets}`);
+      console.log(`  - Économies non-synchronisées: ${unsyncedCount.savings}`);
+      console.log(`  - Transactions non-synchronisées: ${unsyncedCount.transactions}`);
+      console.log(`  📌 TOTAL: ${totalUnsynced} élément(s) à synchroniser`);
+
+      if (totalUnsynced === 0) {
+        console.log('✅ Aucune donnée à synchroniser');
+        notify.success('Toutes les données sont déjà synchronisées');
+        return { success: true, message: 'Aucune donnée à synchroniser' };
+      }
 
       // Synchroniser chaque type de données
       await this.syncUserSettings(user.id);
@@ -657,10 +786,30 @@ class SyncManager {
       await this.syncSavings(user.id);
       await this.syncSavingsTransactions(user.id);
 
-      console.log('✅ Synchronisation finale terminée');
+      console.log('✅ Synchronisation finale terminée avec succès');
+      notify.success(`${totalUnsynced} donnée(s) synchronisée(s) avec succès`);
+      
+      this.notifySyncStatus({
+        online: true,
+        syncing: false,
+        lastSync: new Date().toISOString(),
+        finalSync: false
+      });
+
+      return { success: true, message: `${totalUnsynced} données synchronisées` };
     } catch (error) {
       console.error('❌ Erreur lors de la synchronisation finale:', error);
+      notify.error('Erreur lors de la synchronisation finale');
+      
+      this.notifySyncStatus({
+        online: true,
+        syncing: false,
+        lastSync: this.lastSyncTime,
+        error: error.message
+      });
+      
       // Ne pas bloquer la déconnexion en cas d'erreur
+      return { success: false, message: error.message };
     }
   }
 
