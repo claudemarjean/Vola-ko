@@ -5,24 +5,29 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
-import { generateUUID } from './sync.js';
-import FinanceEngine from './financeEngine.js';
+import { generateUUID } from './ids.js';
+import { fetchTable, insertRow, updateRow, deleteRow, fetchBudgetProgress } from './volakoApi.js';
+import { SUPABASE_TABLES } from './supabase.js';
+import notify from './notifications.js';
+import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
 class BudgetsManager {
   constructor() {
-    this.budgets = Storage.get(STORAGE_KEYS.BUDGETS, []);
-    this.expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+    this.budgets = [];
+    this.progressRows = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.editingBudgetId = null;
   }
 
-  init() {
+  async init() {
     this.checkAuth();
     renderSidebar('budgets');
     renderBottomNav('budgets');
-    this.loadBudgets();
     this.setupEventListeners();
     this.setupForm();
+
+    applySkeleton('budgets-grid', 'cards');
+    await this.refreshData();
   }
 
   checkAuth() {
@@ -32,37 +37,46 @@ class BudgetsManager {
     }
   }
 
+  async refreshData() {
+    await withPageLoader('budgets-grid', async () => {
+      this.budgets = await fetchTable(SUPABASE_TABLES.BUDGETS, { orderBy: 'updated_at', ascending: false });
+      this.progressRows = await fetchBudgetProgress();
+      this.loadBudgets();
+    });
+  }
+
   loadBudgets() {
     const gridElement = document.getElementById('budgets-grid');
     if (!gridElement) return;
 
-    // Filtrer les budgets supprimés
-    const activeBudgets = this.budgets.filter(b => !b.deleted);
-
-    if (activeBudgets.length === 0) {
-      gridElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary); grid-column: 1/-1;">Aucun budget défini</p>';
+    if (this.budgets.length === 0) {
+      gridElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary); grid-column: 1/-1;">Aucun budget defini</p>';
       return;
     }
 
-    gridElement.innerHTML = activeBudgets.map(budget => this.createBudgetHTML(budget)).join('');
+    gridElement.innerHTML = this.budgets.map(budget => this.createBudgetHTML(budget)).join('');
     this.attachEventListeners();
   }
 
   createBudgetHTML(budget) {
-    const spent = this.calculateSpent(budget.category);
-    const remaining = budget.amount - spent;
-    const percentage = Math.min((spent / budget.amount) * 100, 100);
-    
+    const progress = this.progressRows.find(row => row.id === budget.id) || {
+      spent: 0,
+      remaining: budget.amount,
+      amount: budget.amount
+    };
+
+    const percentage = progress.amount > 0 ? Math.min((progress.spent / progress.amount) * 100, 100) : 0;
+
     let progressColor = 'var(--color-success)';
     if (percentage > 80) progressColor = 'var(--color-error)';
     else if (percentage > 60) progressColor = 'var(--color-warning)';
 
     const icon = this.getCategoryIcon(budget.category);
-    const safeOtherReference = budget.otherReference ? this.escapeHtml(budget.otherReference) : '';
+    const safeOtherReference = budget.other_reference ? this.escapeHtml(budget.other_reference) : '';
     const safeNotes = budget.notes ? this.escapeHtml(budget.notes) : '';
     const formattedNotes = safeNotes ? safeNotes.replace(/\n/g, '<br>') : '';
-    const categoryName = budget.category === 'autre' && budget.otherReference 
-      ? `${this.getCategoryName(budget.category)} (${safeOtherReference})` 
+    const categoryName = budget.category === 'autre' && budget.other_reference
+      ? `${this.getCategoryName(budget.category)} (${safeOtherReference})`
       : this.getCategoryName(budget.category);
 
     return `
@@ -77,13 +91,13 @@ class BudgetsManager {
             <button class="btn-icon delete-btn" data-id="${budget.id}" title="Supprimer le budget">🗑️</button>
           </div>
         </div>
-        
+
         <div class="budget-progress">
           <div class="progress-bar">
             <div class="progress-fill" style="width: ${percentage}%; background-color: ${progressColor};"></div>
           </div>
           <div class="progress-info">
-            <span>${this.formatCurrency(spent)} / ${this.formatCurrency(budget.amount)}</span>
+            <span>${this.formatCurrency(progress.spent)} / ${this.formatCurrency(progress.amount)}</span>
             <span class="progress-percent">${Math.round(percentage)}%</span>
           </div>
         </div>
@@ -91,54 +105,39 @@ class BudgetsManager {
         <div class="budget-stats">
           <div>
             <span class="stat-label">Restant</span>
-            <span class="stat-value">${this.formatCurrency(remaining)}</span>
+            <span class="stat-value">${this.formatCurrency(progress.remaining)}</span>
           </div>
           <div>
-            <span class="stat-label">Dépensé</span>
-            <span class="stat-value">${this.formatCurrency(spent)}</span>
+            <span class="stat-label">Depense</span>
+            <span class="stat-value">${this.formatCurrency(progress.spent)}</span>
           </div>
         </div>
 
-        ${formattedNotes ? `<div class="budget-notes"><span class="stat-label">Détails</span><p>${formattedNotes}</p></div>` : ''}
+        ${formattedNotes ? `<div class="budget-notes"><span class="stat-label">Details</span><p>${formattedNotes}</p></div>` : ''}
       </div>
     `;
   }
 
-  calculateSpent(category) {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const monthExpenses = this.expenses.filter(exp => {
-      const date = new Date(exp.date);
-      return exp.category === category && 
-             date.getMonth() === currentMonth && 
-             date.getFullYear() === currentYear;
-    });
-
-    return monthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
-  }
-
   getCategoryIcon(category) {
     const icons = {
-      'alimentation': '🛒',
-      'transport': '🚗',
-      'logement': '🏠',
-      'sante': '💊',
-      'loisirs': '🎮',
-      'autre': '📦'
+      alimentation: '🛒',
+      transport: '🚗',
+      logement: '🏠',
+      sante: '💊',
+      loisirs: '🎮',
+      autre: '📦'
     };
     return icons[category] || '📦';
   }
 
   getCategoryName(category) {
     const names = {
-      'alimentation': 'Alimentation',
-      'transport': 'Transport',
-      'logement': 'Logement',
-      'sante': 'Santé',
-      'loisirs': 'Loisirs',
-      'autre': 'Autre'
+      alimentation: 'Alimentation',
+      transport: 'Transport',
+      logement: 'Logement',
+      sante: 'Sante',
+      loisirs: 'Loisirs',
+      autre: 'Autre'
     };
     return names[category] || category;
   }
@@ -182,16 +181,21 @@ class BudgetsManager {
   setupForm() {
     const form = document.getElementById('budget-form');
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        this.saveBudget();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Enregistrement...');
+        try {
+          await this.saveBudget();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
       });
     }
 
-    // Toggle "other" reference field
     const categorySelect = document.getElementById('budget-category');
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
-    
+
     if (categorySelect && otherReferenceGroup) {
       categorySelect.addEventListener('change', (e) => {
         if (e.target.value === 'autre') {
@@ -216,16 +220,15 @@ class BudgetsManager {
     const submitBtn = document.getElementById('budget-submit');
 
     this.editingBudgetId = budget?.id || null;
-    
+
     if (modal) {
       modal.classList.add('active');
     }
-    
-    // Réinitialiser le formulaire et masquer le champ "autre"
+
     if (form) {
       form.reset();
     }
-    
+
     if (otherReferenceGroup) {
       otherReferenceGroup.style.display = 'none';
     }
@@ -233,11 +236,11 @@ class BudgetsManager {
     const isEditing = Boolean(budget);
 
     if (modalTitle) {
-      modalTitle.textContent = isEditing ? 'Modifier un budget' : 'Créer un budget';
+      modalTitle.textContent = isEditing ? 'Modifier un budget' : 'Creer un budget';
     }
 
     if (submitBtn) {
-      submitBtn.textContent = isEditing ? 'Mettre à jour' : 'Enregistrer';
+      submitBtn.textContent = isEditing ? 'Mettre a jour' : 'Enregistrer';
     }
 
     if (categorySelect) {
@@ -249,27 +252,15 @@ class BudgetsManager {
     }
 
     if (budget) {
-      if (categorySelect) {
-        categorySelect.value = budget.category;
-      }
-
-      if (amountInput) {
-        amountInput.value = budget.amount;
-      }
+      if (categorySelect) categorySelect.value = budget.category;
+      if (amountInput) amountInput.value = budget.amount;
 
       if (budget.category === 'autre') {
-        if (otherReferenceGroup) {
-          otherReferenceGroup.style.display = 'block';
-        }
-
-        if (otherReferenceInput) {
-          otherReferenceInput.value = budget.otherReference || '';
-        }
+        if (otherReferenceGroup) otherReferenceGroup.style.display = 'block';
+        if (otherReferenceInput) otherReferenceInput.value = budget.other_reference || '';
       }
-    } else {
-      if (categorySelect) {
-        categorySelect.disabled = false;
-      }
+    } else if (categorySelect) {
+      categorySelect.disabled = false;
     }
   }
 
@@ -278,18 +269,15 @@ class BudgetsManager {
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
     const categorySelect = document.getElementById('budget-category');
     const notesInput = document.getElementById('budget-notes');
-    
+
     if (modal) {
       modal.classList.remove('active');
     }
-    
-    // Réinitialiser le champ "autre" lors de la fermeture
+
     if (otherReferenceGroup) {
       otherReferenceGroup.style.display = 'none';
       const otherReferenceInput = document.getElementById('budget-other-reference');
-      if (otherReferenceInput) {
-        otherReferenceInput.value = '';
-      }
+      if (otherReferenceInput) otherReferenceInput.value = '';
     }
 
     if (categorySelect) {
@@ -311,59 +299,59 @@ class BudgetsManager {
     const notes = document.getElementById('budget-notes')?.value.trim() || '';
 
     if (!category || Number.isNaN(amount) || amount < 0) {
+      notify.error('Categorie ou montant invalide.');
       return;
     }
 
-    if (this.editingBudgetId) {
-      const budgetIndex = this.budgets.findIndex(b => b.id === this.editingBudgetId);
-      if (budgetIndex !== -1) {
-        this.budgets[budgetIndex] = {
-          ...this.budgets[budgetIndex],
-          amount,
-          otherReference: otherReference || undefined,
-          notes: notes || undefined
-        };
-      }
-    } else {
-      // Check if budget already exists for this category
-      const existingIndex = this.budgets.findIndex(b => b.category === category);
-
-      if (existingIndex !== -1) {
-        const confirmed = await showConfirmModal(
-          'Un budget existe déjà pour cette catégorie. Le remplacer ?',
-          {
-            title: '⚠️ Budget existant',
-            confirmText: 'Remplacer',
-            cancelText: 'Annuler',
-            danger: false
-          }
-        );
-
-        if (confirmed) {
-          this.budgets[existingIndex].amount = amount;
-          this.budgets[existingIndex].otherReference = otherReference || undefined;
-          this.budgets[existingIndex].notes = notes || undefined;
-        } else {
-          return;
-        }
-      } else {
-        const budget = {
-          id: generateUUID(),
-          category,
+    try {
+      if (this.editingBudgetId) {
+        await updateRow(SUPABASE_TABLES.BUDGETS, this.editingBudgetId, {
           amount,
           other_reference: otherReference || null,
           notes: notes || null,
-          synced: false,
-          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        };
-        this.budgets.push(budget);
+        }, 'Mise a jour du budget');
+      } else {
+        const existing = this.budgets.find(b => b.category === category);
+        if (existing) {
+          const confirmed = await showConfirmModal(
+            'Un budget existe deja pour cette categorie. Le remplacer ?',
+            {
+              title: 'Budget existant',
+              confirmText: 'Remplacer',
+              cancelText: 'Annuler',
+              danger: false
+            }
+          );
+
+          if (!confirmed) return;
+
+          await updateRow(SUPABASE_TABLES.BUDGETS, existing.id, {
+            amount,
+            other_reference: otherReference || null,
+            notes: notes || null,
+            updated_at: new Date().toISOString()
+          }, 'Mise a jour du budget');
+        } else {
+          await insertRow(SUPABASE_TABLES.BUDGETS, {
+            id: generateUUID(),
+            category,
+            amount,
+            other_reference: otherReference || null,
+            notes: notes || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, 'Creation du budget');
+        }
+      }
+
+      await this.refreshData();
+      this.closeModal();
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la sauvegarde du budget.');
       }
     }
-
-    Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
-    this.loadBudgets();
-    this.closeModal();
   }
 
   escapeHtml(value) {
@@ -373,33 +361,30 @@ class BudgetsManager {
   }
 
   async deleteBudget(id) {
-    const confirmed = await showConfirmModal(
-      'Êtes-vous sûr de vouloir supprimer ce budget ?',
-      {
-        title: '⚠️ Confirmation',
-        confirmText: 'Supprimer',
-        cancelText: 'Annuler',
-        danger: true
-      }
-    );
+    const confirmed = await showConfirmModal('Etes-vous sur de vouloir supprimer ce budget ?', {
+      title: 'Confirmation',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      danger: true
+    });
 
-    if (confirmed) {
-      // Marquer comme supprimé pour synchronisation avec Supabase
-      const index = this.budgets.findIndex(b => b.id === id);
-      if (index !== -1) {
-        this.budgets[index] = { ...this.budgets[index], deleted: true, synced: false };
-        Storage.set(STORAGE_KEYS.BUDGETS, this.budgets);
-        this.loadBudgets();
+    if (!confirmed) return;
+
+    try {
+      await deleteRow(SUPABASE_TABLES.BUDGETS, id, 'Suppression du budget');
+      await this.refreshData();
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la suppression du budget.');
       }
     }
   }
 }
 
-// Initialize
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const manager = new BudgetsManager();
-    manager.init();
+    await manager.init();
   });
 } else {
   const manager = new BudgetsManager();

@@ -5,24 +5,28 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
-import FinanceEngine from './financeEngine.js';
 import notify from './notifications.js';
-import { generateUUID } from './sync.js';
+import { generateUUID } from './ids.js';
+import { fetchTable, insertRow, updateRow, deleteRow } from './volakoApi.js';
+import { SUPABASE_TABLES } from './supabase.js';
+import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
 class ExpensesManager {
   constructor() {
-    this.expenses = Storage.get(STORAGE_KEYS.EXPENSES, []);
+    this.expenses = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.currentFilter = { category: '', period: 'month', search: '' };
   }
 
-  init() {
+  async init() {
     this.checkAuth();
     renderSidebar('expenses');
     renderBottomNav('expenses');
-    this.loadExpenses();
     this.setupEventListeners();
     this.setupForm();
+
+    applySkeleton('expenses-list', 'list');
+    await this.refreshData();
   }
 
   checkAuth() {
@@ -32,14 +36,21 @@ class ExpensesManager {
     }
   }
 
+  async refreshData() {
+    await withPageLoader('expenses-list', async () => {
+      this.expenses = await fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false });
+      this.loadExpenses();
+    });
+  }
+
   loadExpenses() {
     const filtered = this.filterExpenses();
     const listElement = document.getElementById('expenses-list');
-    
+
     if (!listElement) return;
 
     if (filtered.length === 0) {
-      listElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary);">Aucune dépense à afficher</p>';
+      listElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary);">Aucune depense a afficher</p>';
       return;
     }
 
@@ -48,15 +59,12 @@ class ExpensesManager {
   }
 
   filterExpenses() {
-    // D'abord filtrer les dépenses supprimées
-    let filtered = this.expenses.filter(exp => !exp.deleted);
+    let filtered = [...this.expenses];
 
-    // Filtre par catégorie
     if (this.currentFilter.category) {
       filtered = filtered.filter(exp => exp.category === this.currentFilter.category);
     }
 
-    // Filtre par période
     const now = new Date();
     if (this.currentFilter.period === 'week') {
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -71,27 +79,22 @@ class ExpensesManager {
       filtered = filtered.filter(exp => new Date(exp.date) >= rollingYearStart);
     }
 
-    // Filtre par recherche
     if (this.currentFilter.search) {
       const search = this.currentFilter.search.toLowerCase();
-      filtered = filtered.filter(exp => 
-        exp.description.toLowerCase().includes(search)
-      );
+      filtered = filtered.filter(exp => (exp.description || '').toLowerCase().includes(search));
     }
 
-    // Trier par date (plus récent en premier)
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     return filtered;
   }
 
   createExpenseHTML(expense) {
     const icon = this.getCategoryIcon(expense.category);
     const date = new Date(expense.date).toLocaleDateString('fr-FR');
-    const categoryDisplay = expense.category === 'autre' && expense.otherReference 
-      ? `${expense.category} (${expense.otherReference})` 
+    const categoryDisplay = expense.category === 'autre' && expense.other_reference
+      ? `${expense.category} (${expense.other_reference})`
       : expense.category;
-    
+
     return `
       <div class="list-item" data-id="${expense.id}">
         <div class="item-info">
@@ -112,12 +115,12 @@ class ExpensesManager {
 
   getCategoryIcon(category) {
     const icons = {
-      'alimentation': '🛒',
-      'transport': '🚗',
-      'logement': '🏠',
-      'sante': '💊',
-      'loisirs': '🎮',
-      'autre': '📦'
+      alimentation: '🛒',
+      transport: '🚗',
+      logement: '🏠',
+      sante: '💊',
+      loisirs: '🎮',
+      autre: '📦'
     };
     return icons[category] || '📦';
   }
@@ -127,13 +130,11 @@ class ExpensesManager {
   }
 
   setupEventListeners() {
-    // Bouton ajouter
     const addBtn = document.getElementById('add-expense-btn');
     if (addBtn) {
       addBtn.addEventListener('click', () => this.openModal());
     }
 
-    // Filtres
     const categoryFilter = document.getElementById('category-filter');
     if (categoryFilter) {
       categoryFilter.addEventListener('change', (e) => {
@@ -148,8 +149,6 @@ class ExpensesManager {
         this.currentFilter.period = e.target.value;
         this.loadExpenses();
       });
-      // Keep dropdown text aligned with rolling windows
-      periodFilter.value = this.currentFilter.period;
     }
 
     const searchInput = document.getElementById('search-input');
@@ -160,7 +159,6 @@ class ExpensesManager {
       });
     }
 
-    // Modal close
     const modal = document.getElementById('expense-modal');
     const closeBtns = modal?.querySelectorAll('.modal-close');
     closeBtns?.forEach(btn => {
@@ -169,7 +167,6 @@ class ExpensesManager {
   }
 
   attachItemEventListeners() {
-    // Edit buttons
     document.querySelectorAll('.edit-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.target.dataset.id;
@@ -177,7 +174,6 @@ class ExpensesManager {
       });
     });
 
-    // Delete buttons
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.target.dataset.id;
@@ -189,22 +185,26 @@ class ExpensesManager {
   setupForm() {
     const form = document.getElementById('expense-form');
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        this.saveExpense();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Enregistrement...');
+        try {
+          await this.saveExpense();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
       });
     }
 
-    // Set default date to today
     const dateInput = document.getElementById('expense-date');
     if (dateInput) {
       dateInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // Toggle "other" reference field
     const categorySelect = document.getElementById('expense-category');
     const otherReferenceGroup = document.getElementById('expense-other-reference-group');
-    
+
     if (categorySelect && otherReferenceGroup) {
       categorySelect.addEventListener('change', (e) => {
         if (e.target.value === 'autre') {
@@ -222,33 +222,29 @@ class ExpensesManager {
     const form = document.getElementById('expense-form');
     const otherReferenceGroup = document.getElementById('expense-other-reference-group');
     const otherReferenceInput = document.getElementById('expense-other-reference');
-    
+
     if (!modal || !form) return;
 
     if (expense) {
-      // Edit mode
       form.dataset.editId = expense.id;
       document.getElementById('expense-description').value = expense.description;
       document.getElementById('expense-amount').value = expense.amount;
       document.getElementById('expense-category').value = expense.category;
       document.getElementById('expense-date').value = expense.date;
-      
-      // Afficher le champ "autre" si la catégorie est "autre"
+
       if (expense.category === 'autre' && otherReferenceGroup) {
         otherReferenceGroup.style.display = 'block';
-        if (otherReferenceInput && expense.otherReference) {
-          otherReferenceInput.value = expense.otherReference;
+        if (otherReferenceInput) {
+          otherReferenceInput.value = expense.other_reference || '';
         }
       } else if (otherReferenceGroup) {
         otherReferenceGroup.style.display = 'none';
       }
     } else {
-      // Add mode
       form.reset();
       delete form.dataset.editId;
       document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
-      
-      // Masquer le champ "autre" par défaut
+
       if (otherReferenceGroup) {
         otherReferenceGroup.style.display = 'none';
       }
@@ -260,12 +256,11 @@ class ExpensesManager {
   closeModal() {
     const modal = document.getElementById('expense-modal');
     const otherReferenceGroup = document.getElementById('expense-other-reference-group');
-    
+
     if (modal) {
       modal.classList.remove('active');
     }
-    
-    // Réinitialiser le champ "autre" lors de la fermeture
+
     if (otherReferenceGroup) {
       otherReferenceGroup.style.display = 'none';
       const otherReferenceInput = document.getElementById('expense-other-reference');
@@ -275,7 +270,7 @@ class ExpensesManager {
     }
   }
 
-  saveExpense() {
+  async saveExpense() {
     const form = document.getElementById('expense-form');
     const editId = form.dataset.editId;
 
@@ -285,52 +280,46 @@ class ExpensesManager {
     const date = document.getElementById('expense-date').value;
     const otherReference = category === 'autre' ? document.getElementById('expense-other-reference').value : '';
 
-    // Valider les champs
     if (!description || !amount || !category || !date) {
-      notify.error('Tous les champs sont requis', 'Champs manquants');
+      notify.error('Tous les champs sont requis');
       return;
     }
 
-    // VALIDATION FINANCIÈRE via FinanceEngine
-    // Ne valider que pour les nouvelles dépenses (pas pour les éditions)
-    if (!editId && category !== 'epargne') {
-      const validation = FinanceEngine.validateExpense(amount);
-      
-      if (!validation.valid) {
-        notify.alert(
-          `${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`,
-          '❌ Solde insuffisant',
-          'error'
-        );
+    try {
+      if (editId) {
+        await updateRow(SUPABASE_TABLES.EXPENSES, editId, {
+          description,
+          amount,
+          category,
+          date,
+          other_reference: otherReference || null
+        }, 'Modification de la depense');
+      } else {
+        await insertRow(SUPABASE_TABLES.EXPENSES, {
+          id: generateUUID(),
+          description,
+          amount,
+          category,
+          date,
+          other_reference: otherReference || null,
+          created_at: new Date().toISOString()
+        }, 'Ajout de la depense');
+      }
+
+      await this.refreshData();
+      this.closeModal();
+    } catch (error) {
+      if (error.message === 'MODE_HORS_LIGNE') {
         return;
       }
-    }
 
-    const expense = {
-      id: editId || generateUUID(),
-      description,
-      amount,
-      category,
-      date,
-      other_reference: otherReference || null,
-      synced: false,
-      created_at: new Date().toISOString()
-    };
-
-    if (editId) {
-      // Update existing
-      const index = this.expenses.findIndex(exp => exp.id === editId);
-      if (index !== -1) {
-        this.expenses[index] = { ...expense, modified: true, synced: false };
+      if (error.message.includes('SOLDE_INSUFFISANT')) {
+        notify.error('Solde disponible insuffisant pour enregistrer cette depense.');
+        return;
       }
-    } else {
-      // Add new
-      this.expenses.unshift(expense);
-    }
 
-    Storage.set(STORAGE_KEYS.EXPENSES, this.expenses);
-    this.loadExpenses();
-    this.closeModal();
+      notify.error(error.message || 'Erreur lors de la sauvegarde de la depense.');
+    }
   }
 
   editExpense(id) {
@@ -341,33 +330,30 @@ class ExpensesManager {
   }
 
   async deleteExpense(id) {
-    const confirmed = await showConfirmModal(
-      'Êtes-vous sûr de vouloir supprimer cette dépense ?',
-      {
-        title: '⚠️ Confirmation',
-        confirmText: 'Supprimer',
-        cancelText: 'Annuler',
-        danger: true
-      }
-    );
+    const confirmed = await showConfirmModal('Etes-vous sur de vouloir supprimer cette depense ?', {
+      title: 'Confirmation',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      danger: true
+    });
 
-    if (confirmed) {
-      // Marquer comme supprimé pour synchronisation avec Supabase
-      const index = this.expenses.findIndex(exp => exp.id === id);
-      if (index !== -1) {
-        this.expenses[index] = { ...this.expenses[index], deleted: true, synced: false };
-        Storage.set(STORAGE_KEYS.EXPENSES, this.expenses);
-        this.loadExpenses();
+    if (!confirmed) return;
+
+    try {
+      await deleteRow(SUPABASE_TABLES.EXPENSES, id, 'Suppression de la depense');
+      await this.refreshData();
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la suppression de la depense.');
       }
     }
   }
 }
 
-// Initialize
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const manager = new ExpensesManager();
-    manager.init();
+    await manager.init();
   });
 } else {
   const manager = new ExpensesManager();

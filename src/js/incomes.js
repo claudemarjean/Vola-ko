@@ -5,22 +5,27 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
-import { generateUUID } from './sync.js';
+import { generateUUID } from './ids.js';
+import { fetchTable, insertRow, updateRow, deleteRow, callRpc } from './volakoApi.js';
+import { SUPABASE_TABLES } from './supabase.js';
+import notify from './notifications.js';
+import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
 class IncomesManager {
   constructor() {
-    this.incomes = Storage.get(STORAGE_KEYS.INCOMES, []);
+    this.incomes = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
   }
 
-  init() {
+  async init() {
     this.checkAuth();
     renderSidebar('incomes');
     renderBottomNav('incomes');
-    this.updateStats();
-    this.loadIncomes();
     this.setupEventListeners();
     this.setupForm();
+
+    applySkeleton('incomes-list', 'list');
+    await this.refreshData();
   }
 
   checkAuth() {
@@ -30,48 +35,41 @@ class IncomesManager {
     }
   }
 
-  updateStats() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const rollingYearStart = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-
-    const monthIncomes = this.incomes.filter(inc => {
-      const date = new Date(inc.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === now.getFullYear();
+  async refreshData() {
+    await withPageLoader('incomes-list', async () => {
+      this.incomes = await fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false });
+      await this.updateStats();
+      this.loadIncomes();
     });
+  }
 
-    const rollingYearIncomes = this.incomes.filter(inc => new Date(inc.date) >= rollingYearStart);
-
-    const monthTotal = monthIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
-    const yearTotal = rollingYearIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount), 0);
+  async updateStats() {
+    const stats = await callRpc('volako_get_income_stats', {}, 'Chargement des revenus');
+    const row = stats?.[0] || { month_total: 0, year_total: 0 };
 
     const monthEl = document.getElementById('income-month');
     const yearEl = document.getElementById('income-year');
 
-    if (monthEl) monthEl.textContent = this.formatCurrency(monthTotal);
-    if (yearEl) yearEl.textContent = this.formatCurrency(yearTotal);
+    if (monthEl) monthEl.textContent = this.formatCurrency(row.month_total || 0);
+    if (yearEl) yearEl.textContent = this.formatCurrency(row.year_total || 0);
   }
 
   loadIncomes() {
     const listElement = document.getElementById('incomes-list');
     if (!listElement) return;
 
-    // Filtrer les revenus supprimés
-    const activeIncomes = this.incomes.filter(inc => !inc.deleted);
-    const sorted = [...activeIncomes].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (sorted.length === 0) {
-      listElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary);">Aucun revenu à afficher</p>';
+    if (this.incomes.length === 0) {
+      listElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary);">Aucun revenu a afficher</p>';
       return;
     }
 
-    listElement.innerHTML = sorted.map(inc => this.createIncomeHTML(inc)).join('');
+    listElement.innerHTML = this.incomes.map(inc => this.createIncomeHTML(inc)).join('');
     this.attachItemEventListeners();
   }
 
   createIncomeHTML(income) {
     const date = new Date(income.date).toLocaleDateString('fr-FR');
-    
+
     return `
       <div class="list-item" data-id="${income.id}">
         <div class="item-info">
@@ -126,9 +124,15 @@ class IncomesManager {
   setupForm() {
     const form = document.getElementById('income-form');
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        this.saveIncome();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Enregistrement...');
+        try {
+          await this.saveIncome();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
       });
     }
 
@@ -141,7 +145,7 @@ class IncomesManager {
   openModal(income = null) {
     const modal = document.getElementById('income-modal');
     const form = document.getElementById('income-form');
-    
+
     if (!modal || !form) return;
 
     if (income) {
@@ -165,32 +169,38 @@ class IncomesManager {
     }
   }
 
-  saveIncome() {
+  async saveIncome() {
     const form = document.getElementById('income-form');
     const editId = form.dataset.editId;
 
-    const income = {
-      id: editId || generateUUID(),
+    const payload = {
       source: document.getElementById('income-source').value,
       amount: parseFloat(document.getElementById('income-amount').value),
       date: document.getElementById('income-date').value,
-      synced: false,
       created_at: new Date().toISOString()
     };
 
-    if (editId) {
-      const index = this.incomes.findIndex(inc => inc.id === editId);
-      if (index !== -1) {
-        this.incomes[index] = { ...income, modified: true, synced: false };
+    try {
+      if (editId) {
+        await updateRow(SUPABASE_TABLES.INCOMES, editId, {
+          source: payload.source,
+          amount: payload.amount,
+          date: payload.date
+        }, 'Modification du revenu');
+      } else {
+        await insertRow(SUPABASE_TABLES.INCOMES, {
+          id: generateUUID(),
+          ...payload
+        }, 'Ajout du revenu');
       }
-    } else {
-      this.incomes.unshift(income);
-    }
 
-    Storage.set(STORAGE_KEYS.INCOMES, this.incomes);
-    this.updateStats();
-    this.loadIncomes();
-    this.closeModal();
+      await this.refreshData();
+      this.closeModal();
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la sauvegarde du revenu.');
+      }
+    }
   }
 
   editIncome(id) {
@@ -201,34 +211,30 @@ class IncomesManager {
   }
 
   async deleteIncome(id) {
-    const confirmed = await showConfirmModal(
-      'Êtes-vous sûr de vouloir supprimer ce revenu ?',
-      {
-        title: '⚠️ Confirmation',
-        confirmText: 'Supprimer',
-        cancelText: 'Annuler',
-        danger: true
-      }
-    );
+    const confirmed = await showConfirmModal('Etes-vous sur de vouloir supprimer ce revenu ?', {
+      title: 'Confirmation',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      danger: true
+    });
 
-    if (confirmed) {
-      // Marquer comme supprimé pour synchronisation avec Supabase
-      const index = this.incomes.findIndex(inc => inc.id === id);
-      if (index !== -1) {
-        this.incomes[index] = { ...this.incomes[index], deleted: true, synced: false };
-        Storage.set(STORAGE_KEYS.INCOMES, this.incomes);
-        this.updateStats();
-        this.loadIncomes();
+    if (!confirmed) return;
+
+    try {
+      await deleteRow(SUPABASE_TABLES.INCOMES, id, 'Suppression du revenu');
+      await this.refreshData();
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la suppression du revenu.');
       }
     }
   }
 }
 
-// Initialize
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const manager = new IncomesManager();
-    manager.init();
+    await manager.init();
   });
 } else {
   const manager = new IncomesManager();

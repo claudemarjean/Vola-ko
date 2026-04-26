@@ -380,38 +380,6 @@
   color: var(--color-error);
   background-color: rgba(239, 68, 68, 0.1);
 }
-  gap: var(--space-xl);
-  margin-bottom: var(--space-xl);
-}
-
-.stat-card {
-  background-color: var(--card-bg);
-  padding: var(--space-xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-fast);
-}
-
-.stat-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-xs);
-  display: block;
-}
-
-.stat-value {
-  font-size: var(--font-size-3xl);
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xs);
-}
 
 /* Budget Card */
 .budgets-grid {

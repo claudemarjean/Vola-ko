@@ -8,11 +8,6 @@ const STORAGE_KEYS = {
   LANGUAGE: 'tvolako_language',
   USER: 'tvolako_user',
   TOKEN: 'tvolako_token',
-  EXPENSES: 'volako_expenses',
-  INCOMES: 'volako_incomes',
-  BUDGETS: 'volako_budgets',
-  SAVINGS: 'volako_savings',
-  SAVINGS_TRANSACTIONS: 'volako_savings_transactions',
   CURRENCY: 'volako_currency'
 };
 

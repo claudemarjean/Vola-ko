@@ -8,6 +8,8 @@ import I18n from './i18n.js';
 import Router from './router.js';
 import Auth from './auth.js';
 import { registerOfflineCapabilities } from './offline.js';
+import { initConnectivityAwareness } from './network.js';
+import { showGlobalLoader, hideGlobalLoader } from './loaders.js';
 
 class App {
   constructor() {
@@ -21,9 +23,14 @@ class App {
    * Initialiser l'application
    */
   async init() {
+    showGlobalLoader('Initialisation de Vola-ko...');
+
     try {
       // Initialiser le gestionnaire de thème
       this.themeManager = new ThemeManager();
+
+      // Activer la surveillance de connectivite
+      initConnectivityAwareness();
 
       // Initialiser l'internationalisation
       this.i18n = new I18n();
@@ -46,6 +53,8 @@ class App {
       console.log('✅ T-Volako initialized successfully');
     } catch (error) {
       console.error('❌ App initialization error:', error);
+    } finally {
+      hideGlobalLoader();
     }
   }
 

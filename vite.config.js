@@ -27,8 +27,7 @@ export default defineConfig({
         budgets: resolve(__dirname, 'src/budgets.html'),
         savings: resolve(__dirname, 'src/savings.html'),
         reports: resolve(__dirname, 'src/reports.html'),
-        settings: resolve(__dirname, 'src/settings.html'),
-        savings: resolve(__dirname, 'src/savings.html')
+        settings: resolve(__dirname, 'src/settings.html')
       }
     },
     minify: 'terser',

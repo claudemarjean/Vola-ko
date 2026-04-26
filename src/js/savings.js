@@ -1,31 +1,32 @@
 /**
  * SAVINGS.JS - Savings Page Logic
- * Gestion complète des épargnes et objectifs financiers
  */
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import notify from './notifications.js';
-import FinanceEngine from './financeEngine.js';
-import { generateUUID } from './sync.js';
+import { generateUUID } from './ids.js';
+import { fetchTable, insertRow, updateRow, deleteRow, applySavingsTransaction, fetchSavingsStats } from './volakoApi.js';
+import { SUPABASE_TABLES } from './supabase.js';
+import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
 class SavingsManager {
   constructor() {
-    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
-    this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
+    this.savings = [];
+    this.transactions = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
-    this.currentSaving = null;
     this.editingId = null;
   }
 
-  init() {
+  async init() {
     this.checkAuth();
     renderSidebar('savings');
     renderBottomNav('savings');
-    this.updateStats();
-    this.loadSavings();
     this.setupEventListeners();
+
+    applySkeleton('savings-list', 'cards');
+    await this.refreshData();
   }
 
   checkAuth() {
@@ -35,57 +36,55 @@ class SavingsManager {
     }
   }
 
-  updateStats() {
-    const totalSaved = this.savings.reduce((sum, s) => sum + (parseFloat(s.balance) || 0), 0);
-    const activeGoals = this.savings.filter(s => s.type === 'goal').length;
-    
-    let avgProgress = 0;
-    const goalsWithTarget = this.savings.filter(s => s.type === 'goal' && s.targetAmount > 0);
-    if (goalsWithTarget.length > 0) {
-      const totalProgress = goalsWithTarget.reduce((sum, s) => {
-        const balance = parseFloat(s.balance) || 0;
-        const target = parseFloat(s.targetAmount) || 1;
-        const progress = (balance / target) * 100;
-        return sum + Math.min(progress, 100);
-      }, 0);
-      avgProgress = Math.round(totalProgress / goalsWithTarget.length);
-    }
+  async refreshData() {
+    await withPageLoader('savings-list', async () => {
+      this.savings = await fetchTable(SUPABASE_TABLES.SAVINGS, { orderBy: 'updated_at', ascending: false });
+      this.transactions = await fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS, { orderBy: 'date', ascending: false });
+      await this.updateStats();
+      this.loadSavings();
+    });
+  }
 
-    document.getElementById('total-saved').textContent = this.formatCurrency(totalSaved);
-    document.getElementById('active-goals').textContent = activeGoals;
-    document.getElementById('goal-progress').textContent = `${avgProgress}%`;
+  async updateStats() {
+    const stats = await fetchSavingsStats();
+    const totalSaved = stats?.total_saved || 0;
+    const activeGoals = stats?.active_goals || 0;
+    const avgProgress = Math.round(stats?.avg_progress || 0);
+
+    const totalEl = document.getElementById('total-saved');
+    const activeEl = document.getElementById('active-goals');
+    const progressEl = document.getElementById('goal-progress');
+
+    if (totalEl) totalEl.textContent = this.formatCurrency(totalSaved);
+    if (activeEl) activeEl.textContent = activeGoals;
+    if (progressEl) progressEl.textContent = `${avgProgress}%`;
   }
 
   loadSavings() {
     const container = document.getElementById('savings-list');
     const emptyState = document.getElementById('empty-state');
 
-    // Filtrer les économies supprimées
-    const activeSavings = this.savings.filter(s => !s.deleted);
-
-    if (activeSavings.length === 0) {
+    if (this.savings.length === 0) {
       container.innerHTML = '';
       emptyState.style.display = 'block';
       return;
     }
 
     emptyState.style.display = 'none';
-    container.innerHTML = activeSavings.map(saving => this.createSavingCard(saving)).join('');
-    
-    // Attach event listeners to buttons
+    container.innerHTML = this.savings.map(saving => this.createSavingCard(saving)).join('');
     this.attachCardEventListeners();
   }
 
   attachCardEventListeners() {
     const container = document.getElementById('savings-list');
-    
+
     container.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const action = btn.dataset.action;
         const id = btn.dataset.id;
-        
-        switch(action) {
+
+        switch (action) {
           case 'edit':
             this.editSaving(id);
             break;
@@ -109,15 +108,15 @@ class SavingsManager {
   createSavingCard(saving) {
     const balance = parseFloat(saving.balance || 0);
     const isGoal = saving.type === 'goal';
-    const targetAmount = parseFloat(saving.targetAmount || 0);
+    const targetAmount = parseFloat(saving.target_amount || 0);
     const progress = isGoal && targetAmount > 0 ? (balance / targetAmount) * 100 : 0;
     const progressClamped = Math.min(progress, 100);
 
     let statusHTML = '';
     if (isGoal) {
-      const daysLeft = saving.targetDate ? this.getDaysUntil(saving.targetDate) : null;
+      const daysLeft = saving.target_date ? this.getDaysUntil(saving.target_date) : null;
       const statusClass = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'info';
-      
+
       statusHTML = `
         <div class="saving-progress">
           <div class="progress-bar">
@@ -129,11 +128,11 @@ class SavingsManager {
           </div>
           ${daysLeft !== null ? `
             <div class="progress-info">
-              ${daysLeft > 0 
-                ? `<span>🎯 ${daysLeft} jour(s) restant(s)</span>`
+              ${daysLeft > 0
+                ? `<span>${daysLeft} jour(s) restant(s)</span>`
                 : daysLeft === 0
-                ? `<span>🎯 Aujourd'hui !</span>`
-                : `<span>⚠️ Dépassé de ${Math.abs(daysLeft)} jour(s)</span>`
+                  ? `<span>Aujourd'hui !</span>`
+                  : `<span>Depasse de ${Math.abs(daysLeft)} jour(s)</span>`
               }
             </div>
           ` : ''}
@@ -154,15 +153,11 @@ class SavingsManager {
             </div>
           </div>
           <div class="saving-actions">
-            <button class="btn-icon" data-action="edit" data-id="${saving.id}" title="Modifier">
-              ✏️
-            </button>
-            <button class="btn-icon" data-action="delete" data-id="${saving.id}" title="Supprimer">
-              🗑️
-            </button>
+            <button class="btn-icon" data-action="edit" data-id="${saving.id}" title="Modifier">✏️</button>
+            <button class="btn-icon" data-action="delete" data-id="${saving.id}" title="Supprimer">🗑️</button>
           </div>
         </div>
-        
+
         <div class="saving-balance">
           <div class="balance-label">Solde actuel</div>
           <div class="balance-amount">${this.formatCurrency(balance)}</div>
@@ -171,41 +166,47 @@ class SavingsManager {
         ${statusHTML}
 
         <div class="saving-controls">
-          <button class="btn btn-success btn-sm" data-action="add" data-id="${saving.id}">
-            <span>➕</span>
-            <span>Ajouter</span>
-          </button>
-          <button class="btn btn-outline btn-sm" data-action="withdraw" data-id="${saving.id}">
-            <span>➖</span>
-            <span>Retirer</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" data-action="history" data-id="${saving.id}">
-            <span>📋</span>
-            <span>Historique</span>
-          </button>
+          <button class="btn btn-success btn-sm" data-action="add" data-id="${saving.id}"><span>Ajouter</span></button>
+          <button class="btn btn-outline btn-sm" data-action="withdraw" data-id="${saving.id}"><span>Retirer</span></button>
+          <button class="btn btn-secondary btn-sm" data-action="history" data-id="${saving.id}"><span>Historique</span></button>
         </div>
       </div>
     `;
   }
 
   setupEventListeners() {
-    // Add saving buttons
     document.getElementById('add-saving-btn').addEventListener('click', () => this.openSavingModal());
     document.getElementById('add-saving-empty-btn')?.addEventListener('click', () => this.openSavingModal());
 
-    // Saving modal
     document.getElementById('close-saving-modal').addEventListener('click', () => this.closeSavingModal());
-    document.getElementById('saving-form').addEventListener('submit', (e) => this.saveSaving(e));
+    document.getElementById('saving-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = e.currentTarget.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Enregistrement...');
+      try {
+        await this.saveSaving();
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    });
+
     document.getElementById('saving-type').addEventListener('change', (e) => {
       const goalFields = document.getElementById('goal-fields');
       goalFields.style.display = e.target.value === 'goal' ? 'block' : 'none';
     });
 
-    // Transaction modal
     document.getElementById('close-transaction-modal').addEventListener('click', () => this.closeTransactionModal());
-    document.getElementById('transaction-form').addEventListener('submit', (e) => this.saveTransaction(e));
+    document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = e.currentTarget.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Traitement...');
+      try {
+        await this.saveTransaction();
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    });
 
-    // Modal close on overlay click
     document.querySelectorAll('.modal').forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -214,7 +215,6 @@ class SavingsManager {
       });
     });
 
-    // Modal close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.closest('.modal').classList.remove('active');
@@ -229,22 +229,21 @@ class SavingsManager {
     const form = document.getElementById('saving-form');
 
     if (saving) {
-      title.textContent = 'Modifier l\'épargne';
+      title.textContent = 'Modifier l epargne';
       document.getElementById('saving-name').value = saving.name;
       document.getElementById('saving-type').value = saving.type;
       document.getElementById('saving-initial').value = saving.balance;
-      document.getElementById('saving-target').value = saving.targetAmount || '';
-      document.getElementById('saving-target-date').value = saving.targetDate || '';
-      
+      document.getElementById('saving-target').value = saving.target_amount || '';
+      document.getElementById('saving-target-date').value = saving.target_date || '';
+
       const goalFields = document.getElementById('goal-fields');
       goalFields.style.display = saving.type === 'goal' ? 'block' : 'none';
     } else {
-      title.textContent = 'Créer une épargne';
+      title.textContent = 'Creer une epargne';
       form.reset();
       document.getElementById('goal-fields').style.display = 'none';
-      // Définir la date du jour par défaut
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('saving-initial-date').value = today;
+      document.getElementById('saving-initial-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('saving-initial').value = 0;
     }
 
     modal.classList.add('active');
@@ -256,9 +255,7 @@ class SavingsManager {
     this.editingId = null;
   }
 
-  async saveSaving(e) {
-    e.preventDefault();
-
+  async saveSaving() {
     const name = document.getElementById('saving-name').value.trim();
     const type = document.getElementById('saving-type').value;
     const initialAmount = parseFloat(document.getElementById('saving-initial').value) || 0;
@@ -267,94 +264,62 @@ class SavingsManager {
     const initialDate = document.getElementById('saving-initial-date').value;
 
     if (!name) {
-      notify.error('Le nom de l\'épargne est requis');
+      notify.error('Le nom de l epargne est requis');
       return;
     }
 
     if (initialAmount < 0) {
-      notify.error('Le montant initial ne peut pas être négatif');
+      notify.error('Le montant initial ne peut pas etre negatif');
       return;
     }
 
-    if (type === 'goal' && targetAmount > 0 && initialAmount > targetAmount) {
-      notify.error('Le montant initial ne peut pas dépasser l\'objectif');
-      return;
-    }
-
-    if (this.editingId) {
-      // Update existing
-      const index = this.savings.findIndex(s => s.id === this.editingId);
-      if (index !== -1) {
-        const oldBalance = this.savings[index].balance || 0;
-        this.savings[index] = {
-          ...this.savings[index],
+    try {
+      if (this.editingId) {
+        await updateRow(SUPABASE_TABLES.SAVINGS, this.editingId, {
           name,
           type,
-          targetAmount,
-          targetDate,
-          updatedAt: new Date().toISOString()
-        };
-        // Keep the existing balance when editing
-        this.savings[index].balance = oldBalance;
-      }
-    } else {
-      // Create new
-      // VALIDATION: Si montant initial > 0, vérifier le solde disponible
-      if (initialAmount > 0) {
-        const validation = FinanceEngine.validateSavingAddition(initialAmount);
-        if (!validation.valid) {
-          notify.alert(
-            `${validation.message}\n\nSolde disponible: ${FinanceEngine.formatCurrency(validation.availableBalance)}`,
-            '❌ Solde insuffisant',
-            'error'
-          );
-          return;
+          target_amount: targetAmount,
+          target_date: targetDate,
+          updated_at: new Date().toISOString()
+        }, 'Modification de l epargne');
+      } else {
+        const id = generateUUID();
+        await insertRow(SUPABASE_TABLES.SAVINGS, {
+          id,
+          name,
+          type,
+          balance: 0,
+          target_amount: targetAmount,
+          target_date: targetDate,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, 'Creation de l epargne');
+
+        if (initialAmount > 0) {
+          await applySavingsTransaction({
+            savings_id: id,
+            type: 'add',
+            amount: initialAmount,
+            description: `Montant initial de ${name}`,
+            date: initialDate
+          });
         }
       }
 
-      // Créer l'épargne avec balance à 0 d'abord
-      const saving = {
-        id: generateUUID(),
-        name,
-        type,
-        balance: 0,
-        target_amount: targetAmount,
-        target_date: targetDate,
-        synced: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      this.savings.push(saving);
-      Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
-
-      // Si montant initial > 0, utiliser le moteur financier pour l'ajouter
-      // Cela créera automatiquement la dépense correspondante
-      if (initialAmount > 0) {
-        const result = FinanceEngine.addToSaving(
-          saving.id,
-          initialAmount,
-          `Montant initial de ${name}`,
-          initialDate
-        );
-
-        if (!result.success) {
-          // Si l'ajout échoue, supprimer l'épargne créée
-          this.savings = this.savings.filter(s => s.id !== saving.id);
-          Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
-          notify.error(result.message);
-          return;
-        }
+      await this.refreshData();
+      this.closeSavingModal();
+    } catch (error) {
+      if (error.message === 'MODE_HORS_LIGNE') {
+        return;
       }
+
+      if (error.message.includes('SOLDE_INSUFFISANT')) {
+        notify.error('Solde disponible insuffisant pour ce transfert.');
+        return;
+      }
+
+      notify.error(error.message || 'Erreur lors de la sauvegarde de l epargne.');
     }
-
-    // Recharger les données après les modifications
-    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
-    this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
-    
-    this.closeSavingModal();
-    this.updateStats();
-    this.loadSavings();
   }
 
   editSaving(id) {
@@ -369,63 +334,37 @@ class SavingsManager {
     if (!saving) return;
 
     const balance = parseFloat(saving.balance || 0);
-    
+
     const confirmed = await showConfirmModal(
-      `Êtes-vous sûr de vouloir supprimer l'épargne "${saving.name}" ?${
-        balance > 0 ? `\n\nSolde actuel : ${this.formatCurrency(balance)}\nCe montant sera restitué à votre solde disponible.` : ''
-      }`,
+      `Etes-vous sur de vouloir supprimer l epargne "${saving.name}" ?`,
       {
-        title: '⚠️ Supprimer l\'épargne',
+        title: 'Supprimer l epargne',
         confirmText: 'Supprimer',
         cancelText: 'Annuler',
         danger: true
       }
     );
 
-    if (confirmed) {
-      // Si l'épargne a un solde > 0, retirer tout le montant pour créer un revenu
-      // Cela restitue l'argent au solde disponible
+    if (!confirmed) return;
+
+    try {
       if (balance > 0) {
-        const today = new Date().toISOString().split('T')[0];
-        const result = FinanceEngine.withdrawFromSaving(
-          id,
-          balance,
-          `Restitution suite à suppression de l'épargne: ${saving.name}`,
-          today
-        );
-
-        if (!result.success) {
-          notify.error(`Erreur lors de la restitution du solde: ${result.message}`);
-          return;
-        }
+        await applySavingsTransaction({
+          savings_id: id,
+          type: 'withdraw',
+          amount: balance,
+          description: `Restitution suite a suppression de ${saving.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
       }
 
-      // Recharger les données après le retrait
-      this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
-      this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
-
-      // Marquer l'épargne comme supprimée pour synchronisation
-      const savingIndex = this.savings.findIndex(s => s.id === id);
-      if (savingIndex !== -1) {
-        this.savings[savingIndex] = { ...this.savings[savingIndex], deleted: true, synced: false };
+      await deleteRow(SUPABASE_TABLES.SAVINGS, id, 'Suppression de l epargne');
+      await this.refreshData();
+      notify.success('Epargne supprimee.');
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Erreur lors de la suppression de l epargne.');
       }
-
-      // Marquer les transactions associées comme supprimées
-      this.transactions = this.transactions.map(t => 
-        t.savingsId === id ? { ...t, deleted: true, synced: false } : t
-      );
-      
-      Storage.set(STORAGE_KEYS.SAVINGS, this.savings);
-      Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, this.transactions);
-      
-      notify.success(
-        balance > 0 
-          ? `Épargne supprimée. ${this.formatCurrency(balance)} restitué au solde disponible.`
-          : 'Épargne supprimée.'
-      );
-
-      this.updateStats();
-      this.loadSavings();
     }
   }
 
@@ -436,21 +375,13 @@ class SavingsManager {
     const modal = document.getElementById('transaction-modal');
     const title = document.getElementById('transaction-modal-title');
     const form = document.getElementById('transaction-form');
-    
-    title.textContent = type === 'add' ? `➕ Ajouter à "${saving.name}"` : `➖ Retirer de "${saving.name}"`;
-    
-    // Reset form first
+
+    title.textContent = type === 'add' ? `Ajouter a "${saving.name}"` : `Retirer de "${saving.name}"`;
     form.reset();
-    
-    // Set hidden fields
+
     document.getElementById('transaction-saving-id').value = savingId;
     document.getElementById('transaction-type').value = type;
-    
-    // Set date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('transaction-date').value = today;
-    
-    // Clear amount field
+    document.getElementById('transaction-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('transaction-amount').value = '';
 
     modal.classList.add('active');
@@ -460,109 +391,52 @@ class SavingsManager {
     document.getElementById('transaction-modal').classList.remove('active');
   }
 
-  async saveTransaction(e) {
-    e.preventDefault();
-
+  async saveTransaction() {
     const savingId = document.getElementById('transaction-saving-id').value;
     const type = document.getElementById('transaction-type').value;
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const date = document.getElementById('transaction-date').value;
     const description = document.getElementById('transaction-description')?.value || '';
 
-    // Validation basique
     if (!savingId || !type || !amount || !date) {
       notify.error('Tous les champs sont requis');
       return;
     }
 
     if (amount <= 0) {
-      notify.error('Le montant doit être supérieur à 0');
+      notify.error('Le montant doit etre superieur a 0');
       return;
     }
 
-    const saving = this.savings.find(s => s.id === savingId);
-    if (!saving) {
-      notify.error('Épargne introuvable');
-      return;
-    }
-
-    /**
-     * UTILISATION DU MOTEUR FINANCIER
-     * Toutes les validations et opérations passent par FinanceEngine
-     */
-    if (type === 'add') {
-      // AJOUT À L'ÉPARGNE
-      // Valider que le solde disponible est suffisant
-      const validation = FinanceEngine.validateSavingAddition(amount);
-      
-      if (!validation.valid) {
-        notify.error(validation.message);
-        return;
-      }
-
-      // Effectuer l'opération via le moteur financier
-      const result = FinanceEngine.addToSaving(
-        savingId,
+    try {
+      await applySavingsTransaction({
+        savings_id: savingId,
+        type,
         amount,
-        description || `Ajout à ${saving.name}`,
+        description,
         date
-      );
+      });
 
-      if (!result.success) {
-        notify.error(result.message);
+      await this.refreshData();
+      this.closeTransactionModal();
+      notify.success('Transaction epargne enregistree.');
+    } catch (error) {
+      if (error.message === 'MODE_HORS_LIGNE') {
         return;
       }
 
-      notify.success(result.message);
-
-    } else if (type === 'withdraw') {
-      // RETRAIT DE L'ÉPARGNE
-      // Valider que l'épargne a suffisamment de solde
-      const validation = FinanceEngine.validateSavingWithdrawal(savingId, amount);
-      
-      if (!validation.valid) {
-        notify.error(validation.message);
+      if (error.message.includes('SOLDE_INSUFFISANT')) {
+        notify.error('Solde disponible insuffisant.');
         return;
       }
 
-      // Effectuer l'opération via le moteur financier
-      const result = FinanceEngine.withdrawFromSaving(
-        savingId,
-        amount,
-        description || `Retrait de ${saving.name}`,
-        date
-      );
-
-      if (!result.success) {
-        notify.error(result.message);
+      if (error.message.includes('EPARGNE_INSUFFISANTE')) {
+        notify.error('Solde epargne insuffisant.');
         return;
       }
 
-      notify.success(result.message);
+      notify.error(error.message || 'Erreur lors de la transaction epargne.');
     }
-
-    // Recharger les données
-    this.savings = Storage.get(STORAGE_KEYS.SAVINGS, []);
-    this.transactions = Storage.get(STORAGE_KEYS.SAVINGS_TRANSACTIONS, []);
-
-    this.closeTransactionModal();
-    this.updateStats();
-    this.loadSavings();
-  }
-
-  recordTransaction(savingId, amount, type, date) {
-    const transaction = {
-      id: generateUUID(),
-      savings_id: savingId,
-      amount,
-      type,
-      date,
-      synced: false,
-      created_at: new Date().toISOString()
-    };
-
-    this.transactions.push(transaction);
-    Storage.set(STORAGE_KEYS.SAVINGS_TRANSACTIONS, this.transactions);
   }
 
   viewHistory(savingId) {
@@ -576,7 +450,7 @@ class SavingsManager {
     const summary = document.getElementById('history-summary');
 
     const savingTransactions = this.transactions
-      .filter(t => t.savingsId === savingId)
+      .filter(t => t.savings_id === savingId)
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     title.textContent = `Historique - "${saving.name}"`;
@@ -590,18 +464,9 @@ class SavingsManager {
     const balance = parseFloat(saving.balance) || 0;
 
     summary.innerHTML = `
-      <div class="stat-card">
-        <div class="stat-label">Solde actuel</div>
-        <div class="stat-value">${this.formatCurrency(balance)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total ajouté</div>
-        <div class="stat-value">${this.formatCurrency(totalAdded)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total retiré</div>
-        <div class="stat-value">${this.formatCurrency(totalWithdrawn)}</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Solde actuel</div><div class="stat-value">${this.formatCurrency(balance)}</div></div>
+      <div class="stat-card"><div class="stat-label">Total ajoute</div><div class="stat-value">${this.formatCurrency(totalAdded)}</div></div>
+      <div class="stat-card"><div class="stat-label">Total retire</div><div class="stat-value">${this.formatCurrency(totalWithdrawn)}</div></div>
     `;
 
     if (savingTransactions.length === 0) {
@@ -618,20 +483,20 @@ class SavingsManager {
       const symbol = isAdd ? '➕' : '➖';
       const label = isAdd ? 'Ajout' : 'Retrait';
       const amount = this.formatCurrency(t.amount);
-      const dateLabel = new Date(t.date).toLocaleDateString('fr-FR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      const dateLabel = new Date(t.date).toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
       const color = isAdd ? 'var(--success-color, #16a34a)' : 'var(--error-color, #dc2626)';
-      const description = t.description || '';
+      const itemDescription = t.description || '';
 
       return `
         <div class="card" style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">
           <div style="flex: 1;">
             <div style="font-weight: 700;">${symbol} ${label}</div>
-            ${description ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">${description}</div>` : ''}
-            <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">📅 ${dateLabel}</div>
+            ${itemDescription ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">${itemDescription}</div>` : ''}
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">${dateLabel}</div>
           </div>
           <div style="font-weight: 800; color: ${color}; white-space: nowrap;">${amount}</div>
         </div>
@@ -656,19 +521,16 @@ class SavingsManager {
   }
 }
 
-// Initialize
 let savingsManager;
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     savingsManager = new SavingsManager();
-    savingsManager.init();
-    // Expose globally for debugging (optional)
+    await savingsManager.init();
     window.savingsManager = savingsManager;
   });
 } else {
   savingsManager = new SavingsManager();
   savingsManager.init();
-  // Expose globally for debugging (optional)
   window.savingsManager = savingsManager;
 }
 
