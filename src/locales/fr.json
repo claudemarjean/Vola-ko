@@ -15,13 +15,20 @@
   "home": {
     "hero": {
       "title": "Votre argent, vos règles, où que vous soyez",
-      "subtitle": "Vola-ko transforme la gestion de votre budget en une expérience simple et agréable. Accessible depuis n'importe quel appareil : smartphone, tablette ou ordinateur.",
+      "subtitle": "Pilotez toutes vos finances au même endroit: dépenses, revenus, budgets, épargne, transactions et rapports, sur mobile, tablette et ordinateur.",
       "cta": "Démarrer gratuitement",
       "cta_secondary": "Découvrir les fonctionnalités"
     },
+    "overview": {
+      "title": "L'essentiel en 20 secondes",
+      "item1": "Dashboard instantané: solde, tendances, transactions récentes.",
+      "item2": "Suivi complet: dépenses, revenus, budgets, épargne et historique global.",
+      "item3": "Rapports visuels: catégories, comparaisons, évolution mensuelle.",
+      "item4": "Personnalisation: thème, langue, sécurité et accès mobile/tablette/PC."
+    },
     "features": {
       "title": "Pourquoi Vola-ko révolutionne votre budget ?",
-      "subtitle": "Toute la puissance d'une gestion financière pro, accessible partout",
+      "subtitle": "Toutes les fonctionnalités utiles pour décider vite, suivre précisément et progresser chaque mois",
       "feature1": {
         "title": "100% Web, 100% Mobile",
         "description": "Aucune installation nécessaire ! Accédez à vos finances depuis votre smartphone, tablette ou PC. Synchronisation automatique entre tous vos appareils."
@@ -86,6 +93,11 @@
         "description": "Comprenez vos finances en un coup d'œil grâce à des visualisations interactives et colorées.",
         "link": "Détails Rapports →"
       },
+      "card9": {
+        "title": "Historique centralisé",
+        "description": "Un seul écran pour suivre tous les mouvements: revenus, dépenses et opérations d'épargne avec filtres intelligents.",
+        "link": "Détails Transactions →"
+      },
       "pills": {
         "smartphone": "📱 Smartphone",
         "pc": "💻 PC",
@@ -103,7 +115,9 @@
         "goals": "Objectifs",
         "withdrawals": "Retraits",
         "interactive": "Interactif",
-        "12months": "12 mois"
+        "12months": "12 mois",
+        "transactions_global": "Tout-en-un",
+        "traceability": "Traçabilité"
       }
     },
     "cta": {
@@ -177,6 +191,17 @@
         "feature3_title": "Votre période, vos analyses",
         "feature3_desc": "Ce mois, ce trimestre, cette année ou les 12 derniers mois ? Choisissez votre période et les graphiques s'adaptent instantanément.",
         "example": "Exemple : Analyses détaillées sur 12 mois, 5 graphiques interactifs, insights automatiques"
+      },
+      "transactions": {
+        "title": "Transactions - Historique unifié",
+        "subtitle": "Tous vos mouvements d'argent regroupés en un seul endroit",
+        "feature1_title": "Vue unifiée",
+        "feature1_desc": "Revenus, dépenses et opérations d'épargne sont fusionnés dans un seul flux chronologique.",
+        "feature2_title": "Filtres utiles",
+        "feature2_desc": "Filtrez par type, période et mot-clé pour retrouver rapidement n'importe quelle transaction.",
+        "feature3_title": "Synthèse immédiate",
+        "feature3_desc": "Visualisez en haut de page les totaux des entrées, sorties et le nombre d'opérations.",
+        "example": "Exemple : flux consolidé, recherche instantanée, totaux d'entrée/sortie à jour"
       },
       "settings": {
         "title": "Paramètres - Vola-ko à votre image",

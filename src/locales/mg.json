@@ -15,13 +15,20 @@
   "home": {
     "hero": {
       "title": "Ny volanao, ny fitsipikanao, na aiza na aiza ianareo",
-      "subtitle": "Vola-ko dia manova ny fitantanana ny teti-bolanao ho zavatra tsotra sy mahafinaritra. Azo idirana amin'ny fitaovana rehetra: finday, tablette na ordinatera.",
+      "subtitle": "Tantano amin'ny toerana iray ny volanao rehetra: fandaniana, fidiram-bola, teti-bola, fitsitsiana, transactions ary tatitra, amin'ny finday, tablette na ordinatera.",
       "cta": "Hanomboka maimaimpoana",
       "cta_secondary": "Hijery ny endri-javatra"
     },
+    "overview": {
+      "title": "Ny tena ilaina ao anatin'ny 20 segondra",
+      "item1": "Dashboard avy hatrany: vola misy, fironana, transactions farany.",
+      "item2": "Fanaraha-maso feno: fandaniana, fidiram-bola, teti-bola, fitsitsiana ary tantara manontolo.",
+      "item3": "Tatitra hita maso: sokajy, fampitahana, fivoarana isam-bolana.",
+      "item4": "Fanamboarana manokana: lohahevitra, fiteny, fiarovana ary fidirana amin'ny fitaovana rehetra."
+    },
     "features": {
       "title": "Nahoana no manova zavatra i Vola-ko?",
-      "subtitle": "Hery feno amin'ny fitantanana vola matihanina, azo idirana na aiza na aiza",
+      "subtitle": "Endri-javatra ilaina rehetra mba handraisana fanapahan-kevitra haingana sy hanatsarana ny volanao isam-bolana",
       "feature1": {
         "title": "100% Web, 100% Finday",
         "description": "Tsy mila mametraka na inona na inona! Jereo ny volanao amin'ny finday, tablette na ordinatera. Mifanaraka ho azy eo amin'ny fitaovana rehetra."
@@ -86,6 +93,11 @@
         "description": "Fantaro ny volanao indray mandeha monja miaraka amin'ny sary miloko sy interactive.",
         "link": "Antsipirihan'ny Tatitra →"
       },
+      "card9": {
+        "title": "Tantara voaangona amin'ny toerana iray",
+        "description": "Pejy tokana hijerena ny fihetsiky ny vola rehetra: fidiram-bola, fandaniana ary hetsika fitsitsiana miaraka amin'ny sivana marani-tsaina.",
+        "link": "Antsipirihan'ny Transactions →"
+      },
       "pills": {
         "smartphone": "📱 Finday",
         "pc": "💻 Ordinatera",
@@ -103,7 +115,9 @@
         "goals": "Tanjona",
         "withdrawals": "Fakana",
         "interactive": "Interactive",
-        "12months": "12 volana"
+        "12months": "12 volana",
+        "transactions_global": "Rehetra anaty iray",
+        "traceability": "Araha-maso"
       }
     },
     "cta": {
@@ -177,6 +191,17 @@
         "feature3_title": "Ny fotoanareo, ny famakafakana",
         "feature3_desc": "Ity volana ity, telovolana, taona na 12 volana lasa? Safidio ny fotoanareo ary ny sary dia mifanaraka avy hatrany.",
         "example": "Ohatra: Famakafakana amin'ny antsipiriany 12 volana, sary interactive 5, insights ho azy"
+      },
+      "transactions": {
+        "title": "Transactions - Tantara mitambatra",
+        "subtitle": "Ny fihetsiky ny vola rehetra voaangona amin'ny toerana tokana",
+        "feature1_title": "Fijery iray",
+        "feature1_desc": "Ny fidiram-bola, fandaniana ary hetsika fitsitsiana dia atambatra ao anaty filaharana iray.",
+        "feature2_title": "Sivana ilaina",
+        "feature2_desc": "Sivano araka ny karazana, vanim-potoana ary teny fikarohana hahitana transaction haingana.",
+        "feature3_title": "Famintinana avy hatrany",
+        "feature3_desc": "Hita avy hatrany eo ambony pejy ny totalin'ny vola miditra, mivoaka ary ny isan'ny hetsika.",
+        "example": "Ohatra: tantara mitambatra, fikarohana haingana, totaly miditra/mivoaka havaozina"
       },
       "settings": {
         "title": "Fandrindrana - Vola-ko araka ny sarinao",

@@ -73,6 +73,29 @@
       flex-wrap: wrap;
     }
 
+    .home-overview {
+      margin-top: var(--space-xl);
+      text-align: left;
+      background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .home-overview h3 {
+      margin: 0 0 var(--space-sm) 0;
+      font-size: var(--font-size-lg);
+    }
+
+    .home-overview ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      display: grid;
+      gap: 6px;
+      color: var(--text-secondary);
+    }
+
     .features-section {
       padding: var(--space-3xl) 0;
       background-color: var(--bg-secondary);
@@ -488,6 +511,11 @@
         max-width: 300px;
       }
 
+      .home-overview {
+        margin-top: var(--space-lg);
+        padding: var(--space-md);
+      }
+
       .features-grid {
         grid-template-columns: 1fr;
       }
@@ -561,6 +589,16 @@
         <a href="#features" class="btn btn-outline btn-lg" data-i18n="home.hero.cta_secondary">
           Découvrir les fonctionnalités
         </a>
+      </div>
+
+      <div class="home-overview animate-fade-in-up delay-300">
+        <h3 data-i18n="home.overview.title">L'essentiel en 20 secondes</h3>
+        <ul>
+          <li data-i18n="home.overview.item1">Dashboard instantané: solde, tendances, transactions récentes.</li>
+          <li data-i18n="home.overview.item2">Suivi complet: dépenses, revenus, budgets, épargne et historique global.</li>
+          <li data-i18n="home.overview.item3">Rapports visuels: catégories, comparaisons, évolution mensuelle.</li>
+          <li data-i18n="home.overview.item4">Personnalisation: thème, langue, sécurité et accès mobile/tablette/PC.</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -734,6 +772,26 @@
           </p>
           <div class="feature-actions">
             <a class="btn-ghost" href="#demo-reports" data-i18n="home.features.card8.link">Détails Rapports →</a>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="feature-card card hover-lift">
+          <div class="feature-header">
+            <div class="feature-icon">🔁</div>
+            <div>
+              <h3 class="feature-title" data-i18n="home.features.card9.title">Historique centralisé</h3>
+              <div class="feature-meta">
+                <span class="pill" data-i18n="home.features.pills.transactions_global">Tout-en-un</span>
+                <span class="pill" data-i18n="home.features.pills.traceability">Traçabilité</span>
+              </div>
+            </div>
+          </div>
+          <p class="feature-description" data-i18n="home.features.card9.description">
+            Un seul écran pour suivre tous les mouvements: revenus, dépenses et opérations d'épargne avec filtres intelligents.
+          </p>
+          <div class="feature-actions">
+            <a class="btn-ghost" href="#demo-transactions" data-i18n="home.features.card9.link">Détails Transactions →</a>
           </div>
         </div>
       </div>
@@ -1000,6 +1058,50 @@
         <div class="demo-screenshot">
           <div class="demo-screenshot-placeholder">📊</div>
           <p><em data-i18n="home.demos.reports.example">Exemple : 5 graphiques colorés avec données des 12 derniers mois</em></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Transactions Demo -->
+  <section id="demo-transactions" class="demo-section">
+    <div class="container">
+      <div class="demo-header">
+        <h2 class="demo-title">
+          <span>🔁</span>
+          <span data-i18n="home.demos.transactions.title">Transactions - Historique unifié</span>
+        </h2>
+        <p class="section-subtitle" data-i18n="home.demos.transactions.subtitle">Tous vos mouvements d'argent regroupés en un seul endroit</p>
+      </div>
+
+      <div class="demo-content">
+        <div class="demo-feature card">
+          <div class="demo-feature-icon">🧩</div>
+          <div class="demo-feature-content">
+            <h4 data-i18n="home.demos.transactions.feature1_title">Vue unifiée</h4>
+            <p data-i18n="home.demos.transactions.feature1_desc">Revenus, dépenses et opérations d'épargne sont fusionnés dans un seul flux chronologique.</p>
+          </div>
+        </div>
+
+        <div class="demo-feature card">
+          <div class="demo-feature-icon">🔎</div>
+          <div class="demo-feature-content">
+            <h4 data-i18n="home.demos.transactions.feature2_title">Filtres utiles</h4>
+            <p data-i18n="home.demos.transactions.feature2_desc">Filtrez par type, période et mot-clé pour retrouver rapidement n'importe quelle transaction.</p>
+          </div>
+        </div>
+
+        <div class="demo-feature card">
+          <div class="demo-feature-icon">🧮</div>
+          <div class="demo-feature-content">
+            <h4 data-i18n="home.demos.transactions.feature3_title">Synthèse immédiate</h4>
+            <p data-i18n="home.demos.transactions.feature3_desc">Visualisez en haut de page les totaux des entrées, sorties et le nombre d'opérations.</p>
+          </div>
+        </div>
+
+        <div class="demo-screenshot">
+          <div class="demo-screenshot-placeholder">🔁</div>
+          <p><em data-i18n="home.demos.transactions.example">Exemple : flux consolidé, recherche instantanée, totaux d'entrée/sortie à jour</em></p>
         </div>
       </div>
     </div>
