@@ -7,6 +7,7 @@
   "nav": {
     "home": "Fandraisana",
     "features": "Endri-javatra",
+    "menu": "Menu",
     "login": "Hiditra",
     "register": "Hisoratra anarana",
     "logout": "Hivoaka"
@@ -237,6 +238,7 @@
   "nav": {
     "home": "Fandraisana",
     "features": "Endri-javatra",
+    "menu": "Menu",
     "login": "Hiditra",
     "register": "Hisoratra anarana",
     "logout": "Hivoaka",

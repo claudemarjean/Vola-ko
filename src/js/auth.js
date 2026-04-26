@@ -8,27 +8,49 @@ import { supabase, getCurrentSession } from './supabase.js';
 import { fetchUserSettings } from './volakoApi.js';
 import notify from './notifications.js';
 
+let authInstance = null;
+let authSubscription = null;
+let initPromise = null;
+
 class Auth {
   constructor() {
+    if (authInstance) {
+      return authInstance;
+    }
+
     this.user = Storage.get(STORAGE_KEYS.USER);
     this.token = Storage.get(STORAGE_KEYS.TOKEN);
     this.isInitialized = false;
+
+    authInstance = this;
     this.initializeAuth();
   }
 
   async initializeAuth() {
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        await this.handleSignIn(session);
-      } else if (event === 'SIGNED_OUT') {
-        await this.handleSignOut();
-      }
-    });
-
-    const session = await getCurrentSession();
-    if (session) {
-      await this.handleSignIn(session);
+    if (initPromise) {
+      return initPromise;
     }
+
+    initPromise = (async () => {
+      if (!authSubscription) {
+        const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            await this.handleSignIn(session);
+          } else if (event === 'SIGNED_OUT') {
+            await this.handleSignOut();
+          }
+        });
+
+        authSubscription = data?.subscription || null;
+      }
+
+      const session = await getCurrentSession();
+      if (session) {
+        await this.handleSignIn(session);
+      }
+    })();
+
+    return initPromise;
   }
 
   async handleSignIn(session) {

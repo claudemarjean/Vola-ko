@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   root: 'src',
+  publicDir: resolve(__dirname, 'public'),
   server: {
     // Middleware pour gérer les URLs sans extension .html
     middlewareMode: false,
@@ -57,6 +58,16 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           const url = req.url || '';
+
+          // Ignore Vite internal endpoints and asset ids.
+          if (
+            url.startsWith('/@vite') ||
+            url.startsWith('/@id/') ||
+            url.startsWith('/__vite') ||
+            url.startsWith('/node_modules/')
+          ) {
+            return next();
+          }
           
           // Ignorer les fichiers statiques (CSS, JS, images, etc.)
           if (url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json)$/)) {

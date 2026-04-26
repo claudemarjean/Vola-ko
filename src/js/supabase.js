@@ -10,6 +10,15 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jzabkrztgkayunjbzlzj.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6YWJrcnp0Z2theXVuamJ6bHpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MTEzNjQsImV4cCI6MjA4MzI4NzM2NH0.C2z2JLVtLh8oPv9zBAOjjp3Geqrpf4O-k9ATYYzw1cE';
 
+// Some browser contexts (extensions, aggressive tab restores) can abort navigator.locks.
+// A no-op lock keeps auth initialization deterministic for this multi-page app.
+const noOpAuthLock = async (_name, _acquireTimeout, fn) => {
+  if (typeof fn === 'function') {
+    return fn();
+  }
+  return undefined;
+};
+
 // Créer et exporter le client Supabase
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -17,7 +26,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'volako-auth-token',
-    storage: window.localStorage
+    storage: window.localStorage,
+    lock: noOpAuthLock
   }
 });
 
