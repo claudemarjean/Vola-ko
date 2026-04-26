@@ -77,6 +77,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const requestUrl = new URL(request.url);
+  const path = requestUrl.pathname;
 
   if (request.method !== 'GET') {
     return;
@@ -89,6 +90,17 @@ self.addEventListener('fetch', (event) => {
 
   // Do not cache cross-origin resources.
   if (requestUrl.origin !== self.location.origin) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Never intercept Vite/HMR internals.
+  if (
+    path.startsWith('/@vite') ||
+    path.startsWith('/@id/') ||
+    path.startsWith('/__vite') ||
+    path.startsWith('/node_modules/')
+  ) {
     event.respondWith(fetch(request));
     return;
   }
