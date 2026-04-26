@@ -186,7 +186,7 @@ class ReportsManager {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'bottom',
@@ -236,7 +236,7 @@ class ReportsManager {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: { legend: { labels: { color: colors.textColor } } },
         scales: {
           y: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
@@ -282,7 +282,7 @@ class ReportsManager {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: { legend: { labels: { color: colors.textColor } } },
         scales: {
           y: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
@@ -318,7 +318,7 @@ class ReportsManager {
       options: {
         indexAxis: 'y',
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
@@ -356,7 +356,7 @@ class ReportsManager {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: { legend: { labels: { color: colors.textColor } } },
         scales: {
           r: {

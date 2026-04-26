@@ -15,6 +15,80 @@
   <link rel="stylesheet" href="/css/bottom-nav.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/app-layout.css">
+
+  <style>
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-xl);
+      align-items: stretch;
+    }
+
+    .chart-card {
+      padding: var(--space-lg);
+    }
+
+    .chart-header {
+      margin-bottom: var(--space-md);
+    }
+
+    .chart-header h3 {
+      margin-bottom: 4px;
+      font-size: var(--font-size-lg);
+    }
+
+    .chart-subtitle {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+    }
+
+    .chart-container {
+      position: relative;
+      height: clamp(220px, 30vh, 320px);
+      width: 100%;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .full-width .chart-container {
+      height: clamp(250px, 36vh, 380px);
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    @media (max-width: 1024px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width .chart-container,
+      .chart-container {
+        height: clamp(220px, 34vh, 300px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .chart-card {
+        padding: var(--space-md);
+      }
+
+      .chart-header h3 {
+        font-size: var(--font-size-base);
+      }
+
+      .full-width .chart-container,
+      .chart-container {
+        height: clamp(200px, 30vh, 250px);
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
