@@ -27,11 +27,6 @@ class MobileMenu {
     topbar.setAttribute('role', 'banner');
     topbar.setAttribute('aria-label', 'Navigation mobile');
     topbar.innerHTML = `
-      <button class="mobile-menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar-container">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
       <a href="/" class="mobile-topbar-brand" data-link>
         <span class="mobile-topbar-brand-icon" aria-hidden="true">💰</span>
         <span class="mobile-topbar-brand-name">Vola-ko</span>

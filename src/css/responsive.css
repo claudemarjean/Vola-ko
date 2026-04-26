@@ -49,6 +49,17 @@
     --sidebar-width: 256px;
   }
 
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  .app-container,
+  .main-content,
+  .main-content > * {
+    min-width: 0;
+  }
+
   .main-content {
     margin-left: 256px;
     padding: var(--space-lg);
@@ -69,6 +80,32 @@
 
   .budgets-grid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .card,
+  .stat-card,
+  .transactions-card,
+  .chart-card,
+  .settings-section,
+  .filters-card,
+  .budget-card,
+  .saving-card,
+  .list-item,
+  .settings-item,
+  .app-header {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .header-title,
+  .header-actions,
+  .item-info,
+  .item-details,
+  .saving-info,
+  .budget-content,
+  .settings-item-info,
+  .settings-item-control {
+    min-width: 0;
   }
 }
 
@@ -115,6 +152,11 @@
     min-height: 100vh;
   }
 
+  .mobile-topbar-brand {
+    padding-right: 48px;
+    padding-left: var(--space-xs);
+  }
+
   /* ── App Header on mobile ── */
   .app-header {
     padding: var(--space-md);
@@ -139,6 +181,7 @@
 
   .header-actions .btn {
     flex: 1;
+    min-width: 0;
     justify-content: center;
     min-height: 44px;
   }
@@ -262,6 +305,7 @@
   .list-item {
     padding: var(--space-sm) var(--space-md);
     flex-wrap: nowrap;
+    min-width: 0;
   }
 
   .item-icon {
@@ -273,6 +317,17 @@
 
   .item-amount {
     font-size: var(--font-size-base);
+    min-width: 0;
+  }
+
+  .item-details h4,
+  .item-details p,
+  .saving-name,
+  .budget-header h3,
+  .header-title p {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   /* ── Bottom nav padding ── */
@@ -306,6 +361,31 @@
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
+  .mobile-topbar {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .mobile-topbar-brand {
+    justify-content: flex-start;
+    padding-right: 42px;
+  }
+
+  .mobile-topbar-brand-name {
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  .mobile-topbar-right {
+    right: 10px;
+  }
+
+  #mobile-topbar-right > * {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+  }
+
   /* ── App header ── */
   .app-header {
     padding: var(--space-sm) var(--space-md);
@@ -321,6 +401,7 @@
     padding: var(--space-md);
     margin-bottom: var(--space-sm);
     border-radius: var(--radius-lg);
+    overflow: hidden;
   }
 
   /* ── Sidebar width on small screens ── */
