@@ -254,6 +254,8 @@
     "savings_short": "Épargne",
     "reports": "Rapports",
     "reports_short": "Rapports",
+    "transactions": "Transactions",
+    "transactions_short": "Transac.",
     "settings": "Paramètres",
     "settings_short": "Plus"
   },
@@ -316,6 +318,22 @@
     "expense_by_category": "Dépenses par catégorie",
     "monthly_comparison": "Comparaison mensuelle",
     "trend": "Tendance"
+  },
+  "transactions": {
+    "title": "Historique des transactions",
+    "subtitle": "Toutes vos entrées et sorties d'argent dans un seul menu",
+    "total_in": "Total entrées",
+    "total_out": "Total sorties",
+    "total_count": "Transactions",
+    "filter_all_types": "Tous les types",
+    "filter_income": "Revenus",
+    "filter_expense": "Dépenses",
+    "filter_savings": "Épargne",
+    "period_month": "Ce mois",
+    "period_week": "Cette semaine",
+    "period_year": "12 derniers mois",
+    "period_all": "Tout",
+    "search_placeholder": "Rechercher une transaction..."
   },
   "savings": {
     "title": "Mes Épargnes",

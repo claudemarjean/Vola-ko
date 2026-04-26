@@ -254,6 +254,8 @@
     "savings_short": "Fitsitsiana",
     "reports": "Tatitra",
     "reports_short": "Tatitra",
+    "transactions": "Fifampiraharahana",
+    "transactions_short": "Transac.",
     "settings": "Fandrindrana",
     "settings_short": "Hafa"
   },
@@ -316,6 +318,22 @@
     "expense_by_category": "Fandaniana isaky ny sokajy",
     "monthly_comparison": "Fampitahana isan-volana",
     "trend": "Fironana"
+  },
+  "transactions": {
+    "title": "Tantaran'ny fifampiraharahana",
+    "subtitle": "Ny vola miditra sy mivoaka rehetra ao anaty menu tokana",
+    "total_in": "Fitambaran'ny fidirana",
+    "total_out": "Fitambaran'ny fivoahana",
+    "total_count": "Fifampiraharahana",
+    "filter_all_types": "Karazana rehetra",
+    "filter_income": "Fidiram-bola",
+    "filter_expense": "Fandaniana",
+    "filter_savings": "Fitsitsiana",
+    "period_month": "Ity volana ity",
+    "period_week": "Ity herinandro ity",
+    "period_year": "12 volana farany",
+    "period_all": "Rehetra",
+    "search_placeholder": "Hikaroka fifampiraharahana..."
   },
   "savings": {
     "title": "Ny fitsitsiako",
