@@ -1,5 +1,6 @@
 /* ==============================================
    DARK.CSS - Dark Mode
+   Vola-ko Brand Identity
    ============================================== */
 
 [data-theme="dark"] {
@@ -7,44 +8,67 @@
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  --bg-overlay: rgba(0, 0, 0, 0.7);
-  
+  --bg-overlay: rgba(0, 0, 0, 0.72);
+
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-tertiary: #94a3b8;
   --text-inverse: #0f172a;
-  
-  --border-primary: #334155;
+
+  --border-primary: #2d3e50;
   --border-secondary: #475569;
   --border-focus: var(--color-primary);
-  
+
   /* Card & Surface */
   --card-bg: #1e293b;
-  --card-border: #334155;
-  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-  
+  --card-border: #2d3e50;
+  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+
   /* Header */
   --header-bg: #1e293b;
-  --header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  
+  --header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+
   /* Button */
-  --btn-secondary-bg: #475569;
-  --btn-secondary-text: #f1f5f9;
-  --btn-secondary-hover: #64748b;
-  
+  --btn-secondary-bg: #334155;
+  --btn-secondary-text: #e2e8f0;
+  --btn-secondary-hover: #475569;
+
   /* Input */
   --input-bg: #0f172a;
   --input-border: #334155;
   --input-text: #f1f5f9;
   --input-placeholder: #64748b;
+
+  /* Brand Gradient - adjusted for dark mode */
+  --gradient-brand: linear-gradient(135deg, #34d399 0%, #60a5fa 100%);
+
+  /* Accent subtle on dark */
+  --color-primary-subtle: rgba(52, 211, 153, 0.12);
+  --color-accent-subtle: rgba(251, 191, 36, 0.1);
 }
 
-[data-theme="dark"] .card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+/* Dark mode card enhancements */
+[data-theme="dark"] .card:hover,
+[data-theme="dark"] .stat-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .app-header {
+  border-left-color: #34d399;
+}
+
+[data-theme="dark"] .mobile-topbar {
+  background-color: #1e293b;
+  border-bottom-color: #2d3e50;
+}
+
+[data-theme="dark"] .bottom-nav {
+  background-color: #1e293b;
 }
 
 [data-theme="dark"] .shadow-glow {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.2);
 }
 
 [data-theme="dark"] img {
@@ -53,4 +77,14 @@
 
 [data-theme="dark"] img:hover {
   opacity: 1;
+}
+
+/* Dark mode sidebar */
+[data-theme="dark"] .sidebar {
+  background-color: #1a2744;
+  border-right-color: #2d3e50;
+}
+
+[data-theme="dark"] .nav-item:hover {
+  background-color: rgba(52, 211, 153, 0.1);
 }

@@ -14,7 +14,6 @@
   <link rel="stylesheet" href="/css/dark.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/notifications.css">
-  <link rel="stylesheet" href="/css/responsive.css">
   
   <style>
     .auth-page {
@@ -54,13 +53,34 @@
     }
 
     .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      justify-content: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .auth-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.375rem;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.28);
+      flex-shrink: 0;
+    }
+
+    .auth-logo-text {
       font-size: var(--font-size-2xl);
       font-weight: 800;
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: var(--space-md);
+      letter-spacing: -0.03em;
     }
 
     .auth-title {
@@ -207,6 +227,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
   <!-- Header Controls -->
@@ -226,7 +247,10 @@
     <div class="auth-container animate-fade-in-up">
       <!-- Header -->
       <div class="auth-header">
-        <div class="auth-logo" data-i18n="app.name">Vola-ko</div>
+        <div class="auth-logo">
+          <span class="auth-logo-icon" aria-hidden="true">💰</span>
+          <span class="auth-logo-text" data-i18n="app.name">Vola-ko</span>
+        </div>
         <h1 class="auth-title" data-i18n="register.title">Inscription</h1>
         <p class="auth-subtitle" data-i18n="register.subtitle">Créez votre compte Vola-ko gratuitement</p>
       </div>

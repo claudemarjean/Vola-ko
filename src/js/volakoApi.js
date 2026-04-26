@@ -1,5 +1,6 @@
 import { supabase, SUPABASE_TABLES } from './supabase.js';
 import { ensureOnlineForCriticalAction } from './network.js';
+import { withGlobalLoader } from './loaders.js';
 
 async function requireUserId() {
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -20,89 +21,99 @@ function handleDbError(error, fallback = 'Erreur base de donnees') {
 }
 
 export async function fetchTable(tableName, options = {}) {
-  const userId = await requireUserId();
-  const {
-    columns = '*',
-    orderBy = 'created_at',
-    ascending = false,
-    filters = []
-  } = options;
+  return withGlobalLoader(async () => {
+    const userId = await requireUserId();
+    const {
+      columns = '*',
+      orderBy = 'created_at',
+      ascending = false,
+      filters = []
+    } = options;
 
-  let query = supabase
-    .from(tableName)
-    .select(columns)
-    .eq('user_id', userId);
+    let query = supabase
+      .from(tableName)
+      .select(columns)
+      .eq('user_id', userId);
 
-  for (const filter of filters) {
-    query = query[filter.operator](filter.column, filter.value);
-  }
+    for (const filter of filters) {
+      query = query[filter.operator](filter.column, filter.value);
+    }
 
-  if (orderBy) {
-    query = query.order(orderBy, { ascending });
-  }
+    if (orderBy) {
+      query = query.order(orderBy, { ascending });
+    }
 
-  const { data, error } = await query;
-  handleDbError(error, `Impossible de lire ${tableName}`);
-  return data || [];
+    const { data, error } = await query;
+    handleDbError(error, `Impossible de lire ${tableName}`);
+    return data || [];
+  }, { message: 'Recuperation des donnees...' });
 }
 
 export async function insertRow(tableName, payload, actionLabel) {
-  if (!ensureOnlineForCriticalAction(actionLabel)) {
-    throw new Error('MODE_HORS_LIGNE');
-  }
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction(actionLabel)) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
 
-  const userId = await requireUserId();
-  const { data, error } = await supabase
-    .from(tableName)
-    .insert([{ ...payload, user_id: userId }])
-    .select()
-    .single();
+    const userId = await requireUserId();
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert([{ ...payload, user_id: userId }])
+      .select()
+      .single();
 
-  handleDbError(error, `Impossible d'ajouter dans ${tableName}`);
-  return data;
+    handleDbError(error, `Impossible d'ajouter dans ${tableName}`);
+    return data;
+  }, { message: 'Enregistrement en cours...' });
 }
 
 export async function updateRow(tableName, id, payload, actionLabel) {
-  if (!ensureOnlineForCriticalAction(actionLabel)) {
-    throw new Error('MODE_HORS_LIGNE');
-  }
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction(actionLabel)) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
 
-  const userId = await requireUserId();
-  const { data, error } = await supabase
-    .from(tableName)
-    .update(payload)
-    .eq('id', id)
-    .eq('user_id', userId)
-    .select()
-    .single();
+    const userId = await requireUserId();
+    const { data, error } = await supabase
+      .from(tableName)
+      .update(payload)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
 
-  handleDbError(error, `Impossible de modifier ${tableName}`);
-  return data;
+    handleDbError(error, `Impossible de modifier ${tableName}`);
+    return data;
+  }, { message: 'Mise a jour en cours...' });
 }
 
 export async function deleteRow(tableName, id, actionLabel) {
-  if (!ensureOnlineForCriticalAction(actionLabel)) {
-    throw new Error('MODE_HORS_LIGNE');
-  }
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction(actionLabel)) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
 
-  const userId = await requireUserId();
-  const { error } = await supabase
-    .from(tableName)
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
+    const userId = await requireUserId();
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
 
-  handleDbError(error, `Impossible de supprimer dans ${tableName}`);
+    handleDbError(error, `Impossible de supprimer dans ${tableName}`);
+  }, { message: 'Suppression en cours...' });
 }
 
 export async function callRpc(name, params = {}, actionLabel = 'Cette action') {
-  if (!ensureOnlineForCriticalAction(actionLabel)) {
-    throw new Error('MODE_HORS_LIGNE');
-  }
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction(actionLabel)) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
 
-  const { data, error } = await supabase.rpc(name, params);
-  handleDbError(error, `RPC ${name} en erreur`);
-  return data;
+    const { data, error } = await supabase.rpc(name, params);
+    handleDbError(error, `RPC ${name} en erreur`);
+    return data;
+  }, { message: 'Chargement des donnees...' });
 }
 
 export async function fetchDashboardSnapshot() {
@@ -191,34 +202,38 @@ export async function applySavingsTransaction(payload) {
 }
 
 export async function fetchUserSettings() {
-  const userId = await requireUserId();
-  const { data, error } = await supabase
-    .from(SUPABASE_TABLES.USER_SETTINGS)
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
+  return withGlobalLoader(async () => {
+    const userId = await requireUserId();
+    const { data, error } = await supabase
+      .from(SUPABASE_TABLES.USER_SETTINGS)
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
 
-  handleDbError(error, 'Impossible de lire les parametres');
-  return data;
+    handleDbError(error, 'Impossible de lire les parametres');
+    return data;
+  }, { message: 'Chargement des parametres...' });
 }
 
 export async function upsertUserSettings(payload) {
-  const userId = await requireUserId();
-  if (!ensureOnlineForCriticalAction('Mise a jour des parametres')) {
-    throw new Error('MODE_HORS_LIGNE');
-  }
+  return withGlobalLoader(async () => {
+    const userId = await requireUserId();
+    if (!ensureOnlineForCriticalAction('Mise a jour des parametres')) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
 
-  const dataToSave = {
-    user_id: userId,
-    theme: payload.theme,
-    language: payload.language,
-    currency: payload.currency,
-    updated_at: new Date().toISOString()
-  };
+    const dataToSave = {
+      user_id: userId,
+      theme: payload.theme,
+      language: payload.language,
+      currency: payload.currency,
+      updated_at: new Date().toISOString()
+    };
 
-  const { error } = await supabase
-    .from(SUPABASE_TABLES.USER_SETTINGS)
-    .upsert(dataToSave, { onConflict: 'user_id' });
+    const { error } = await supabase
+      .from(SUPABASE_TABLES.USER_SETTINGS)
+      .upsert(dataToSave, { onConflict: 'user_id' });
 
-  handleDbError(error, 'Impossible de sauvegarder les parametres');
+    handleDbError(error, 'Impossible de sauvegarder les parametres');
+  }, { message: 'Sauvegarde des parametres...' });
 }

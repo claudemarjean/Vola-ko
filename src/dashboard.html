@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="/css/notifications.css">
   <link rel="stylesheet" href="/css/app-layout.css">
   <link rel="stylesheet" href="/css/bottom-nav.css">
-  <link rel="stylesheet" href="/css/responsive.css">
   
   <style>
     /* App Layout */
@@ -282,6 +281,35 @@
       color: var(--color-error);
     }
 
+    /* Stat skeleton loader */
+    .stat-skeleton {
+      display: inline-block;
+      border-radius: 6px;
+      background: linear-gradient(
+        90deg,
+        var(--border-primary) 25%,
+        var(--bg-tertiary) 50%,
+        var(--border-primary) 75%
+      );
+      background-size: 200% 100%;
+      animation: stat-shimmer 1.4s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .stat-skeleton--value {
+      width: 130px;
+      height: 2rem;
+      border-radius: 8px;
+    }
+    .stat-skeleton--small {
+      width: 18px;
+      height: 0.9rem;
+      border-radius: 4px;
+    }
+    @keyframes stat-shimmer {
+      0%   { background-position:  200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     /* Savings Indicator */
     .savings-indicator {
       display: flex;
@@ -535,12 +563,20 @@
       }
     }
   </style>
+  <!-- responsive AFTER inline styles so media queries win -->
+  <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-logo" data-i18n="app.name">Vola-ko</div>
+      <div class="sidebar-logo">
+        <span class="sidebar-logo-icon" aria-hidden="true">💰</span>
+        <div>
+          <span class="sidebar-logo-text" data-i18n="app.name">Vola-ko</span>
+          <span class="sidebar-logo-tagline">Mon argent</span>
+        </div>
+      </div>
       
       <nav class="sidebar-nav">
         <a href="/dashboard" class="nav-item active" data-link>
@@ -615,7 +651,7 @@
             <div>
               <div class="stat-label">💸 Solde disponible</div>
               <div class="stat-subtitle">Hors épargne</div>
-              <div class="stat-value" id="balance-available-value">0 MGA</div>
+              <div class="stat-value" id="balance-available-value"><span class="stat-skeleton stat-skeleton--value"></span></div>
               <div class="stat-change positive">
                 <span>↑</span>
                 <span id="balance-available-change">+0%</span>
@@ -630,7 +666,7 @@
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.income_month">Revenus du mois</div>
-              <div class="stat-value" id="income-value">0 MGA</div>
+              <div class="stat-value" id="income-value"><span class="stat-skeleton stat-skeleton--value"></span></div>
               <div class="stat-change positive">
                 <span>↑</span>
                 <span>+0%</span>
@@ -645,7 +681,7 @@
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.expenses_month">Dépenses du mois</div>
-              <div class="stat-value" id="expenses-value">0 MGA</div>
+              <div class="stat-value" id="expenses-value"><span class="stat-skeleton stat-skeleton--value"></span></div>
               <div class="stat-change negative">
                 <span>↓</span>
                 <span>+0%</span>
@@ -660,9 +696,9 @@
             <div class="stat-header">
               <div>
                 <div class="stat-label" data-i18n="savings.total_saved">Total épargné</div>
-                <div class="stat-value" id="savings-value">0 MGA</div>
+                <div class="stat-value" id="savings-value"><span class="stat-skeleton stat-skeleton--value"></span></div>
                 <div class="stat-change positive">
-                  <span id="savings-goals-count">0</span>
+                  <span id="savings-goals-count"><span class="stat-skeleton stat-skeleton--small"></span></span>
                   <span data-i18n="savings.active_goals">objectifs actifs</span>
                 </div>
               </div>
@@ -675,7 +711,7 @@
           <div class="stat-header">
             <div>
               <div class="stat-label" data-i18n="dashboard.budget_remaining">Budget restant</div>
-              <div class="stat-value" id="budget-value">0 MGA</div>
+              <div class="stat-value" id="budget-value"><span class="stat-skeleton stat-skeleton--value"></span></div>
               <div class="stat-change positive">
                 <span>0%</span>
                 <span data-i18n="dashboard.used">utilisé</span>

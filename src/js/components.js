@@ -16,7 +16,13 @@ export function renderSidebar(activePage = '') {
   const user = auth.user || { name: 'Utilisateur' };
 
   container.innerHTML = `
-    <div class="sidebar-logo" data-i18n="app.name">Vola-ko</div>
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-icon" aria-hidden="true">💰</span>
+      <div>
+        <span class="sidebar-logo-text" data-i18n="app.name">Vola-ko</span>
+        <span class="sidebar-logo-tagline">Mon argent</span>
+      </div>
+    </div>
     
     <nav class="sidebar-nav">
       <a href="/dashboard" class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" data-link>

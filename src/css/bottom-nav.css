@@ -1,5 +1,6 @@
-/* ==============================================
+﻿/* ==============================================
    BOTTOM-NAV.CSS - Mobile Bottom Navigation
+   Vola-ko Brand Identity
    ============================================== */
 
 .bottom-nav {
@@ -11,8 +12,21 @@
   background-color: var(--card-bg);
   border-top: 1px solid var(--border-primary);
   padding: var(--space-xs) 0;
-  z-index: 100;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  /* Brand gradient stripe at top */
+  border-top: none;
+}
+
+.bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 }
 
 .bottom-nav-items {
@@ -29,10 +43,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-decoration: none;
   transition: all var(--transition-fast);
   flex: 1;
@@ -42,101 +56,99 @@
 }
 
 .bottom-nav-item .icon {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   transition: transform var(--transition-fast);
+  line-height: 1;
 }
 
 .bottom-nav-item span:not(.icon) {
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6rem;
+  font-weight: 700;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .bottom-nav-item:hover {
   color: var(--color-primary);
-  background-color: var(--bg-tertiary);
 }
 
+/* Active state */
 .bottom-nav-item.active {
   color: var(--color-primary);
 }
 
+/* Animated top indicator */
 .bottom-nav-item.active::before {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 36px;
   height: 3px;
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
+/* Active icon — subtle background pill */
 .bottom-nav-item.active .icon {
-  transform: scale(1.1);
+  transform: scale(1.15) translateY(-1px);
 }
 
-/* Show bottom nav only on mobile */
+/* ── Show on Mobile Only ── */
 @media (max-width: 768px) {
   .bottom-nav {
     display: block;
   }
-  
-  /* Add padding to main content to prevent overlap */
-  .main-content {
-    padding-bottom: calc(var(--space-xl) + 60px);
-  }
-  
-  /* Hide regular sidebar on very small screens */
-  .sidebar-nav {
-    padding-bottom: var(--space-2xl);
-  }
 }
 
-/* Extra small screens */
-@media (max-width: 480px) {
+/* ── Extra Small ── */
+@media (max-width: 400px) {
   .bottom-nav-item {
-    padding: var(--space-xs) 4px;
-    max-width: 70px;
+    padding: var(--space-xs) 2px;
+    max-width: 64px;
   }
-  
+
   .bottom-nav-item .icon {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
   }
-  
+
   .bottom-nav-item span:not(.icon) {
-    font-size: 0.563rem;
+    font-size: 0.55rem;
   }
 }
 
-/* Landscape mode adjustments */
+/* ── Landscape Mode ── */
 @media (max-width: 768px) and (orientation: landscape) {
   .bottom-nav {
-    padding: 4px 0;
+    padding: 2px 0;
+    padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px));
   }
-  
+
   .bottom-nav-item {
-    min-height: 44px;
+    min-height: 42px;
+    padding: 4px var(--space-xs);
   }
-  
+
   .bottom-nav-item span:not(.icon) {
     display: none;
   }
-  
+
   .bottom-nav-item .icon {
     font-size: 1.5rem;
   }
 }
 
-/* Provide visual feedback on touch */
+/* ── Touch Feedback ── */
 @media (hover: none) and (pointer: coarse) {
   .bottom-nav-item:active {
-    transform: scale(0.95);
-    background-color: var(--bg-tertiary);
+    transform: scale(0.92);
+    background-color: var(--color-primary-subtle, rgba(16, 185, 129, 0.1));
+    color: var(--color-primary);
   }
 }

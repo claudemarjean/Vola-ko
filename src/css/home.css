@@ -1,5 +1,6 @@
 /* ==============================================
    HOME.CSS - Page d'accueil responsive
+   Vola-ko Brand Identity
    ============================================== */
 
 /* Header sticky avec effet glass */
@@ -8,19 +9,31 @@
   top: 0;
   z-index: 100;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-primary);
   padding: var(--space-md) 0;
   transition: all var(--transition-base);
 }
 
 [data-theme="dark"] .header {
-  background: rgba(17, 24, 39, 0.95);
+  background: rgba(15, 23, 42, 0.95);
 }
 
 .header.scrolled {
   box-shadow: var(--shadow-md);
+}
+
+/* Bottom brand stripe */
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 60%, var(--color-accent, #d97706) 100%);
+  opacity: 0.6;
 }
 
 .navbar {
@@ -30,15 +43,38 @@
   gap: var(--space-lg);
 }
 
+/* Logo with icon */
 .logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  flex-shrink: 0;
+}
+
+.logo-text {
   font-size: 1.5rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.03em;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .header-controls {
@@ -58,11 +94,11 @@
   font-weight: 600;
   transition: all var(--transition-fast);
   min-width: 80px;
+  min-height: 40px;
 }
 
 #language-selector:hover {
   border-color: var(--color-primary);
-  transform: translateY(-1px);
 }
 
 #theme-toggle {
@@ -74,14 +110,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 #theme-toggle:hover {
   background-color: var(--bg-tertiary);
-  transform: scale(1.05);
   border-color: var(--color-primary);
 }
 
@@ -99,10 +134,33 @@
   margin: 0 auto;
 }
 
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--color-primary);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-lg);
+}
+
 .hero-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   margin-bottom: var(--space-lg);
-  line-height: 1.2;
+  line-height: 1.15;
+}
+
+.hero-title .brand-highlight {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-subtitle {

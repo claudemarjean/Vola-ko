@@ -11,7 +11,7 @@ import notify from './notifications.js';
 import { supabase, SUPABASE_TABLES } from './supabase.js';
 import { fetchTable, upsertUserSettings } from './volakoApi.js';
 import { ensureOnlineForCriticalAction } from './network.js';
-import { withPageLoader, setButtonLoading } from './loaders.js';
+import { withPageLoader, setButtonLoading, withGlobalLoader } from './loaders.js';
 
 class SettingsManager {
   constructor() {
@@ -188,21 +188,26 @@ class SettingsManager {
       return;
     }
 
-    const { data: userResult } = await supabase.auth.getUser();
-    const user = userResult?.user;
+    const user = await withGlobalLoader(async () => {
+      const { data: userResult } = await supabase.auth.getUser();
+      return userResult?.user;
+    }, { message: 'Verification du compte...' });
+
     if (!user) {
       notify.error('Utilisateur non connecte.');
       return;
     }
 
     try {
-      await Promise.all([
-        supabase.from(SUPABASE_TABLES.SAVINGS_TRANSACTIONS).delete().eq('user_id', user.id),
-        supabase.from(SUPABASE_TABLES.SAVINGS).delete().eq('user_id', user.id),
-        supabase.from(SUPABASE_TABLES.INCOMES).delete().eq('user_id', user.id),
-        supabase.from(SUPABASE_TABLES.EXPENSES).delete().eq('user_id', user.id),
-        supabase.from(SUPABASE_TABLES.BUDGETS).delete().eq('user_id', user.id)
-      ]);
+      await withGlobalLoader(async () => {
+        await Promise.all([
+          supabase.from(SUPABASE_TABLES.SAVINGS_TRANSACTIONS).delete().eq('user_id', user.id),
+          supabase.from(SUPABASE_TABLES.SAVINGS).delete().eq('user_id', user.id),
+          supabase.from(SUPABASE_TABLES.INCOMES).delete().eq('user_id', user.id),
+          supabase.from(SUPABASE_TABLES.EXPENSES).delete().eq('user_id', user.id),
+          supabase.from(SUPABASE_TABLES.BUDGETS).delete().eq('user_id', user.id)
+        ]);
+      }, { message: 'Suppression des donnees...' });
 
       notify.success('Toutes les donnees ont ete supprimees.');
       window.location.href = '/dashboard';

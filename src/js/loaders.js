@@ -1,4 +1,6 @@
 const GLOBAL_LOADER_ID = 'volako-global-loader';
+let globalLoaderCounter = 0;
+let globalLoaderTimer = null;
 
 function ensureGlobalLoader() {
   let loader = document.getElementById(GLOBAL_LOADER_ID);
@@ -9,31 +11,55 @@ function ensureGlobalLoader() {
   loader = document.createElement('div');
   loader.id = GLOBAL_LOADER_ID;
   loader.className = 'volako-global-loader hidden';
-  loader.innerHTML = `
-    <div class="volako-global-loader__backdrop"></div>
-    <div class="volako-global-loader__panel">
-      <div class="volako-global-loader__ring"></div>
-      <p>Chargement des donnees...</p>
-    </div>
-  `;
+  loader.setAttribute('aria-hidden', 'true');
+  loader.innerHTML = `<div class="volako-global-loader__pulse"></div>`;
 
   document.body.appendChild(loader);
   return loader;
 }
 
-export function showGlobalLoader(message = 'Chargement des donnees...') {
+export function showGlobalLoader(_message = '') {
   const loader = ensureGlobalLoader();
-  const messageEl = loader.querySelector('p');
-  if (messageEl) {
-    messageEl.textContent = message;
-  }
-
   loader.classList.remove('hidden');
 }
 
 export function hideGlobalLoader() {
   const loader = ensureGlobalLoader();
   loader.classList.add('hidden');
+}
+
+function clearGlobalLoaderTimer() {
+  if (globalLoaderTimer) {
+    window.clearTimeout(globalLoaderTimer);
+    globalLoaderTimer = null;
+  }
+}
+
+export async function withGlobalLoader(task, options = {}) {
+  const {
+    message = 'Chargement des donnees...',
+    delayMs = 220
+  } = options;
+
+  globalLoaderCounter += 1;
+
+  if (globalLoaderCounter === 1) {
+    clearGlobalLoaderTimer();
+    globalLoaderTimer = window.setTimeout(() => {
+      showGlobalLoader(message);
+    }, delayMs);
+  }
+
+  try {
+    return await task();
+  } finally {
+    globalLoaderCounter = Math.max(0, globalLoaderCounter - 1);
+
+    if (globalLoaderCounter === 0) {
+      clearGlobalLoaderTimer();
+      hideGlobalLoader();
+    }
+  }
 }
 
 export async function withPageLoader(containerId, task) {
