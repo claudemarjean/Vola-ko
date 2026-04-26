@@ -61,15 +61,17 @@ class ThemeManager {
    * Mettre à jour l'icône du bouton toggle
    */
   updateToggleIcon() {
-    const toggleBtn = document.getElementById('theme-toggle');
-    if (!toggleBtn) return;
-
     const icon = this.currentTheme === 'light' ? '🌙' : '☀️';
     const text = this.currentTheme === 'light' ? 'Mode sombre' : 'Mode clair';
-    
-    toggleBtn.innerHTML = `<span aria-hidden="true">${icon}</span>`;
-    toggleBtn.setAttribute('aria-label', text);
-    toggleBtn.setAttribute('title', text);
+
+    ['theme-toggle', 'theme-toggle-mobile', 'theme-toggle-setting'].forEach((buttonId) => {
+      const toggleBtn = document.getElementById(buttonId);
+      if (!toggleBtn) return;
+
+      toggleBtn.innerHTML = `<span aria-hidden="true">${icon}</span>`;
+      toggleBtn.setAttribute('aria-label', text);
+      toggleBtn.setAttribute('title', text);
+    });
   }
 
   /**

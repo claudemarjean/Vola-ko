@@ -5,6 +5,8 @@
 
 class MobileMenu {
   constructor() {
+    this.sidebarEventsBound = false;
+    this.domObserver = null;
     this.init();
   }
 
@@ -14,6 +16,7 @@ class MobileMenu {
     this.attachEventListeners();
     this.handleResize();
     this.moveControlsToTopbar();
+    this.watchForDeferredControls();
   }
 
   /**
@@ -47,12 +50,9 @@ class MobileMenu {
     const topbarRight = document.getElementById('mobile-topbar-right');
     if (!topbarRight) return;
 
-    // Only populate if empty
-    if (topbarRight.children.length > 0) return;
-
     // Clone theme toggle if it exists
     const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
+    if (themeToggle && !document.getElementById('theme-toggle-mobile')) {
       const clone = themeToggle.cloneNode(true);
       clone.id = 'theme-toggle-mobile';
       clone.style.cssText = 'width:36px;height:36px;padding:0;font-size:1rem;border-radius:var(--radius-md);background:var(--bg-secondary);border:1px solid var(--border-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;';
@@ -73,7 +73,6 @@ class MobileMenu {
   attachEventListeners() {
     const toggle = document.querySelector('.mobile-menu-toggle');
     const overlay = document.querySelector('.mobile-overlay');
-    const sidebar = document.querySelector('.sidebar');
 
     if (toggle) {
       toggle.addEventListener('click', () => this.toggleMenu());
@@ -83,17 +82,7 @@ class MobileMenu {
       overlay.addEventListener('click', () => this.closeMenu());
     }
 
-    // Close menu on nav item click (mobile)
-    if (sidebar) {
-      const navItems = sidebar.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.addEventListener('click', () => {
-          if (window.innerWidth <= 768) {
-            this.closeMenu();
-          }
-        });
-      });
-    }
+    this.attachSidebarNavListeners();
 
     // Close menu on escape key
     document.addEventListener('keydown', (e) => {
@@ -101,6 +90,23 @@ class MobileMenu {
         this.closeMenu();
       }
     });
+  }
+
+  attachSidebarNavListeners() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar || sidebar.dataset.mobileMenuBound === 'true') return;
+
+    // Close menu on nav item click (mobile)
+    const navItems = sidebar.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          this.closeMenu();
+        }
+      });
+    });
+
+    sidebar.dataset.mobileMenuBound = 'true';
   }
 
   toggleMenu() {
@@ -155,8 +161,23 @@ class MobileMenu {
         } else {
           // Populate topbar controls on mobile
           this.moveControlsToTopbar();
+          this.attachSidebarNavListeners();
         }
       }, 250);
+    });
+  }
+
+  watchForDeferredControls() {
+    if (this.domObserver) return;
+
+    this.domObserver = new MutationObserver(() => {
+      this.moveControlsToTopbar();
+      this.attachSidebarNavListeners();
+    });
+
+    this.domObserver.observe(document.body, {
+      childList: true,
+      subtree: true
     });
   }
 }
