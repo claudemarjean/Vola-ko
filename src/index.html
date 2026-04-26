@@ -275,25 +275,55 @@
       display: flex;
       gap: var(--space-md);
       align-items: center;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: 0;
+      max-width: 100%;
     }
 
-    /* Masquer la barre de défilement mais garder la fonctionnalité */
-    .header-controls::-webkit-scrollbar {
+    .header-menu-section {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-width: 0;
+    }
+
+    .header-menu-section-title {
       display: none;
     }
 
-    .header-controls {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    .header-menu-row,
+    .header-menu-auth {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-width: 0;
+    }
+
+    .mobile-header-menu-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-primary);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .mobile-header-menu-toggle:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      transform: translateY(-1px);
     }
 
     .header-controls > * {
-      flex-shrink: 0;
+      min-width: 0;
     }
 
     #theme-toggle {
@@ -339,22 +369,91 @@
       }
 
       .navbar {
+        position: relative;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        gap: var(--space-sm);
+        justify-content: space-between;
+      }
+
+      .logo {
+        width: auto;
+        justify-content: flex-start;
+        min-width: 0;
+      }
+
+      .logo-text {
+        font-size: 1.3rem;
+      }
+
+      .mobile-header-menu-toggle {
+        display: inline-flex;
       }
 
       .header-controls {
+        position: absolute;
+        top: calc(100% + var(--space-xs));
+        right: 0;
+        width: min(84vw, 272px);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+        align-items: stretch;
+        padding: var(--space-xs);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-xl);
+        background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+        pointer-events: none;
+        transition: opacity var(--transition-fast), transform var(--transition-fast);
+        z-index: 120;
+      }
+
+      .header-menu-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-xs);
+        padding: 8px;
+        border-radius: var(--radius-md);
+        background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+        border: 1px solid color-mix(in srgb, var(--border-primary) 70%, transparent);
+      }
+
+      .header-menu-section-title {
+        display: block;
+        font-size: 0.67rem;
+        font-weight: 700;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding-left: 2px;
+      }
+
+      .header-menu-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .header-menu-auth {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: var(--space-sm);
       }
 
-      .header-controls .btn {
-        padding: var(--space-xs) var(--space-md);
-        font-size: var(--font-size-sm);
-        white-space: nowrap;
+      .header.menu-open .header-controls {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
       }
 
       #language-selector {
+        min-width: 0;
+        width: 100%;
         padding: var(--space-xs) var(--space-sm);
         font-size: var(--font-size-sm);
       }
@@ -362,7 +461,21 @@
       #theme-toggle {
         width: 36px;
         height: 36px;
+        min-width: 36px;
         font-size: 1rem;
+      }
+
+      .header-menu-auth .btn {
+        min-width: 0;
+        width: 100%;
+        padding: var(--space-xs) var(--space-sm);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        justify-content: center;
+      }
+
+      .header-controls .btn-primary {
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.22);
       }
 
       .hero-buttons {
@@ -379,6 +492,16 @@
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 420px) {
+      .header-controls {
+        width: min(88vw, 260px);
+      }
+
+      .header-menu-auth {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
   <!-- responsive AFTER inline styles so media queries win -->
   <link rel="stylesheet" href="/css/responsive.css">
@@ -391,19 +514,33 @@
         <span class="logo-icon" aria-hidden="true">💰</span>
         <span class="logo-text" data-i18n="app.name">Vola-ko</span>
       </div>
+
+      <button class="mobile-header-menu-toggle" id="mobile-header-menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="header-controls">
+        ☰
+      </button>
       
-      <div class="header-controls">
-        <select id="language-selector" aria-label="Choisir la langue">
-          <option value="fr">🇫🇷 FR</option>
-          <option value="mg">🇲🇬 MG</option>
-        </select>
-        
-        <button id="theme-toggle" aria-label="Changer de thème">
-          🌙
-        </button>
-        
-        <a href="/login" class="btn btn-secondary" data-i18n="nav.login">Connexion</a>
-        <a href="/register" class="btn btn-primary" data-i18n="nav.register">Inscription</a>
+      <div class="header-controls" id="header-controls">
+        <div class="header-menu-section">
+          <span class="header-menu-section-title">Préférences</span>
+          <div class="header-menu-row">
+            <select id="language-selector" aria-label="Choisir la langue">
+              <option value="fr">🇫🇷 FR</option>
+              <option value="mg">🇲🇬 MG</option>
+            </select>
+
+            <button id="theme-toggle" aria-label="Changer de thème">
+              🌙
+            </button>
+          </div>
+        </div>
+
+        <div class="header-menu-section">
+          <span class="header-menu-section-title">Accès rapide</span>
+          <div class="header-menu-auth">
+            <a href="/login" class="btn btn-secondary" data-i18n="nav.login">Connexion</a>
+            <a href="/register" class="btn btn-primary" data-i18n="nav.register">Inscription</a>
+          </div>
+        </div>
       </div>
     </nav>
   </header>
@@ -936,5 +1073,55 @@
 
   <!-- JavaScript -->
   <script type="module" src="/js/app.js"></script>
+  <script>
+    (function () {
+      const header = document.querySelector('.header');
+      const toggle = document.getElementById('mobile-header-menu-toggle');
+      const controls = document.getElementById('header-controls');
+      if (!header || !toggle || !controls) return;
+
+      const closeMenu = () => {
+        header.classList.remove('menu-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.textContent = '☰';
+      };
+
+      const openMenu = () => {
+        header.classList.add('menu-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.textContent = '✕';
+      };
+
+      toggle.addEventListener('click', () => {
+        const isOpen = header.classList.contains('menu-open');
+        if (isOpen) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (window.innerWidth > 768) return;
+        if (!header.contains(event.target)) {
+          closeMenu();
+        }
+      });
+
+      controls.querySelectorAll('a, button, select').forEach((element) => {
+        element.addEventListener('click', () => {
+          if (window.innerWidth <= 768 && element.tagName !== 'SELECT') {
+            closeMenu();
+          }
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+          closeMenu();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
