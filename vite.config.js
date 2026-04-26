@@ -10,6 +10,7 @@ export default defineConfig({
   root: 'src',
   publicDir: resolve(__dirname, 'public'),
   server: {
+    host: 'localhost',
     // Middleware pour gérer les URLs sans extension .html
     middlewareMode: false,
     proxy: {}
@@ -58,30 +59,36 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           const url = req.url || '';
+          const [pathname, search = ''] = url.split('?');
+
+          // Ne jamais toucher aux upgrades websocket (HMR).
+          if ((req.headers.upgrade || '').toLowerCase() === 'websocket') {
+            return next();
+          }
 
           // Ignore Vite internal endpoints and asset ids.
           if (
-            url.startsWith('/@vite') ||
-            url.startsWith('/@id/') ||
-            url.startsWith('/__vite') ||
-            url.startsWith('/node_modules/')
+            pathname.startsWith('/@vite') ||
+            pathname.startsWith('/@id/') ||
+            pathname.startsWith('/__vite') ||
+            pathname.startsWith('/node_modules/')
           ) {
             return next();
           }
           
           // Ignorer les fichiers statiques (CSS, JS, images, etc.)
-          if (url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json)$/)) {
+          if (pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|map|txt|xml|webmanifest)$/)) {
             return next();
           }
           
           // Si l'URL ne se termine pas par .html et n'est pas un fichier statique
-          if (!url.includes('.') && url !== '/') {
+          if (!pathname.includes('.') && pathname !== '/') {
             // Supprimer le trailing slash si présent
-            const cleanUrl = url.replace(/\/$/, '');
+            const cleanPath = pathname.replace(/\/$/, '');
             // Ajouter .html à l'URL
-            req.url = cleanUrl + '.html';
-          } else if (url === '/') {
-            req.url = '/index.html';
+            req.url = cleanPath + '.html' + (search ? `?${search}` : '');
+          } else if (pathname === '/') {
+            req.url = '/index.html' + (search ? `?${search}` : '');
           }
           
           next();
