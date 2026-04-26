@@ -38,6 +38,12 @@ class App {
 
       // Initialiser l'authentification
       this.auth = new Auth();
+      await this.auth.initializeAuth();
+
+      const redirected = this.handleRootRedirect();
+      if (redirected) {
+        return;
+      }
 
       // Préparer le mode hors ligne si déjà authentifié
       await registerOfflineCapabilities(this.auth.isAuthenticated());
@@ -56,6 +62,22 @@ class App {
     } finally {
       hideGlobalLoader();
     }
+  }
+
+  handleRootRedirect() {
+    const path = window.location.pathname;
+    const isRootPath = path === '/' || path === '/index.html';
+
+    if (!isRootPath) {
+      return false;
+    }
+
+    if (this.auth?.isAuthenticated()) {
+      window.location.replace('/dashboard');
+      return true;
+    }
+
+    return false;
   }
 
   /**
