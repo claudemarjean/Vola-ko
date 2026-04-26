@@ -273,7 +273,7 @@
 
 .notification-modal-btn {
   padding: var(--space-md) var(--space-xl);
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -281,6 +281,11 @@
   transition: all var(--transition-base);
   min-width: 120px;
   font-family: inherit;
+}
+
+.notification-modal-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .notification-modal-btn-primary {
@@ -316,7 +321,7 @@
 .notification-modal-btn-secondary {
   background: var(--card-bg);
   color: var(--text-primary);
-  border: 2px solid var(--border-primary);
+  border: 1px solid var(--border-primary);
 }
 
 .notification-modal-btn-secondary:hover {

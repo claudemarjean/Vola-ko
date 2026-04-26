@@ -448,7 +448,7 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 
 .btn.modal-close {
   background: var(--btn-secondary-bg);
-  border: 2px solid var(--color-gray-300);
+  border: 1px solid var(--border-primary);
   color: var(--btn-secondary-text);
   font-size: var(--font-size-base);
   padding: var(--space-sm) var(--space-lg);
@@ -461,8 +461,8 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 
 .btn.modal-close:hover {
   background-color: var(--btn-secondary-hover);
-  border-color: var(--color-gray-400);
-  color: var(--color-gray-900);
+  border-color: var(--border-secondary);
+  color: var(--text-primary);
 }
 
 .modal-content form { padding: var(--space-xl); }
@@ -618,10 +618,10 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 }
 
 .btn-icon {
-  background: none;
-  border: none;
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--border-primary);
   font-size: 1.125rem;
-  color: var(--text-secondary);
+  color: var(--btn-secondary-text);
   cursor: pointer;
   width: 36px;
   height: 36px;
@@ -634,8 +634,22 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 }
 
 .btn-icon:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--btn-secondary-hover);
+  border-color: var(--border-secondary);
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-icon:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.btn-icon.delete-btn:hover,
+.btn-icon[data-action='delete']:hover {
+  background-color: color-mix(in srgb, var(--color-error) 15%, var(--btn-secondary-bg));
+  border-color: color-mix(in srgb, var(--color-error) 45%, var(--border-primary));
+  color: var(--color-error);
 }
 
 .budget-progress { margin-bottom: var(--space-lg); }
