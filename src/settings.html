@@ -14,7 +14,6 @@
   <link rel="stylesheet" href="/css/app-layout.css">
   <link rel="stylesheet" href="/css/bottom-nav.css">
   <link rel="stylesheet" href="/css/responsive.css">
-  <link rel="stylesheet" href="/css/app-layout.css">
 </head>
 <body>
   <div class="app-container">
@@ -39,8 +38,21 @@
               <p id="user-name">Utilisateur</p>
             </div>
           </div>
-          <button class="btn btn-outline btn-sm" data-i18n="common.edit">Modifier</button>
+          <div class="settings-item-control">
+            <button class="btn btn-outline btn-sm" id="edit-name-btn" data-i18n="common.edit">Modifier</button>
+          </div>
         </div>
+
+        <form id="profile-name-form" class="settings-inline-form" style="display: none;">
+          <div class="form-group">
+            <label for="profile-name-input" data-i18n="settings.name">Nom complet</label>
+            <input type="text" id="profile-name-input" class="form-input" minlength="2" required>
+          </div>
+          <div class="settings-inline-actions">
+            <button type="button" class="btn btn-secondary" id="cancel-name-btn" data-i18n="common.cancel">Annuler</button>
+            <button type="submit" class="btn btn-primary" id="save-name-btn" data-i18n="settings.save_profile">Enregistrer le nom</button>
+          </div>
+        </form>
 
         <div class="settings-item">
           <div class="settings-item-info">
@@ -50,7 +62,9 @@
               <p id="user-email">user@example.com</p>
             </div>
           </div>
-          <button class="btn btn-outline btn-sm" data-i18n="common.edit">Modifier</button>
+          <div class="settings-item-control">
+            <span class="settings-lock-badge" data-i18n="settings.email_locked">Non modifiable</span>
+          </div>
         </div>
       </div>
 
@@ -66,9 +80,11 @@
               <p data-i18n="settings.theme_desc">Mode clair ou sombre</p>
             </div>
           </div>
-          <button id="theme-toggle-setting" class="btn btn-outline btn-sm">
-            🌙
-          </button>
+          <div class="settings-item-control">
+            <button id="theme-toggle-setting" class="btn btn-outline btn-sm">
+              🌙
+            </button>
+          </div>
         </div>
 
         <div class="settings-item">
@@ -79,10 +95,12 @@
               <p data-i18n="settings.language_desc">Français ou Malgache</p>
             </div>
           </div>
-          <select id="language-selector-setting" class="form-select">
-            <option value="fr">🇫🇷 Français</option>
-            <option value="mg">🇲🇬 Malgache</option>
-          </select>
+          <div class="settings-item-control">
+            <select id="language-selector-setting" class="form-select">
+              <option value="fr">🇫🇷 Français</option>
+              <option value="mg">🇲🇬 Malgache</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -98,11 +116,13 @@
               <p data-i18n="settings.currency_desc">Devise par défaut</p>
             </div>
           </div>
-          <select id="currency-selector" class="form-select">
-            <option value="MGA" selected>MGA - Ariary</option>
-            <option value="EUR">EUR - Euro</option>
-            <option value="USD">USD - Dollar</option>
-          </select>
+          <div class="settings-item-control">
+            <select id="currency-selector" class="form-select">
+              <option value="MGA" selected>MGA - Ariary</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="USD">USD - Dollar</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -118,7 +138,9 @@
               <p data-i18n="settings.export_desc">Téléchargez vos données au format JSON</p>
             </div>
           </div>
-          <button class="btn btn-outline btn-sm" id="export-data-btn" data-i18n="settings.export_button">Exporter</button>
+          <div class="settings-item-control">
+            <button class="btn btn-outline btn-sm" id="export-data-btn" data-i18n="settings.export_button">Exporter</button>
+          </div>
         </div>
 
         <div class="settings-item">
@@ -126,21 +148,46 @@
             <span class="settings-icon">🗑️</span>
             <div>
               <h4 data-i18n="settings.clear_data">Effacer les données</h4>
-              <p data-i18n="settings.clear_data_desc">Supprimer toutes les données locales</p>
+              <p data-i18n="settings.clear_data_desc">Supprimer toutes les données</p>
             </div>
           </div>
-          <button class="btn btn-outline btn-sm danger" id="clear-data-btn" data-i18n="settings.clear_button">Effacer</button>
+          <div class="settings-item-control">
+            <button class="btn btn-outline btn-sm danger" id="clear-data-btn" data-i18n="settings.clear_button">Effacer</button>
+          </div>
         </div>
       </div>
 
       <!-- Account Actions -->
       <div class="settings-section card">
         <h2 data-i18n="settings.account_title">Compte</h2>
-        
-        <button class="btn btn-outline" id="logout-btn-settings" style="width: 100%;">
-          <span>🚪</span>
-          <span data-i18n="nav.logout">Déconnexion</span>
-        </button>
+
+        <form id="password-form" class="settings-password-form">
+          <div class="form-group">
+            <label for="current-password" data-i18n="settings.current_password">Mot de passe actuel</label>
+            <input type="password" id="current-password" class="form-input" minlength="8" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-password" data-i18n="settings.new_password">Nouveau mot de passe</label>
+            <input type="password" id="new-password" class="form-input" minlength="8" required>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password" data-i18n="settings.confirm_password">Confirmer le mot de passe</label>
+            <input type="password" id="confirm-password" class="form-input" minlength="8" required>
+          </div>
+
+          <div class="settings-inline-actions">
+            <button type="submit" class="btn btn-primary" id="save-password-btn" data-i18n="settings.change_password">Changer le mot de passe</button>
+          </div>
+        </form>
+
+        <div class="settings-account-actions">
+          <button class="btn btn-outline" id="logout-btn-settings" style="width: 100%;">
+            <span>🚪</span>
+            <span data-i18n="nav.logout">Déconnexion</span>
+          </button>
+        </div>
       </div>
     </main>
 

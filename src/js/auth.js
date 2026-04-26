@@ -202,6 +202,71 @@ class Auth {
   getToken() {
     return this.token;
   }
+
+  async updateProfileName(name) {
+    try {
+      if (!name || name.trim().length < 2) {
+        throw new Error('Le nom doit contenir au moins 2 caracteres');
+      }
+
+      const cleanName = name.trim();
+      const { data, error } = await supabase.auth.updateUser({
+        data: { name: cleanName }
+      });
+
+      if (error) throw error;
+
+      this.user = {
+        ...this.user,
+        name: data.user?.user_metadata?.name || cleanName
+      };
+
+      Storage.set(STORAGE_KEYS.USER, this.user);
+      return { success: true, user: this.user };
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors de la mise a jour du profil');
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updatePassword(currentPassword, password, confirmPassword) {
+    try {
+      if (!currentPassword) {
+        throw new Error('Le mot de passe actuel est requis');
+      }
+
+      const passwordValidation = this.validatePassword(password);
+      if (!passwordValidation.valid) {
+        throw new Error(passwordValidation.message);
+      }
+
+      if (password !== confirmPassword) {
+        throw new Error('Les mots de passe ne correspondent pas');
+      }
+
+      if (!this.user?.email) {
+        throw new Error('Impossible de verifier le compte utilisateur');
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: this.user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        throw new Error('Mot de passe actuel incorrect');
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+
+      notify.success('Mot de passe mis a jour avec succes');
+      return { success: true };
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors de la mise a jour du mot de passe');
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export default Auth;

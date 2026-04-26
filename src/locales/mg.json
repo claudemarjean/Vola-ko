@@ -380,6 +380,8 @@
     "profile_title": "Mombamomba",
     "name": "Anarana feno",
     "email": "Mailaka",
+    "email_locked": "Tsy azo ovaina",
+    "save_profile": "Hitahiry ny anarana",
     "appearance": "Endrika",
     "theme": "Loko",
     "theme_desc": "Fomba mazava na maizina",
@@ -395,7 +397,11 @@
     "clear_data": "Hamafa ny angon-drakitra",
     "clear_data_desc": "Hanaisotra ny angon-drakitra rehetra eto an-toerana",
     "clear_button": "Hamafa",
-    "account_title": "Kaonty"
+    "account_title": "Kaonty",
+    "current_password": "Teny miafina ankehitriny",
+    "new_password": "Teny miafina vaovao",
+    "confirm_password": "Hamafiso ny teny miafina",
+    "change_password": "Hanova ny teny miafina"
   },
   "theme": {
     "light": "Fomba mazava",

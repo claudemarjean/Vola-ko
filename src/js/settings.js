@@ -41,9 +41,11 @@ class SettingsManager {
 
     const nameEl = document.getElementById('user-name');
     const emailEl = document.getElementById('user-email');
+    const nameInput = document.getElementById('profile-name-input');
 
     if (nameEl) nameEl.textContent = user.name;
     if (emailEl) emailEl.textContent = user.email;
+    if (nameInput) nameInput.value = user.name || '';
 
     const currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     const currencySelect = document.getElementById('currency-selector');
@@ -114,6 +116,112 @@ class SettingsManager {
         window.location.href = '/';
       });
     }
+
+    const editNameBtn = document.getElementById('edit-name-btn');
+    const cancelNameBtn = document.getElementById('cancel-name-btn');
+    const profileNameForm = document.getElementById('profile-name-form');
+
+    if (editNameBtn) {
+      editNameBtn.addEventListener('click', () => this.toggleNameForm(true));
+    }
+
+    if (cancelNameBtn) {
+      cancelNameBtn.addEventListener('click', () => this.toggleNameForm(false));
+    }
+
+    if (profileNameForm) {
+      profileNameForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('save-name-btn');
+        setButtonLoading(submitBtn, true, 'Enregistrement...');
+        try {
+          await this.saveProfileName();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
+      });
+    }
+
+    const passwordForm = document.getElementById('password-form');
+    if (passwordForm) {
+      passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('save-password-btn');
+        setButtonLoading(submitBtn, true, 'Mise a jour...');
+        try {
+          await this.changePassword();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
+      });
+    }
+  }
+
+  toggleNameForm(show) {
+    const form = document.getElementById('profile-name-form');
+    const input = document.getElementById('profile-name-input');
+    if (!form) return;
+
+    form.style.display = show ? 'block' : 'none';
+
+    if (show && input) {
+      input.focus();
+      input.select();
+    }
+
+    if (!show) {
+      this.loadUserInfo();
+    }
+  }
+
+  async saveProfileName() {
+    if (!ensureOnlineForCriticalAction('La modification du nom')) {
+      return;
+    }
+
+    const input = document.getElementById('profile-name-input');
+    const nextName = input?.value?.trim() || '';
+    const currentName = this.auth.user?.name || '';
+
+    if (nextName === currentName) {
+      this.toggleNameForm(false);
+      return;
+    }
+
+    const result = await withGlobalLoader(async () => {
+      return this.auth.updateProfileName(nextName);
+    }, { message: 'Mise a jour du profil...' });
+
+    if (!result?.success) {
+      return;
+    }
+
+    this.loadUserInfo();
+    this.toggleNameForm(false);
+    notify.success('Nom utilisateur mis a jour.');
+  }
+
+  async changePassword() {
+    if (!ensureOnlineForCriticalAction('Le changement du mot de passe')) {
+      return;
+    }
+
+    const currentPasswordInput = document.getElementById('current-password');
+    const passwordInput = document.getElementById('new-password');
+    const confirmInput = document.getElementById('confirm-password');
+    const currentPassword = currentPasswordInput?.value || '';
+    const password = passwordInput?.value || '';
+    const confirmPassword = confirmInput?.value || '';
+
+    const result = await withGlobalLoader(async () => {
+      return this.auth.updatePassword(currentPassword, password, confirmPassword);
+    }, { message: 'Mise a jour du mot de passe...' });
+
+    if (!result?.success) {
+      return;
+    }
+
+    document.getElementById('password-form')?.reset();
   }
 
   updateThemeButton(button) {

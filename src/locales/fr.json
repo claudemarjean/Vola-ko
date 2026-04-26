@@ -380,6 +380,8 @@
     "profile_title": "Profil",
     "name": "Nom complet",
     "email": "Email",
+    "email_locked": "Non modifiable",
+    "save_profile": "Enregistrer le nom",
     "appearance": "Apparence",
     "theme": "Thème",
     "theme_desc": "Mode clair ou sombre",
@@ -393,9 +395,13 @@
     "export_desc": "Téléchargez vos données au format JSON",
     "export_button": "Exporter",
     "clear_data": "Effacer les données",
-    "clear_data_desc": "Supprimer toutes les données locales",
+    "clear_data_desc": "Supprimer toutes les données ",
     "clear_button": "Effacer",
-    "account_title": "Compte"
+    "account_title": "Compte",
+    "current_password": "Mot de passe actuel",
+    "new_password": "Nouveau mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "change_password": "Changer le mot de passe"
   },
   "theme": {
     "light": "Mode clair",

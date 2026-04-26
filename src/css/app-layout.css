@@ -953,6 +953,162 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 .settings-section { margin-bottom: var(--space-xl); }
 .settings-section h2 { font-size: var(--font-size-xl); margin-bottom: var(--space-lg); }
 
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.settings-item:last-of-type {
+  border-bottom: none;
+}
+
+.settings-item-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-item-info > div {
+  min-width: 0;
+}
+
+.settings-item-info h4 {
+  margin-bottom: 4px;
+}
+
+.settings-item-info p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.settings-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  font-size: 1.2rem;
+}
+
+.settings-item-control {
+  flex: 0 0 clamp(140px, 28vw, 220px);
+  width: clamp(140px, 28vw, 220px);
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.settings-item-control .btn,
+.settings-item-control .form-select,
+.settings-item-control .settings-lock-badge {
+  width: 100%;
+}
+
+.settings-inline-form,
+.settings-password-form {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px dashed var(--border-primary);
+}
+
+.settings-inline-form {
+  padding-left: calc(42px + var(--space-md));
+}
+
+.settings-password-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: end;
+  padding: var(--space-lg);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+  margin-bottom: var(--space-lg);
+}
+
+.settings-password-form .form-group {
+  margin-bottom: 0;
+}
+
+.settings-password-form .settings-inline-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-top: var(--space-xs);
+}
+
+.settings-account-actions {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-primary);
+}
+
+.settings-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.settings-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .settings-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-item-control {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .settings-inline-form {
+    padding-left: 0;
+  }
+
+  .settings-password-form {
+    grid-template-columns: 1fr;
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .settings-inline-actions {
+    flex-direction: column-reverse;
+  }
+
+  .settings-password-form .settings-inline-actions {
+    justify-content: stretch;
+  }
+
+  .settings-lock-badge {
+    justify-content: center;
+  }
+
+  .settings-inline-actions .btn {
+    width: 100%;
+  }
+}
+
 /* ── Table ─────────────────────────────────── */
 .table-container {
   overflow-x: auto;
