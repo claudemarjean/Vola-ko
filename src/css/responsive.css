@@ -153,7 +153,7 @@
   }
 
   .mobile-topbar-brand {
-    padding-right: 48px;
+    padding-right: 92px;
     padding-left: var(--space-xs);
   }
 
@@ -368,7 +368,7 @@
 
   .mobile-topbar-brand {
     justify-content: flex-start;
-    padding-right: 42px;
+    padding-right: 82px;
   }
 
   .mobile-topbar-brand-name {

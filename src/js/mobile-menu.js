@@ -50,15 +50,47 @@ class MobileMenu {
     const topbarRight = document.getElementById('mobile-topbar-right');
     if (!topbarRight) return;
 
-    // Clone theme toggle if it exists
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle && !document.getElementById('theme-toggle-mobile')) {
-      const clone = themeToggle.cloneNode(true);
-      clone.id = 'theme-toggle-mobile';
-      clone.style.cssText = 'width:36px;height:36px;padding:0;font-size:1rem;border-radius:var(--radius-md);background:var(--bg-secondary);border:1px solid var(--border-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;';
-      clone.addEventListener('click', () => themeToggle.click());
-      topbarRight.appendChild(clone);
+    this.ensureTopbarActionButton({
+      sourceId: 'theme-toggle',
+      cloneId: 'theme-toggle-mobile',
+      iconMarkup: '<span aria-hidden="true">🌙</span>',
+      label: 'Changer de thème'
+    });
+
+    this.ensureTopbarActionButton({
+      sourceId: 'logout-btn',
+      cloneId: 'logout-btn-mobile',
+      iconMarkup: `
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+      `,
+      label: 'Déconnexion'
+    });
+  }
+
+  ensureTopbarActionButton({ sourceId, cloneId, iconMarkup, label }) {
+    const sourceButton = document.getElementById(sourceId);
+    const topbarRight = document.getElementById('mobile-topbar-right');
+
+    if (!sourceButton || !topbarRight || document.getElementById(cloneId)) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = cloneId;
+    button.className = 'btn btn-secondary mobile-topbar-action';
+    if (cloneId === 'logout-btn-mobile') {
+      button.classList.add('mobile-topbar-action--logout');
     }
+
+    button.innerHTML = iconMarkup;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
+    button.style.cssText = 'width:36px;height:36px;padding:0;font-size:1rem;border-radius:var(--radius-md);background:var(--bg-secondary);border:1px solid var(--border-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;';
+    button.addEventListener('click', () => sourceButton.click());
+    topbarRight.appendChild(button);
   }
 
   createOverlay() {

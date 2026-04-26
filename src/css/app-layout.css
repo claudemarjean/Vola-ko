@@ -215,7 +215,7 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   flex: 1;
   justify-content: center;
   min-width: 0;
-  padding-right: 52px;
+  padding-right: 96px;
 }
 
 .mobile-topbar-brand-icon {
@@ -255,6 +255,19 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   gap: var(--space-xs);
   flex-shrink: 0;
   z-index: 1;
+}
+
+.mobile-topbar-action--logout {
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 24%, var(--border-primary));
+  background: color-mix(in srgb, var(--color-error) 8%, var(--bg-secondary));
+}
+
+.mobile-topbar-action--logout:hover,
+.mobile-topbar-action--logout:active {
+  color: #ffffff;
+  background: var(--color-error);
+  border-color: var(--color-error);
 }
 
 /* Mobile Overlay */
