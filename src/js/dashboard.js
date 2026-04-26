@@ -33,6 +33,7 @@ class Dashboard {
 
   async init() {
     this.checkAuth();
+    this.centerActiveBottomNavItem();
 
     await withPageLoader('transactions-list', async () => {
       await this.loadData();
@@ -48,6 +49,21 @@ class Dashboard {
     if (!auth.isAuthenticated()) {
       window.location.href = '/login';
     }
+  }
+
+  centerActiveBottomNavItem() {
+    if (window.innerWidth > 1024) return;
+
+    const activeItem = document.querySelector('.bottom-nav .bottom-nav-item.active');
+    if (!activeItem) return;
+
+    requestAnimationFrame(() => {
+      activeItem.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    });
   }
 
   async loadData() {

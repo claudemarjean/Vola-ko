@@ -130,6 +130,23 @@ export function renderBottomNav(activePage = '') {
       </a>
     </div>
   `;
+
+  centerActiveBottomNavItem(container);
+}
+
+function centerActiveBottomNavItem(container) {
+  if (!container || window.innerWidth > 1024) return;
+
+  const activeItem = container.querySelector('.bottom-nav-item.active');
+  if (!activeItem) return;
+
+  requestAnimationFrame(() => {
+    activeItem.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest'
+    });
+  });
 }
 
 /**

@@ -15,8 +15,16 @@
   padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
   z-index: 200;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   /* Brand gradient stripe at top */
   border-top: none;
+}
+
+.bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .bottom-nav::before {
@@ -31,11 +39,14 @@
 
 .bottom-nav-items {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-start;
   align-items: center;
-  max-width: 100%;
+  width: max-content;
+  min-width: 100%;
   margin: 0 auto;
   padding: 0 var(--space-xs);
+  gap: 2px;
+  scroll-snap-type: x proximity;
 }
 
 .bottom-nav-item {
@@ -49,10 +60,12 @@
   color: var(--text-tertiary);
   text-decoration: none;
   transition: all var(--transition-fast);
-  flex: 1;
-  max-width: 80px;
+  flex: 0 0 auto;
+  min-width: 72px;
+  max-width: 88px;
   position: relative;
   min-height: 52px;
+  scroll-snap-align: center;
 }
 
 .bottom-nav-item .icon {
@@ -111,7 +124,8 @@
 @media (max-width: 400px) {
   .bottom-nav-item {
     padding: var(--space-xs) 2px;
-    max-width: 64px;
+    min-width: 62px;
+    max-width: 70px;
   }
 
   .bottom-nav-item .icon {

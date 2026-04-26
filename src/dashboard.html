@@ -489,12 +489,24 @@
       border-top: 1px solid var(--border-primary);
       padding: var(--space-sm) 0;
       z-index: 1000;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .bottom-nav::-webkit-scrollbar {
+      display: none;
     }
 
     .bottom-nav-items {
       display: flex;
-      justify-content: space-around;
+      justify-content: flex-start;
       align-items: center;
+      width: max-content;
+      min-width: 100%;
+      gap: 2px;
+      padding: 0 var(--space-xs);
     }
 
     .bottom-nav-item {
@@ -507,6 +519,8 @@
       font-size: var(--font-size-sm);
       cursor: pointer;
       transition: all var(--transition-fast);
+      flex: 0 0 auto;
+      min-width: 72px;
     }
 
     .bottom-nav-item .icon {
