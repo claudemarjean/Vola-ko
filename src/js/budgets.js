@@ -82,7 +82,7 @@ class BudgetsManager {
     return `
       <div class="budget-card card">
         <div class="budget-header">
-          <div>
+          <div class="budget-content">
             <h3>${icon} ${categoryName}</h3>
             <p>Budget mensuel</p>
           </div>

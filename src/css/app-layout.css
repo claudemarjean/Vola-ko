@@ -594,13 +594,17 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   gap: var(--space-md);
 }
 
-.budget-header > div { flex: 1; min-width: 0; }
+.budget-content {
+  flex: 1;
+  min-width: 0;
+}
 
 .budget-actions {
   display: flex;
   gap: var(--space-xs);
   align-items: center;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .budget-header h3 {
@@ -615,6 +619,22 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   color: var(--text-secondary);
   margin: 0;
   font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .budget-header {
+    align-items: center;
+  }
+
+  .budget-actions {
+    gap: 6px;
+  }
+
+  .budget-actions .btn-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
 }
 
 .btn-icon {
