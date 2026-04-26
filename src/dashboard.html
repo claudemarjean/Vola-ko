@@ -125,7 +125,7 @@
     /* Dashboard Stats */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
       gap: var(--space-xl);
       margin-bottom: var(--space-xl);
     }
@@ -369,6 +369,12 @@
       display: flex;
       align-items: center;
       gap: var(--space-md);
+      min-width: 0;
+      flex: 1;
+    }
+
+    .transaction-details {
+      min-width: 0;
     }
 
     .transaction-icon {
@@ -385,17 +391,22 @@
     .transaction-details h4 {
       font-size: var(--font-size-base);
       margin-bottom: 2px;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .transaction-details p {
       font-size: var(--font-size-sm);
       color: var(--text-secondary);
       margin: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .transaction-amount {
       font-weight: 700;
       font-size: var(--font-size-lg);
+      flex-shrink: 0;
     }
 
     .transaction-amount.income {
@@ -515,11 +526,26 @@
       .main-content {
         margin-left: 0;
         padding: var(--space-md);
-        padding-bottom: 80px;
+        padding-top: calc(var(--mobile-header-height, 60px) + var(--space-md));
+        padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
       }
 
       .bottom-nav {
         display: block;
+      }
+
+      .app-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .header-actions .btn {
+        width: 100%;
       }
 
       .stats-grid {
@@ -533,6 +559,17 @@
 
       .chart-container {
         height: 250px;
+      }
+
+      .card-header,
+      .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+      }
+
+      .transaction-amount {
+        width: 100%;
       }
     }
 
@@ -556,10 +593,15 @@
       }
     }
 
-      .app-header {
-        flex-direction: column;
-        gap: var(--space-md);
-        align-items: flex-start;
+    @media (max-width: 480px) {
+      .stat-card,
+      .transactions-card,
+      .chart-card {
+        padding: var(--space-md);
+      }
+
+      .chart-container {
+        height: 220px;
       }
     }
   </style>

@@ -533,16 +533,20 @@
    LANDSCAPE ORIENTATION (Mobile)
    ============================================ */
 @media (max-width: 900px) and (orientation: landscape) {
+  :root {
+    --mobile-header-height: 50px;
+  }
+
   .sidebar {
     width: 220px;
   }
 
   .mobile-topbar {
-    height: 50px;
+    height: var(--mobile-header-height, 50px);
   }
 
   .main-content {
-    padding-top: calc(50px + var(--space-sm));
+    padding-top: calc(var(--mobile-header-height, 50px) + var(--space-sm));
   }
 
   .hero {
@@ -574,6 +578,24 @@
 
   .main-content {
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 768px) {
+    .main-content {
+      padding-top: calc(var(--mobile-header-height, 60px) + env(safe-area-inset-top) + var(--space-md));
+    }
+  }
+
+  @media (max-width: 480px) {
+    .main-content {
+      padding-top: calc(var(--mobile-header-height, 60px) + env(safe-area-inset-top) + var(--space-sm));
+    }
+  }
+
+  @media (max-width: 900px) and (orientation: landscape) {
+    .main-content {
+      padding-top: calc(var(--mobile-header-height, 50px) + env(safe-area-inset-top) + var(--space-sm));
+    }
   }
 }
 
