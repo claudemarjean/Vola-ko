@@ -18,6 +18,7 @@ class BudgetsManager {
     this.progressRows = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.editingBudgetId = null;
+    this.selectedBudgetForExpense = null;
   }
 
   async init() {
@@ -27,6 +28,7 @@ class BudgetsManager {
     await this.loadCategories();
     this.setupEventListeners();
     this.setupForm();
+    this.setupExpenseForm();
 
     applySkeleton('budgets-grid', 'cards');
     await this.refreshData();
@@ -87,7 +89,9 @@ class BudgetsManager {
       amount: budget.amount
     };
 
-    const percentage = progress.amount > 0 ? Math.min((progress.spent / progress.amount) * 100, 100) : 0;
+    const percentage = progress.amount > 0 ? (progress.spent / progress.amount) * 100 : 0;
+    const progressBarWidth = Math.min(Math.max(percentage, 0), 100);
+    const isOverBudget = percentage > 100;
 
     let progressColor = 'var(--color-success)';
     if (percentage > 80) progressColor = 'var(--color-error)';
@@ -109,6 +113,7 @@ class BudgetsManager {
             <p>Budget mensuel</p>
           </div>
           <div class="budget-actions">
+            <button class="btn-icon add-expense-btn" data-id="${budget.id}" title="Ajouter une depense" style="display:inline-flex; align-items:center; justify-content:center; gap:2px; line-height:1;"><span style="font-weight:700; font-size:0.9rem;">+</span><span>💸</span></button>
             <button class="btn-icon edit-btn" data-id="${budget.id}" title="Modifier le budget">✏️</button>
             <button class="btn-icon delete-btn" data-id="${budget.id}" title="Supprimer le budget">🗑️</button>
           </div>
@@ -116,11 +121,11 @@ class BudgetsManager {
 
         <div class="budget-progress">
           <div class="progress-bar">
-            <div class="progress-fill" style="width: ${percentage}%; background-color: ${progressColor};"></div>
+            <div class="progress-fill" style="width: ${progressBarWidth}%; background-color: ${progressColor};"></div>
           </div>
           <div class="progress-info">
             <span>${this.formatCurrency(progress.spent)} / ${this.formatCurrency(progress.amount)}</span>
-            <span class="progress-percent">${Math.round(percentage)}%</span>
+            <span class="progress-percent">${isOverBudget ? `⚠️ ${Math.round(percentage)}%` : `${Math.round(percentage)}%`}</span>
           </div>
         </div>
 
@@ -155,9 +160,25 @@ class BudgetsManager {
     closeBtns?.forEach(btn => {
       btn.addEventListener('click', () => this.closeModal());
     });
+
+    const expenseModal = document.getElementById('budget-expense-modal');
+    const expenseCloseBtns = expenseModal?.querySelectorAll('.modal-close');
+    expenseCloseBtns?.forEach(btn => {
+      btn.addEventListener('click', () => this.closeExpenseModal());
+    });
   }
 
   attachEventListeners() {
+    document.querySelectorAll('.add-expense-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const budget = this.budgets.find(b => b.id === id);
+        if (budget) {
+          this.openExpenseModal(budget);
+        }
+      });
+    });
+
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
@@ -203,6 +224,112 @@ class BudgetsManager {
           document.getElementById('budget-other-reference').value = '';
         }
       });
+    }
+  }
+
+  setupExpenseForm() {
+    const form = document.getElementById('budget-expense-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Enregistrement...');
+      try {
+        await this.saveExpenseFromBudget();
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    });
+
+    const dateInput = document.getElementById('budget-expense-date');
+    if (dateInput) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  }
+
+  openExpenseModal(budget) {
+    const modal = document.getElementById('budget-expense-modal');
+    const form = document.getElementById('budget-expense-form');
+    const categoryLabel = document.getElementById('budget-expense-category-label');
+    const descriptionInput = document.getElementById('budget-expense-description');
+    const amountInput = document.getElementById('budget-expense-amount');
+    const dateInput = document.getElementById('budget-expense-date');
+
+    if (!modal || !form) return;
+
+    this.selectedBudgetForExpense = budget;
+    form.reset();
+
+    if (categoryLabel) {
+      categoryLabel.textContent = `${getCategoryIcon(budget.category)} ${getCategoryName(budget.category)}`;
+    }
+
+    if (descriptionInput) {
+      descriptionInput.value = '';
+      descriptionInput.focus();
+    }
+
+    if (amountInput) {
+      amountInput.value = '';
+    }
+
+    if (dateInput) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    modal.classList.add('active');
+  }
+
+  closeExpenseModal() {
+    const modal = document.getElementById('budget-expense-modal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    this.selectedBudgetForExpense = null;
+  }
+
+  async saveExpenseFromBudget() {
+    if (!this.selectedBudgetForExpense) {
+      notify.error('Aucun budget selectionne.');
+      return;
+    }
+
+    const description = document.getElementById('budget-expense-description')?.value?.trim() || '';
+    const amount = parseFloat(document.getElementById('budget-expense-amount')?.value || '0');
+    const date = document.getElementById('budget-expense-date')?.value;
+
+    if (!description || Number.isNaN(amount) || amount <= 0 || !date) {
+      notify.error('Description, montant et date sont requis.');
+      return;
+    }
+
+    const budget = this.selectedBudgetForExpense;
+    try {
+      await insertRow(SUPABASE_TABLES.EXPENSES, {
+        id: generateUUID(),
+        description,
+        amount,
+        category: budget.category,
+        date,
+        other_reference: budget.category === 'autre' ? (budget.other_reference || null) : null,
+        created_at: new Date().toISOString()
+      }, 'Ajout de la depense');
+
+      await this.refreshData();
+      this.closeExpenseModal();
+      notify.success('Depense ajoutee depuis le budget.');
+    } catch (error) {
+      if (error.message === 'MODE_HORS_LIGNE') {
+        return;
+      }
+
+      if (error.message?.includes('SOLDE_INSUFFISANT')) {
+        notify.error('Solde disponible insuffisant pour enregistrer cette depense.');
+        return;
+      }
+
+      notify.error(error.message || 'Erreur lors de l ajout de la depense.');
     }
   }
 
