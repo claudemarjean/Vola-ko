@@ -101,6 +101,28 @@
         <button class="modal-close">&times;</button>
       </div>
       <form id="budget-form">
+        <div class="form-group" id="budget-creation-mode-group">
+          <label>Mode de creation</label>
+          <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap;">
+            <label style="display: inline-flex; align-items: center; gap: 8px;">
+              <input type="radio" name="budget-creation-mode" value="new" checked>
+              <span>Nouveau budget</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 8px;">
+              <input type="radio" name="budget-creation-mode" value="duplicate">
+              <span>Duplication</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" id="budget-duplicate-section" style="display: none;">
+          <label>Budgets anterieurs a copier</label>
+          <div id="budget-duplicate-list" class="card" style="padding: var(--space-md); max-height: 240px; overflow: auto;"></div>
+          <div id="budget-duplicate-empty" style="display: none; color: var(--text-secondary); font-size: 0.92rem; margin-top: 8px;">
+            Aucun budget anterieur eligible a copier vers le mois courant.
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="budget-category" data-i18n="budgets.category">Catégorie</label>
           <select id="budget-category" class="form-select" required>

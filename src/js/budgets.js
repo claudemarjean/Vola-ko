@@ -20,6 +20,8 @@ class BudgetsManager {
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.editingBudgetId = null;
     this.selectedBudgetForExpense = null;
+    this.creationMode = 'new';
+    this.duplicationCandidates = [];
     this.currentFilter = {
       category: '',
       period: 'current_month',
@@ -329,6 +331,13 @@ class BudgetsManager {
       });
     }
 
+    document.querySelectorAll('input[name="budget-creation-mode"]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        this.creationMode = e.target.value;
+        this.updateBudgetCreationModeUI(Boolean(this.editingBudgetId));
+      });
+    });
+
     const categorySelect = document.getElementById('budget-category');
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
 
@@ -532,6 +541,7 @@ class BudgetsManager {
     const notesInput = document.getElementById('budget-notes');
     const modalTitle = document.getElementById('budget-modal-title');
     const submitBtn = document.getElementById('budget-submit');
+    const creationModeGroup = document.getElementById('budget-creation-mode-group');
 
     this.editingBudgetId = budget?.id || null;
 
@@ -548,6 +558,15 @@ class BudgetsManager {
     }
 
     const isEditing = Boolean(budget);
+    this.creationMode = isEditing ? 'new' : 'new';
+
+    document.querySelectorAll('input[name="budget-creation-mode"]').forEach(input => {
+      input.checked = input.value === this.creationMode;
+    });
+
+    if (creationModeGroup) {
+      creationModeGroup.style.display = isEditing ? 'none' : 'block';
+    }
 
     if (modalTitle) {
       modalTitle.textContent = isEditing ? 'Modifier un budget' : 'Creer un budget';
@@ -582,6 +601,8 @@ class BudgetsManager {
       if (startDateInput) startDateInput.value = defaultRange.startDate;
       if (endDateInput) endDateInput.value = defaultRange.endDate;
     }
+
+    this.updateBudgetCreationModeUI(isEditing);
   }
 
   closeModal() {
@@ -591,6 +612,8 @@ class BudgetsManager {
     const startDateInput = document.getElementById('budget-start-date');
     const endDateInput = document.getElementById('budget-end-date');
     const notesInput = document.getElementById('budget-notes');
+    const duplicateList = document.getElementById('budget-duplicate-list');
+    const duplicateEmpty = document.getElementById('budget-duplicate-empty');
 
     if (modal) {
       modal.classList.remove('active');
@@ -619,10 +642,25 @@ class BudgetsManager {
       notesInput.value = '';
     }
 
+    if (duplicateList) {
+      duplicateList.innerHTML = '';
+    }
+
+    if (duplicateEmpty) {
+      duplicateEmpty.style.display = 'none';
+    }
+
     this.editingBudgetId = null;
+    this.creationMode = 'new';
+    this.duplicationCandidates = [];
   }
 
   async saveBudget() {
+    if (!this.editingBudgetId && this.creationMode === 'duplicate') {
+      await this.copySelectedBudgetsToCurrentMonth();
+      return;
+    }
+
     const category = document.getElementById('budget-category').value;
     const amount = parseFloat(document.getElementById('budget-amount').value);
     const otherReference = category === 'autre' ? document.getElementById('budget-other-reference').value : '';
@@ -709,6 +747,212 @@ class BudgetsManager {
         notify.error(error.message || 'Erreur lors de la sauvegarde du budget.');
       }
     }
+  }
+
+  updateBudgetCreationModeUI(isEditing) {
+    const duplicateSection = document.getElementById('budget-duplicate-section');
+    const categorySelect = document.getElementById('budget-category');
+    const amountInput = document.getElementById('budget-amount');
+    const startDateInput = document.getElementById('budget-start-date');
+    const endDateInput = document.getElementById('budget-end-date');
+    const notesInput = document.getElementById('budget-notes');
+    const otherReferenceInput = document.getElementById('budget-other-reference');
+    const otherReferenceGroup = document.getElementById('budget-other-reference-group');
+    const submitBtn = document.getElementById('budget-submit');
+
+    const duplicateMode = !isEditing && this.creationMode === 'duplicate';
+
+    if (duplicateSection) {
+      duplicateSection.style.display = duplicateMode ? 'block' : 'none';
+    }
+
+    const manualInputs = [categorySelect, amountInput, startDateInput, endDateInput, notesInput, otherReferenceInput];
+    manualInputs.forEach(input => {
+      if (input) input.disabled = duplicateMode;
+    });
+
+    if (categorySelect) {
+      categorySelect.required = !duplicateMode;
+    }
+
+    if (amountInput) {
+      amountInput.required = !duplicateMode;
+    }
+
+    if (otherReferenceGroup) {
+      otherReferenceGroup.style.display = duplicateMode ? 'none' : otherReferenceGroup.style.display;
+    }
+
+    if (submitBtn) {
+      if (isEditing) {
+        submitBtn.textContent = 'Mettre a jour';
+      } else {
+        submitBtn.textContent = duplicateMode ? 'Copier au mois courant' : 'Enregistrer';
+      }
+    }
+
+    if (duplicateMode) {
+      this.renderDuplicateCandidates();
+    }
+  }
+
+  renderDuplicateCandidates() {
+    const list = document.getElementById('budget-duplicate-list');
+    const empty = document.getElementById('budget-duplicate-empty');
+    if (!list || !empty) return;
+
+    this.duplicationCandidates = this.getDuplicateCandidatesForCurrentMonth();
+
+    if (this.duplicationCandidates.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    list.innerHTML = this.duplicationCandidates.map(candidate => {
+      const key = candidate.other_reference
+        ? `${candidate.category}::${candidate.other_reference}`
+        : candidate.category;
+      const categoryDisplay = candidate.category === 'autre' && candidate.other_reference
+        ? `${getCategoryName(candidate.category)} (${this.escapeHtml(candidate.other_reference)})`
+        : getCategoryName(candidate.category);
+      const range = this.getBudgetRange(candidate);
+
+      return `
+        <label style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 8px; border-bottom: 1px solid var(--border-primary); cursor: pointer;">
+          <input type="checkbox" class="budget-duplicate-check" value="${this.escapeHtml(key)}" style="margin-top: 3px;">
+          <div style="flex: 1;">
+            <div style="font-weight: 700;">${getCategoryIcon(candidate.category)} ${categoryDisplay}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">${this.formatCurrency(candidate.amount)} • ${this.formatDateFr(range.startDate)} - ${this.formatDateFr(range.endDate)}</div>
+          </div>
+        </label>
+      `;
+    }).join('');
+  }
+
+  getDuplicateCandidatesForCurrentMonth() {
+    const currentRange = this.getCurrentMonthRange();
+    const currentMonthBudgets = this.budgets.filter(budget => {
+      const range = this.getBudgetRange(budget);
+      return this.rangesOverlap(range.startDate, range.endDate, currentRange.startDate, currentRange.endDate);
+    });
+
+    const currentKeys = new Set(currentMonthBudgets.map(budget => {
+      const ref = (budget.other_reference || '').trim();
+      return ref ? `${budget.category}::${ref}` : budget.category;
+    }));
+
+    const obsolete = this.budgets.filter(budget => {
+      const range = this.getBudgetRange(budget);
+      return range.endDate < currentRange.startDate;
+    });
+
+    const latestByKey = new Map();
+    obsolete.forEach(budget => {
+      const ref = (budget.other_reference || '').trim();
+      const key = ref ? `${budget.category}::${ref}` : budget.category;
+      if (currentKeys.has(key)) return;
+
+      const existing = latestByKey.get(key);
+      if (!existing) {
+        latestByKey.set(key, budget);
+        return;
+      }
+
+      const existingRange = this.getBudgetRange(existing);
+      const budgetRange = this.getBudgetRange(budget);
+      if (budgetRange.endDate > existingRange.endDate) {
+        latestByKey.set(key, budget);
+      }
+    });
+
+    return Array.from(latestByKey.values()).sort((a, b) => {
+      const aRange = this.getBudgetRange(a);
+      const bRange = this.getBudgetRange(b);
+      return bRange.endDate.localeCompare(aRange.endDate);
+    });
+  }
+
+  async copySelectedBudgetsToCurrentMonth() {
+    const checks = Array.from(document.querySelectorAll('.budget-duplicate-check:checked'));
+    if (checks.length === 0) {
+      notify.error('Selectionnez au moins un budget a copier.');
+      return;
+    }
+
+    const selectedKeys = new Set(checks.map(input => input.value));
+    const selectedBudgets = this.duplicationCandidates.filter(candidate => {
+      const ref = (candidate.other_reference || '').trim();
+      const key = ref ? `${candidate.category}::${ref}` : candidate.category;
+      return selectedKeys.has(key);
+    });
+
+    if (selectedBudgets.length === 0) {
+      notify.error('Aucun budget selectionne pour la copie.');
+      return;
+    }
+
+    const currentRange = this.getCurrentMonthRange();
+    const timestamp = new Date().toISOString();
+
+    let copied = 0;
+    let skipped = 0;
+
+    try {
+      for (const budget of selectedBudgets) {
+        const overlap = this.budgets.find(existing => {
+          if (existing.category !== budget.category) return false;
+
+          const existingRef = (existing.other_reference || '').trim();
+          const budgetRef = (budget.other_reference || '').trim();
+          if (existingRef !== budgetRef) return false;
+
+          const range = this.getBudgetRange(existing);
+          return this.rangesOverlap(range.startDate, range.endDate, currentRange.startDate, currentRange.endDate);
+        });
+
+        if (overlap) {
+          skipped += 1;
+          continue;
+        }
+
+        await insertRow(SUPABASE_TABLES.BUDGETS, {
+          id: generateUUID(),
+          category: budget.category,
+          amount: parseFloat(budget.amount) || 0,
+          other_reference: budget.other_reference || null,
+          notes: budget.notes || null,
+          start_date: currentRange.startDate,
+          end_date: currentRange.endDate,
+          created_at: timestamp,
+          updated_at: timestamp
+        }, 'Duplication de budget');
+
+        copied += 1;
+      }
+    } catch (error) {
+      if (error.message === 'MODE_HORS_LIGNE') {
+        return;
+      }
+      notify.error(error.message || 'Erreur lors de la duplication des budgets.');
+      return;
+    }
+
+    if (copied === 0) {
+      notify.error('Aucun budget n a ete copie (deja existant sur le mois courant).');
+      return;
+    }
+
+    await this.refreshData();
+    this.closeModal();
+
+    if (skipped > 0) {
+      notify.success(`${copied} budget(s) copie(s). ${skipped} ignore(s) car deja existant(s).`);
+      return;
+    }
+
+    notify.success(`${copied} budget(s) copie(s) au mois courant.`);
   }
 
   getCurrentMonthRange() {
