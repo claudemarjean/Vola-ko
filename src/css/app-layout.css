@@ -8,6 +8,9 @@
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-secondary);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Sidebar ───────────────────────────────── */
@@ -277,6 +280,10 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   margin-left: var(--sidebar-width, 280px);
   padding: var(--space-xl);
   min-height: 100vh;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── App Header ────────────────────────────── */
@@ -300,17 +307,15 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 .header-title h1 {
   font-size: var(--font-size-2xl);
   margin-bottom: var(--space-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .header-title p {
   color: var(--text-secondary);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-size: var(--font-size-sm);
 }
 
@@ -410,6 +415,7 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   box-shadow: var(--shadow-xl);
   animation: modal-slide-up 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 1px solid var(--border-primary);
+  overflow-x: hidden;
 }
 
 @keyframes modal-slide-up {
@@ -591,7 +597,7 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 /* ── Budget Cards ──────────────────────────── */
 .budgets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--space-xl);
 }
 
@@ -616,6 +622,8 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
   align-items: center;
   flex: 0 0 auto;
   margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .budget-header h3 {
@@ -786,18 +794,16 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 .item-details h4 {
   font-size: var(--font-size-base);
   margin-bottom: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .item-details p {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .item-amount {
@@ -815,7 +821,7 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 /* ── Savings Cards ─────────────────────────── */
 .savings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--space-lg);
 }
 
@@ -926,10 +932,23 @@ body.menu-open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(
 .progress-info {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .list-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 768px) {

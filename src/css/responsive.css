@@ -4,6 +4,65 @@
    ============================================== */
 
 /* ============================================
+   GLOBAL OVERFLOW HARDENING
+   ============================================ */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.app-container,
+.main-content,
+.main-content > *,
+.card,
+.stat-card,
+.list-item,
+.budget-card,
+.saving-card,
+.settings-item,
+.chart-card,
+.filters-card,
+.app-header,
+.modal-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-header > *,
+.card-header > *,
+.list-item > *,
+.item-info > *,
+.budget-header > *,
+.saving-header > *,
+.settings-item > *,
+.filters-row > *,
+.stats-grid > *,
+.budgets-grid > *,
+.savings-grid > *,
+.charts-grid > * {
+  min-width: 0;
+}
+
+.btn,
+.form-input,
+.form-select,
+.modal-header h2,
+.item-details h4,
+.item-details p,
+.saving-name,
+.budget-header h3,
+.header-title h1,
+.header-title p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.table-container {
+  max-width: 100%;
+}
+
+/* ============================================
    LARGE DESKTOP (min-width: 1440px)
    ============================================ */
 @media (min-width: 1440px) {
@@ -63,6 +122,7 @@
   .main-content {
     margin-left: 256px;
     padding: var(--space-lg);
+    width: calc(100% - 256px);
   }
 
   .stats-grid {
@@ -72,6 +132,10 @@
 
   .filters-row {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 
   .app-header {
@@ -150,6 +214,7 @@
     padding: var(--space-md);
     padding-top: calc(var(--mobile-header-height, 60px) + var(--space-md));
     min-height: 100vh;
+    width: 100%;
   }
 
   .mobile-topbar-brand {
@@ -182,6 +247,7 @@
   .header-actions .btn {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
     justify-content: center;
     min-height: 44px;
   }
@@ -248,6 +314,7 @@
   .modal-content {
     max-width: 100%;
     max-height: 94vh;
+    width: min(100%, 720px);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     animation: modal-slide-mobile 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -304,7 +371,7 @@
   /* ── List items on mobile ── */
   .list-item {
     padding: var(--space-sm) var(--space-md);
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     min-width: 0;
   }
 
@@ -318,6 +385,11 @@
   .item-amount {
     font-size: var(--font-size-base);
     min-width: 0;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .item-details h4,
@@ -359,6 +431,7 @@
     padding: var(--space-sm);
     padding-top: calc(var(--mobile-header-height, 60px) + var(--space-sm));
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
   }
 
   .mobile-topbar {
@@ -402,6 +475,12 @@
     margin-bottom: var(--space-sm);
     border-radius: var(--radius-lg);
     overflow: hidden;
+  }
+
+  .budget-actions,
+  .saving-actions,
+  .header-actions {
+    width: 100%;
   }
 
   /* ── Sidebar width on small screens ── */
