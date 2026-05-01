@@ -6,7 +6,8 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import { generateUUID } from './ids.js';
-import { fetchTable, insertRow, updateRow, deleteRow, fetchBudgetProgress } from './volakoApi.js';
+import { fetchTable, insertRow, updateRow, deleteRow, fetchBudgetProgress, fetchCategories } from './volakoApi.js';
+import { getCategories, setCategoriesCache, getCategoryIcon, getCategoryName } from './utils.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import notify from './notifications.js';
 import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
@@ -23,11 +24,32 @@ class BudgetsManager {
     this.checkAuth();
     renderSidebar('budgets');
     renderBottomNav('budgets');
+    await this.loadCategories();
     this.setupEventListeners();
     this.setupForm();
 
     applySkeleton('budgets-grid', 'cards');
     await this.refreshData();
+  }
+
+  async loadCategories() {
+    try {
+      const categories = await fetchCategories();
+      setCategoriesCache(categories);
+    } catch {
+      // Utiliser le fallback statique si la BDD est inaccessible
+    }
+    this.populateCategorySelect();
+  }
+
+  populateCategorySelect() {
+    const select = document.getElementById('budget-category');
+    if (!select) return;
+    let html = '<option value="">S\u00e9lectionner...</option>';
+    getCategories().forEach(cat => {
+      html += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+    });
+    select.innerHTML = html;
   }
 
   checkAuth() {
@@ -71,13 +93,13 @@ class BudgetsManager {
     if (percentage > 80) progressColor = 'var(--color-error)';
     else if (percentage > 60) progressColor = 'var(--color-warning)';
 
-    const icon = this.getCategoryIcon(budget.category);
+    const icon = getCategoryIcon(budget.category);
     const safeOtherReference = budget.other_reference ? this.escapeHtml(budget.other_reference) : '';
     const safeNotes = budget.notes ? this.escapeHtml(budget.notes) : '';
     const formattedNotes = safeNotes ? safeNotes.replace(/\n/g, '<br>') : '';
     const categoryName = budget.category === 'autre' && budget.other_reference
-      ? `${this.getCategoryName(budget.category)} (${safeOtherReference})`
-      : this.getCategoryName(budget.category);
+      ? `${getCategoryName(budget.category)} (${safeOtherReference})`
+      : getCategoryName(budget.category);
 
     return `
       <div class="budget-card card">
@@ -116,30 +138,6 @@ class BudgetsManager {
         ${formattedNotes ? `<div class="budget-notes"><span class="stat-label">Details</span><p>${formattedNotes}</p></div>` : ''}
       </div>
     `;
-  }
-
-  getCategoryIcon(category) {
-    const icons = {
-      alimentation: '🛒',
-      transport: '🚗',
-      logement: '🏠',
-      sante: '💊',
-      loisirs: '🎮',
-      autre: '📦'
-    };
-    return icons[category] || '📦';
-  }
-
-  getCategoryName(category) {
-    const names = {
-      alimentation: 'Alimentation',
-      transport: 'Transport',
-      logement: 'Logement',
-      sante: 'Sante',
-      loisirs: 'Loisirs',
-      autre: 'Autre'
-    };
-    return names[category] || category;
   }
 
   formatCurrency(amount) {

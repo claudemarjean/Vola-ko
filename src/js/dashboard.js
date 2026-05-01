@@ -4,7 +4,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
-import { CATEGORIES } from './utils.js';
+import { getCategories, setCategoriesCache } from './utils.js';
 import { Chart, registerables } from 'chart.js';
 import {
   fetchDashboardSnapshot,
@@ -12,7 +12,8 @@ import {
   fetchDashboardCategoryBreakdown,
   fetchDashboardTrend7,
   fetchDashboardBudgetUsage,
-  fetchDashboardBalance12Months
+  fetchDashboardBalance12Months,
+  fetchCategories
 } from './volakoApi.js';
 import { withPageLoader } from './loaders.js';
 import notify from './notifications.js';
@@ -34,6 +35,13 @@ class Dashboard {
   async init() {
     this.checkAuth();
     this.centerActiveBottomNavItem();
+
+    try {
+      const categories = await fetchCategories();
+      setCategoriesCache(categories);
+    } catch {
+      // Utiliser le fallback statique si la BDD est inaccessible
+    }
 
     await withPageLoader('transactions-list', async () => {
       await this.loadData();
@@ -147,7 +155,11 @@ class Dashboard {
       transport: '🚗',
       logement: '🏠',
       sante: '💊',
+      beaute: '💄',
+      vetements: '👔',
       loisirs: '🎮',
+      imprevus: '⚡',
+      epargne: '💾',
       income: '💼',
       autre: '📦'
     };
@@ -244,7 +256,7 @@ class Dashboard {
     const colors = [];
 
     this.categoryBreakdown.forEach(row => {
-      const category = CATEGORIES.find(c => c.id === row.category);
+      const category = getCategories().find(c => c.id === row.category);
       if (category) {
         labels.push(`${category.icon} ${category.name}`);
         data.push(Number(row.total || 0));
@@ -358,7 +370,7 @@ class Dashboard {
     const colors = [];
 
     this.budgetUsage.forEach(row => {
-      const category = CATEGORIES.find(c => c.id === row.category);
+      const category = getCategories().find(c => c.id === row.category);
       if (category) {
         labels.push(`${category.icon} ${category.name}`);
         spentData.push(Number(row.spent || 0));

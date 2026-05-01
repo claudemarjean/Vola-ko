@@ -116,6 +116,31 @@ export async function callRpc(name, params = {}, actionLabel = 'Cette action') {
   }, { message: 'Chargement des donnees...' });
 }
 
+/**
+ * Charger toutes les catégories accessibles par l'utilisateur connecté
+ * (catégories système user_id IS NULL + catégories custom de l'utilisateur)
+ */
+export async function fetchCategories() {
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLES.CATEGORIES)
+    .select('id, slug, name, icon, color, sort_order, is_default, user_id')
+    .or(`user_id.is.null,user_id.eq.${userId}`)
+    .order('sort_order', { ascending: true });
+
+  handleDbError(error, 'Impossible de charger les catégories');
+  // Mapper slug → id pour compatibilité avec le reste de l'application
+  return (data || []).map(cat => ({
+    id: cat.slug,
+    name: cat.name,
+    icon: cat.icon,
+    color: cat.color,
+    sort_order: cat.sort_order,
+    is_default: cat.is_default,
+    db_id: cat.id
+  }));
+}
+
 export async function fetchDashboardSnapshot() {
   const userId = await requireUserId();
   const data = await callRpc('volako_get_dashboard_snapshot', { p_user_id: userId }, 'Chargement du dashboard');

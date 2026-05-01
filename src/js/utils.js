@@ -5,16 +5,40 @@
 
 /**
  * Categories Configuration
+ * DEFAULT_CATEGORIES = fallback statique (hors-ligne / avant chargement BDD)
+ * _categoriesCache   = données chargées depuis volako_categories (BDD)
  */
-export const CATEGORIES = [
-  { id: 'alimentation', name: 'Alimentation', icon: '🛒', color: '#10b981' },
-  { id: 'transport', name: 'Transport', icon: '🚗', color: '#3b82f6' },
-  { id: 'logement', name: 'Logement', icon: '🏠', color: '#f59e0b' },
-  { id: 'sante', name: 'Santé', icon: '💊', color: '#ef4444' },
-  { id: 'loisirs', name: 'Loisirs', icon: '🎮', color: '#8b5cf6' },
-  { id: 'epargne', name: 'Épargne', icon: '💾', color: '#7c3aed' },
-  { id: 'autre', name: 'Autre', icon: '📦', color: '#6b7280' }
+export const DEFAULT_CATEGORIES = [
+  { id: 'alimentation', name: 'Alimentation',  icon: '🛒', color: '#10b981' },
+  { id: 'transport',    name: 'Transport',      icon: '🚗', color: '#3b82f6' },
+  { id: 'logement',     name: 'Logement',       icon: '🏠', color: '#f59e0b' },
+  { id: 'sante',        name: 'Santé',          icon: '💊', color: '#ef4444' },
+  { id: 'beaute',       name: 'Beauté & Soins', icon: '💄', color: '#ec4899' },
+  { id: 'vetements',    name: 'Vêtements',      icon: '👔', color: '#8b5cf6' },
+  { id: 'loisirs',      name: 'Loisirs',        icon: '🎮', color: '#6366f1' },
+  { id: 'imprevus',     name: 'Imprévus',       icon: '⚡', color: '#f97316' },
+  { id: 'epargne',      name: 'Épargne',        icon: '💾', color: '#7c3aed' },
+  { id: 'autre',        name: 'Autre',          icon: '📦', color: '#6b7280' }
 ];
+
+// Alias pour la compatibilité avec les anciens imports `import { CATEGORIES }`
+export { DEFAULT_CATEGORIES as CATEGORIES };
+
+let _categoriesCache = null;
+
+/**
+ * Remplace le cache par les catégories chargées depuis la BDD
+ */
+export function setCategoriesCache(categories) {
+  _categoriesCache = categories;
+}
+
+/**
+ * Retourne le cache BDD si disponible, sinon le fallback statique
+ */
+export function getCategories() {
+  return _categoriesCache || DEFAULT_CATEGORIES;
+}
 
 /**
  * Currencies Configuration
@@ -63,10 +87,10 @@ export function formatRelativeDate(dateString) {
 }
 
 /**
- * Get category by ID
+ * Get category by ID (slug)
  */
 export function getCategoryById(id) {
-  return CATEGORIES.find(cat => cat.id === id);
+  return getCategories().find(cat => cat.id === id);
 }
 
 /**
@@ -217,7 +241,7 @@ export async function confirmAction(message, options = {}) {
 }
 
 export default {
-  CATEGORIES,
+  CATEGORIES: DEFAULT_CATEGORIES,
   CURRENCIES,
   formatCurrency,
   formatDate,

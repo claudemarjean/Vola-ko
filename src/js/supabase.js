@@ -40,7 +40,8 @@ export const SUPABASE_TABLES = {
   EXPENSES: 'volako_expenses',
   BUDGETS: 'volako_budgets',
   SAVINGS: 'volako_savings',
-  SAVINGS_TRANSACTIONS: 'volako_savings_transactions'
+  SAVINGS_TRANSACTIONS: 'volako_savings_transactions',
+  CATEGORIES: 'volako_categories'
 };
 
 /**

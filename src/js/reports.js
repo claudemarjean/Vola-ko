@@ -5,7 +5,7 @@
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav } from './components.js';
-import { CATEGORIES } from './utils.js';
+import { getCategories, setCategoriesCache } from './utils.js';
 import { Chart, registerables } from 'chart.js';
 import {
   fetchReportsSummary,
@@ -13,7 +13,8 @@ import {
   fetchReportsMonthlyComparison,
   fetchReportsExpenseTrend,
   fetchReportsTopExpenses,
-  fetchReportsWeekly
+  fetchReportsWeekly,
+  fetchCategories
 } from './volakoApi.js';
 import { withPageLoader } from './loaders.js';
 import notify from './notifications.js';
@@ -38,6 +39,13 @@ class ReportsManager {
     this.checkAuth();
     renderSidebar('reports');
     renderBottomNav('reports');
+
+    try {
+      const categories = await fetchCategories();
+      setCategoriesCache(categories);
+    } catch {
+      // Utiliser le fallback statique si la BDD est inaccessible
+    }
 
     await this.loadData();
     this.updateStats();
@@ -137,7 +145,7 @@ class ReportsManager {
   }
 
   getCategoryColor(categoryId) {
-    const category = CATEGORIES.find(c => c.id === categoryId);
+    const category = getCategories().find(c => c.id === categoryId);
     return category ? category.color : '#6b7280';
   }
 
@@ -165,7 +173,7 @@ class ReportsManager {
     const bgColors = [];
 
     this.categoryRows.forEach(row => {
-      const category = CATEGORIES.find(c => c.id === row.category);
+      const category = getCategories().find(c => c.id === row.category);
       if (category) {
         labels.push(`${category.icon} ${category.name}`);
         data.push(Number(row.total || 0));
@@ -298,7 +306,7 @@ class ReportsManager {
 
     const colors = this.getChartColors();
     const labels = this.topRows.map(exp => {
-      const category = CATEGORIES.find(c => c.id === exp.category);
+      const category = getCategories().find(c => c.id === exp.category);
       return `${category?.icon || '📦'} ${exp.description}`;
     });
     const data = this.topRows.map(exp => Number(exp.amount || 0));

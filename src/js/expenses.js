@@ -7,7 +7,8 @@ import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import notify from './notifications.js';
 import { generateUUID } from './ids.js';
-import { fetchTable, insertRow, updateRow, deleteRow } from './volakoApi.js';
+import { fetchTable, insertRow, updateRow, deleteRow, fetchCategories } from './volakoApi.js';
+import { getCategories, setCategoriesCache, getCategoryIcon } from './utils.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
@@ -22,11 +23,39 @@ class ExpensesManager {
     this.checkAuth();
     renderSidebar('expenses');
     renderBottomNav('expenses');
+    await this.loadCategories();
     this.setupEventListeners();
     this.setupForm();
 
     applySkeleton('expenses-list', 'list');
     await this.refreshData();
+  }
+
+  async loadCategories() {
+    try {
+      const categories = await fetchCategories();
+      setCategoriesCache(categories);
+    } catch {
+      // Utiliser le fallback statique si la BDD est inaccessible
+    }
+    this.populateCategorySelects();
+  }
+
+  populateCategorySelects() {
+    const categories = getCategories();
+    const filterSelect = document.getElementById('category-filter');
+    const formSelect = document.getElementById('expense-category');
+
+    const buildOptions = (withAll) => {
+      let html = withAll ? '<option value="">Toutes les cat\u00e9gories</option>' : '<option value="">S\u00e9lectionner...</option>';
+      categories.forEach(cat => {
+        html += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+      });
+      return html;
+    };
+
+    if (filterSelect) filterSelect.innerHTML = buildOptions(true);
+    if (formSelect)   formSelect.innerHTML   = buildOptions(false);
   }
 
   checkAuth() {
@@ -89,7 +118,7 @@ class ExpensesManager {
   }
 
   createExpenseHTML(expense) {
-    const icon = this.getCategoryIcon(expense.category);
+    const icon = getCategoryIcon(expense.category);
     const date = new Date(expense.date).toLocaleDateString('fr-FR');
     const categoryDisplay = expense.category === 'autre' && expense.other_reference
       ? `${expense.category} (${expense.other_reference})`
@@ -111,18 +140,6 @@ class ExpensesManager {
         </div>
       </div>
     `;
-  }
-
-  getCategoryIcon(category) {
-    const icons = {
-      alimentation: '🛒',
-      transport: '🚗',
-      logement: '🏠',
-      sante: '💊',
-      loisirs: '🎮',
-      autre: '📦'
-    };
-    return icons[category] || '📦';
   }
 
   formatCurrency(amount) {
