@@ -266,7 +266,7 @@ export async function applySavingsTransaction(payload) {
     p_type: payload.type,
     p_amount: payload.amount,
     p_description: payload.description,
-    p_date: payload.date
+    p_date: payload.date ?? null
   }, 'Transaction epargne');
 }
 

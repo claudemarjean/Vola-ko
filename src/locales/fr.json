@@ -387,6 +387,7 @@
     "add_funds": "Ajouter",
     "withdraw_funds": "Retirer",
     "amount": "Montant (MGA)",
+    "description": "Description (facultative)",
     "date": "Date",
     "view_history": "Voir l'historique",
     "delete_confirm": "Voulez-vous vraiment supprimer cette épargne ?",

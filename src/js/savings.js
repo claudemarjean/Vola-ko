@@ -353,8 +353,7 @@ class SavingsManager {
           savings_id: id,
           type: 'withdraw',
           amount: balance,
-          description: `Restitution suite a suppression de ${saving.name}`,
-          date: new Date().toISOString().split('T')[0]
+          description: `Restitution suite a suppression de ${saving.name}`
         });
       }
 
@@ -381,8 +380,11 @@ class SavingsManager {
 
     document.getElementById('transaction-saving-id').value = savingId;
     document.getElementById('transaction-type').value = type;
-    document.getElementById('transaction-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('transaction-amount').value = '';
+    const descriptionField = document.getElementById('transaction-description');
+    if (descriptionField) {
+      descriptionField.value = '';
+    }
 
     modal.classList.add('active');
   }
@@ -395,11 +397,10 @@ class SavingsManager {
     const savingId = document.getElementById('transaction-saving-id').value;
     const type = document.getElementById('transaction-type').value;
     const amount = parseFloat(document.getElementById('transaction-amount').value);
-    const date = document.getElementById('transaction-date').value;
-    const description = document.getElementById('transaction-description')?.value || '';
+    const description = document.getElementById('transaction-description')?.value?.trim() || '';
 
-    if (!savingId || !type || !amount || !date) {
-      notify.error('Tous les champs sont requis');
+    if (!savingId || !type || !amount) {
+      notify.error('Le montant est requis');
       return;
     }
 
@@ -413,8 +414,7 @@ class SavingsManager {
         savings_id: savingId,
         type,
         amount,
-        description,
-        date
+        description
       });
 
       await this.refreshData();
