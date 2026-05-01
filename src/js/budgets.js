@@ -642,6 +642,25 @@ class BudgetsManager {
     };
   }
 
+  getLastMonthRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0);
+    return {
+      startDate: this.toDateInputValue(start),
+      endDate: this.toDateInputValue(end)
+    };
+  }
+
+  getSinceLastMonthRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return {
+      startDate: this.toDateInputValue(start),
+      endDate: this.toDateInputValue(now)
+    };
+  }
+
   toDateInputValue(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -700,6 +719,14 @@ class BudgetsManager {
       return null;
     }
 
+    if (this.currentFilter.period === 'since_last_month') {
+      return this.getSinceLastMonthRange();
+    }
+
+    if (this.currentFilter.period === 'last_month') {
+      return this.getLastMonthRange();
+    }
+
     if (this.currentFilter.period === 'current_year') {
       return this.getCurrentYearRange();
     }
@@ -724,6 +751,14 @@ class BudgetsManager {
 
     if (this.currentFilter.period === 'current_month') {
       const range = this.getCurrentMonthRange();
+      this.currentFilter.startDate = range.startDate;
+      this.currentFilter.endDate = range.endDate;
+    } else if (this.currentFilter.period === 'last_month') {
+      const range = this.getLastMonthRange();
+      this.currentFilter.startDate = range.startDate;
+      this.currentFilter.endDate = range.endDate;
+    } else if (this.currentFilter.period === 'since_last_month') {
+      const range = this.getSinceLastMonthRange();
       this.currentFilter.startDate = range.startDate;
       this.currentFilter.endDate = range.endDate;
     } else if (this.currentFilter.period === 'current_year') {

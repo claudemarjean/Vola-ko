@@ -14,8 +14,10 @@ import {
   fetchReportsExpenseTrend,
   fetchReportsTopExpenses,
   fetchReportsWeekly,
+  fetchTable,
   fetchCategories
 } from './volakoApi.js';
+import { SUPABASE_TABLES } from './supabase.js';
 import { withPageLoader } from './loaders.js';
 import notify from './notifications.js';
 
@@ -63,6 +65,11 @@ class ReportsManager {
   async loadData() {
     await withPageLoader('category-chart', async () => {
       try {
+        if (this.currentPeriod === 'last_month' || this.currentPeriod === 'since_last_month') {
+          await this.loadDataFromLocalRange(this.currentPeriod);
+          return;
+        }
+
         const [summary, category, comparison, trend, top, weekly] = await Promise.all([
           fetchReportsSummary(this.currentPeriod),
           fetchReportsCategoryBreakdown(this.currentPeriod),
@@ -82,6 +89,151 @@ class ReportsManager {
         notify.error(error.message || 'Erreur de chargement des rapports.');
       }
     });
+  }
+
+  async loadDataFromLocalRange(period) {
+    const range = this.getReportRange(period);
+    const [incomes, expenses] = await Promise.all([
+      fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false }),
+      fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false })
+    ]);
+
+    const inRange = (dateValue) => {
+      const dateKey = this.getDateKey(dateValue);
+      return dateKey >= range.startDate && dateKey <= range.endDate;
+    };
+
+    const filteredIncomes = (incomes || []).filter(row => inRange(row.date));
+    const filteredExpenses = (expenses || []).filter(row => inRange(row.date));
+
+    const totalIncome = filteredIncomes.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const totalExpenses = filteredExpenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+
+    this.summary = {
+      total_income: totalIncome,
+      total_expenses: totalExpenses,
+      balance: totalIncome - totalExpenses
+    };
+
+    const categoryMap = new Map();
+    filteredExpenses.forEach(row => {
+      const key = row.category || 'autre';
+      categoryMap.set(key, (categoryMap.get(key) || 0) + Number(row.amount || 0));
+    });
+    this.categoryRows = Array.from(categoryMap.entries())
+      .map(([category, total]) => ({ category, total }))
+      .sort((a, b) => Number(b.total || 0) - Number(a.total || 0));
+
+    const monthlyMap = new Map();
+    const ensureMonth = (dateValue) => {
+      const monthKey = this.getDateKey(dateValue).slice(0, 7);
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, { income: 0, expense: 0 });
+      }
+      return monthKey;
+    };
+
+    filteredIncomes.forEach(row => {
+      const monthKey = ensureMonth(row.date);
+      monthlyMap.get(monthKey).income += Number(row.amount || 0);
+    });
+
+    filteredExpenses.forEach(row => {
+      const monthKey = ensureMonth(row.date);
+      monthlyMap.get(monthKey).expense += Number(row.amount || 0);
+    });
+
+    this.comparisonRows = Array.from(monthlyMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([monthKey, totals]) => {
+        const monthDate = new Date(`${monthKey}-01T00:00:00`);
+        return {
+          month_label: monthDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+          income: totals.income,
+          expense: totals.expense
+        };
+      });
+
+    const dailyMap = new Map();
+    filteredExpenses.forEach(row => {
+      const dayKey = this.getDateKey(row.date);
+      dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + Number(row.amount || 0));
+    });
+
+    let cumulative = 0;
+    this.trendRows = Array.from(dailyMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([dayKey, amount]) => {
+        cumulative += Number(amount || 0);
+        const dayDate = new Date(`${dayKey}T00:00:00`);
+        return {
+          day_label: dayDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+          amount,
+          cumulative
+        };
+      });
+
+    this.topRows = [...filteredExpenses]
+      .sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0))
+      .slice(0, 5)
+      .map(row => ({
+        category: row.category || 'autre',
+        description: row.description || 'Depense',
+        amount: Number(row.amount || 0)
+      }));
+
+    const weekdayMap = new Map();
+    filteredExpenses.forEach(row => {
+      const weekday = new Date(`${this.getDateKey(row.date)}T00:00:00`).getDay();
+      weekdayMap.set(weekday, (weekdayMap.get(weekday) || 0) + Number(row.amount || 0));
+    });
+
+    this.weeklyRows = Array.from(weekdayMap.entries()).map(([weekday, total]) => ({
+      weekday,
+      total
+    }));
+  }
+
+  getReportRange(period) {
+    const today = new Date();
+    const todayKey = this.toDateInputValue(today);
+
+    if (period === 'last_month') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(today.getFullYear(), today.getMonth(), 0);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: this.toDateInputValue(end)
+      };
+    }
+
+    if (period === 'since_last_month') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: todayKey
+      };
+    }
+
+    return {
+      startDate: todayKey,
+      endDate: todayKey
+    };
+  }
+
+  toDateInputValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getDateKey(value) {
+    if (typeof value === 'string' && value.length >= 10) {
+      return value.slice(0, 10);
+    }
+    const date = new Date(value);
+    return this.toDateInputValue(date);
   }
 
   updateStats() {

@@ -355,6 +355,8 @@
     "filter_expense": "Fandaniana",
     "filter_savings": "Fitsitsiana",
     "period_month": "Ity volana ity",
+    "period_last_month": "Volana lasa",
+    "period_since_last_month": "Hatramin'ny volana lasa",
     "period_week": "Ity herinandro ity",
     "period_year": "12 volana farany",
     "period_all": "Rehetra",

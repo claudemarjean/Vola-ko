@@ -355,6 +355,8 @@
     "filter_expense": "Dépenses",
     "filter_savings": "Épargne",
     "period_month": "Ce mois",
+    "period_last_month": "Mois dernier",
+    "period_since_last_month": "Depuis mois dernier",
     "period_week": "Cette semaine",
     "period_year": "12 derniers mois",
     "period_all": "Tout",

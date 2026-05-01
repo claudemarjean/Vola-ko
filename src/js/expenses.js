@@ -94,18 +94,12 @@ class ExpensesManager {
       filtered = filtered.filter(exp => exp.category === this.currentFilter.category);
     }
 
-    const now = new Date();
-    if (this.currentFilter.period === 'week') {
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter(exp => new Date(exp.date) >= weekAgo);
-    } else if (this.currentFilter.period === 'month') {
+    const periodRange = this.getPeriodRange(this.currentFilter.period);
+    if (periodRange) {
       filtered = filtered.filter(exp => {
-        const date = new Date(exp.date);
-        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        const dateKey = this.getDateKey(exp.date);
+        return dateKey >= periodRange.startDate && dateKey <= periodRange.endDate;
       });
-    } else if (this.currentFilter.period === 'year') {
-      const rollingYearStart = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-      filtered = filtered.filter(exp => new Date(exp.date) >= rollingYearStart);
     }
 
     if (this.currentFilter.search) {
@@ -115,6 +109,73 @@ class ExpensesManager {
 
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     return filtered;
+  }
+
+  getPeriodRange(period) {
+    const today = new Date();
+    const todayKey = this.toDateInputValue(today);
+
+    if (period === 'all') {
+      return null;
+    }
+
+    if (period === 'week') {
+      const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: todayKey
+      };
+    }
+
+    if (period === 'month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: todayKey
+      };
+    }
+
+    if (period === 'last_month') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(today.getFullYear(), today.getMonth(), 0);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: this.toDateInputValue(end)
+      };
+    }
+
+    if (period === 'since_last_month') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: todayKey
+      };
+    }
+
+    if (period === 'year') {
+      const start = new Date(today.getFullYear() - 1, today.getMonth(), 1);
+      return {
+        startDate: this.toDateInputValue(start),
+        endDate: todayKey
+      };
+    }
+
+    return null;
+  }
+
+  toDateInputValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getDateKey(value) {
+    if (typeof value === 'string' && value.length >= 10) {
+      return value.slice(0, 10);
+    }
+    const date = new Date(value);
+    return this.toDateInputValue(date);
   }
 
   createExpenseHTML(expense) {
