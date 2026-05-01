@@ -6,9 +6,10 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav } from './components.js';
 import notify from './notifications.js';
-import { fetchTable } from './volakoApi.js';
+import { fetchTable, fetchCategories } from './volakoApi.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import { withPageLoader, applySkeleton } from './loaders.js';
+import { setCategoriesCache, getCategories, getCategoryName } from './utils.js';
 
 class TransactionsManager {
   constructor() {
@@ -37,13 +38,15 @@ class TransactionsManager {
 
   async refreshData() {
     await withPageLoader('transactions-list', async () => {
-      const [incomes, expenses, savingsTx, savings] = await Promise.all([
+      const [incomes, expenses, savingsTx, savings, categories] = await Promise.all([
         fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false }),
         fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false }),
         fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS, { orderBy: 'date', ascending: false }),
-        fetchTable(SUPABASE_TABLES.SAVINGS, { orderBy: 'updated_at', ascending: false })
+        fetchTable(SUPABASE_TABLES.SAVINGS, { orderBy: 'updated_at', ascending: false }),
+        fetchCategories().catch(() => getCategories())
       ]);
 
+      setCategoriesCache(categories || []);
       this.savingsById = new Map((savings || []).map(s => [s.id, s.name]));
       this.transactions = this.buildUnifiedTransactions(incomes || [], expenses || [], savingsTx || []);
       this.renderTransactions();
@@ -68,8 +71,8 @@ class TransactionsManager {
       date: row.date,
       label: row.description || 'Depense',
       details: row.category === 'autre' && row.other_reference
-        ? `${row.category} (${row.other_reference})`
-        : (row.category || 'Depense'),
+        ? `${getCategoryName(row.category)} (${row.other_reference})`
+        : getCategoryName(row.category || 'autre'),
       amount: Number(row.amount || 0),
       source: 'expense',
       sourceLabel: 'Depenses',

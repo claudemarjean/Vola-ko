@@ -129,6 +129,52 @@
         </div>
       </div>
 
+      <!-- Categories -->
+      <div class="settings-section card">
+        <h2>Categories</h2>
+
+        <div class="settings-item" style="align-items: flex-start;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+            <div>
+              <h4>Categories par defaut</h4>
+              <p>Visibles par tous les utilisateurs</p>
+            </div>
+            <div id="default-categories-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+          </div>
+        </div>
+
+        <div class="settings-item" style="align-items: flex-start;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%;">
+            <div>
+              <h4>Mes categories personnalisees</h4>
+              <p>Visibles uniquement pour votre compte</p>
+            </div>
+            <div id="custom-categories-list" style="display: grid; gap: 0.5rem; width: 100%;"></div>
+          </div>
+        </div>
+
+        <form id="custom-category-form" class="settings-password-form" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label for="custom-category-name">Nom de la categorie</label>
+            <input type="text" id="custom-category-name" class="form-input" minlength="2" maxlength="40" placeholder="Ex: Animaux, Formation..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="custom-category-icon">Icone</label>
+            <input type="text" id="custom-category-icon" class="form-input" maxlength="4" placeholder="Ex: 🐶, 📚" value="📦">
+          </div>
+
+          <div class="form-group">
+            <label for="custom-category-color">Couleur</label>
+            <input type="color" id="custom-category-color" class="form-input" value="#6b7280" style="padding: 0.3rem; height: 44px;">
+          </div>
+
+          <div class="settings-inline-actions">
+            <button type="submit" class="btn btn-primary" id="save-custom-category-btn">Ajouter la categorie</button>
+          </div>
+        </form>
+      </div>
+
       <!-- Data Management -->
       <div class="settings-section card">
         <h2 data-i18n="settings.data_title">Gestion des données</h2>

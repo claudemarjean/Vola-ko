@@ -9,14 +9,22 @@ import ThemeManager from './theme.js';
 import I18n from './i18n.js';
 import notify from './notifications.js';
 import { supabase, SUPABASE_TABLES } from './supabase.js';
-import { fetchTable, upsertUserSettings } from './volakoApi.js';
+import {
+  fetchTable,
+  upsertUserSettings,
+  fetchCategories,
+  createCustomCategory,
+  deleteCustomCategory
+} from './volakoApi.js';
 import { ensureOnlineForCriticalAction } from './network.js';
 import { withPageLoader, setButtonLoading, withGlobalLoader } from './loaders.js';
+import { setCategoriesCache, getCategories } from './utils.js';
 
 class SettingsManager {
   constructor() {
     this.auth = new Auth();
     this.themeManager = new ThemeManager();
+    this.categories = [];
   }
 
   async init() {
@@ -26,8 +34,55 @@ class SettingsManager {
 
     await withPageLoader('sidebar-container', async () => {
       this.loadUserInfo();
+      await this.loadCategories();
       this.setupEventListeners();
     });
+  }
+
+  async loadCategories() {
+    try {
+      this.categories = await fetchCategories();
+      setCategoriesCache(this.categories);
+    } catch {
+      this.categories = getCategories();
+    }
+
+    this.renderCategoryLists();
+  }
+
+  renderCategoryLists() {
+    const defaultList = document.getElementById('default-categories-list');
+    const customList = document.getElementById('custom-categories-list');
+    if (!defaultList || !customList) return;
+
+    const defaults = this.categories.filter(cat => cat.is_default);
+    const customs = this.categories.filter(cat => !cat.is_default);
+
+    defaultList.innerHTML = defaults
+      .map(cat => `<span class="settings-lock-badge" style="display:inline-flex; align-items:center; gap:0.35rem;"><span>${cat.icon}</span><span>${this.escapeHtml(cat.name)}</span></span>`)
+      .join('');
+
+    if (customs.length === 0) {
+      customList.innerHTML = '<p style="color: var(--text-secondary);">Aucune categorie personnalisee pour le moment.</p>';
+      return;
+    }
+
+    customList.innerHTML = customs
+      .map(cat => `
+        <div class="settings-item" style="margin:0; border:1px solid var(--border-color); border-radius: var(--radius-lg); padding:0.6rem 0.8rem;">
+          <div class="settings-item-info">
+            <span class="settings-icon" style="background:${this.escapeHtml(cat.color)}; color:#fff;">${this.escapeHtml(cat.icon)}</span>
+            <div>
+              <h4>${this.escapeHtml(cat.name)}</h4>
+              <p>${this.escapeHtml(cat.id)}</p>
+            </div>
+          </div>
+          <div class="settings-item-control">
+            <button class="btn btn-outline btn-sm danger delete-custom-category-btn" data-db-id="${cat.db_id}">Supprimer</button>
+          </div>
+        </div>
+      `)
+      .join('');
   }
 
   checkAuth() {
@@ -155,6 +210,121 @@ class SettingsManager {
         }
       });
     }
+
+    const categoryForm = document.getElementById('custom-category-form');
+    if (categoryForm) {
+      categoryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('save-custom-category-btn');
+        setButtonLoading(submitBtn, true, 'Ajout...');
+        try {
+          await this.addCustomCategory();
+        } finally {
+          setButtonLoading(submitBtn, false);
+        }
+      });
+    }
+
+    const customList = document.getElementById('custom-categories-list');
+    if (customList) {
+      customList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.delete-custom-category-btn');
+        if (!btn) return;
+        const dbId = btn.dataset.dbId;
+        if (!dbId) return;
+        await this.removeCustomCategory(dbId);
+      });
+    }
+  }
+
+  slugifyCategoryName(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 30);
+  }
+
+  async addCustomCategory() {
+    if (!ensureOnlineForCriticalAction('Ajout de categorie personnalisee')) {
+      return;
+    }
+
+    const nameInput = document.getElementById('custom-category-name');
+    const iconInput = document.getElementById('custom-category-icon');
+    const colorInput = document.getElementById('custom-category-color');
+
+    const name = nameInput?.value?.trim() || '';
+    const icon = iconInput?.value?.trim() || '📦';
+    const color = colorInput?.value || '#6b7280';
+    const slug = this.slugifyCategoryName(name);
+
+    if (!name || slug.length < 2) {
+      notify.error('Nom de categorie invalide.');
+      return;
+    }
+
+    const exists = this.categories.some(cat => cat.id === slug);
+    if (exists) {
+      notify.error('Cette categorie existe deja.');
+      return;
+    }
+
+    const nextSortOrder = this.categories.reduce((max, cat) => Math.max(max, Number(cat.sort_order || 0)), 0) + 1;
+
+    try {
+      await createCustomCategory({
+        slug,
+        name,
+        icon,
+        color,
+        sort_order: nextSortOrder
+      });
+
+      document.getElementById('custom-category-form')?.reset();
+      const iconReset = document.getElementById('custom-category-icon');
+      const colorReset = document.getElementById('custom-category-color');
+      if (iconReset) iconReset.value = '📦';
+      if (colorReset) colorReset.value = '#6b7280';
+
+      await this.loadCategories();
+      notify.success('Categorie personnalisee ajoutee.');
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Impossible d ajouter la categorie.');
+      }
+    }
+  }
+
+  async removeCustomCategory(categoryDbId) {
+    if (!ensureOnlineForCriticalAction('Suppression de categorie personnalisee')) {
+      return;
+    }
+
+    const confirmed = await notify.confirm(
+      'Supprimer cette categorie personnalisee ? Les depenses existantes garderont leur slug en base.',
+      'Suppression categorie',
+      {
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        type: 'warning',
+        danger: true
+      }
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteCustomCategory(categoryDbId);
+      await this.loadCategories();
+      notify.success('Categorie personnalisee supprimee.');
+    } catch (error) {
+      if (error.message !== 'MODE_HORS_LIGNE') {
+        notify.error(error.message || 'Impossible de supprimer la categorie.');
+      }
+    }
   }
 
   toggleNameForm(show) {
@@ -248,12 +418,13 @@ class SettingsManager {
       return;
     }
 
-    const [incomes, expenses, budgets, savings, savingsTransactions] = await Promise.all([
+    const [incomes, expenses, budgets, savings, savingsTransactions, categories] = await Promise.all([
       fetchTable(SUPABASE_TABLES.INCOMES),
       fetchTable(SUPABASE_TABLES.EXPENSES),
       fetchTable(SUPABASE_TABLES.BUDGETS),
       fetchTable(SUPABASE_TABLES.SAVINGS),
-      fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS)
+      fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS),
+      fetchTable(SUPABASE_TABLES.CATEGORIES)
     ]);
 
     const data = {
@@ -262,6 +433,7 @@ class SettingsManager {
       budgets,
       savings,
       savingsTransactions,
+      categories,
       exportDate: new Date().toISOString()
     };
 
@@ -313,7 +485,8 @@ class SettingsManager {
           supabase.from(SUPABASE_TABLES.SAVINGS).delete().eq('user_id', user.id),
           supabase.from(SUPABASE_TABLES.INCOMES).delete().eq('user_id', user.id),
           supabase.from(SUPABASE_TABLES.EXPENSES).delete().eq('user_id', user.id),
-          supabase.from(SUPABASE_TABLES.BUDGETS).delete().eq('user_id', user.id)
+          supabase.from(SUPABASE_TABLES.BUDGETS).delete().eq('user_id', user.id),
+          supabase.from(SUPABASE_TABLES.CATEGORIES).delete().eq('user_id', user.id)
         ]);
       }, { message: 'Suppression des donnees...' });
 
@@ -322,6 +495,15 @@ class SettingsManager {
     } catch (error) {
       notify.error(error.message || 'Erreur lors de la suppression.');
     }
+  }
+
+  escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 }
 

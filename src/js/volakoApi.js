@@ -141,6 +141,50 @@ export async function fetchCategories() {
   }));
 }
 
+export async function createCustomCategory(payload) {
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction('Creation de categorie')) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
+
+    const userId = await requireUserId();
+    const { data, error } = await supabase
+      .from(SUPABASE_TABLES.CATEGORIES)
+      .insert([{
+        slug: payload.slug,
+        name: payload.name,
+        icon: payload.icon || '📦',
+        color: payload.color || '#6b7280',
+        sort_order: payload.sort_order ?? 99,
+        is_default: false,
+        user_id: userId
+      }])
+      .select('id, slug, name, icon, color, sort_order, is_default, user_id')
+      .single();
+
+    handleDbError(error, 'Impossible de creer la categorie');
+    return data;
+  }, { message: 'Creation de la categorie...' });
+}
+
+export async function deleteCustomCategory(categoryDbId) {
+  return withGlobalLoader(async () => {
+    if (!ensureOnlineForCriticalAction('Suppression de categorie')) {
+      throw new Error('MODE_HORS_LIGNE');
+    }
+
+    const userId = await requireUserId();
+    const { error } = await supabase
+      .from(SUPABASE_TABLES.CATEGORIES)
+      .delete()
+      .eq('id', categoryDbId)
+      .eq('user_id', userId)
+      .eq('is_default', false);
+
+    handleDbError(error, 'Impossible de supprimer la categorie');
+  }, { message: 'Suppression de la categorie...' });
+}
+
 export async function fetchDashboardSnapshot() {
   const userId = await requireUserId();
   const data = await callRpc('volako_get_dashboard_snapshot', { p_user_id: userId }, 'Chargement du dashboard');

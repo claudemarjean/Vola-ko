@@ -4,7 +4,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
-import { getCategories, setCategoriesCache } from './utils.js';
+import { getCategories, setCategoriesCache, getCategoryName, getCategoryIcon as getDynamicCategoryIcon } from './utils.js';
 import { Chart, registerables } from 'chart.js';
 import {
   fetchDashboardSnapshot,
@@ -134,6 +134,9 @@ class Dashboard {
     const amountClass = isExpense ? 'expense' : 'income';
     const description = transaction.label || 'Transaction';
     const date = this.formatDate(transaction.date);
+    const categoryLabel = transaction.tx_type === 'expense'
+      ? getCategoryName(transaction.category)
+      : 'Revenu';
 
     return `
       <li class="transaction-item">
@@ -141,7 +144,7 @@ class Dashboard {
           <div class="transaction-icon">${icon}</div>
           <div class="transaction-details">
             <h4>${description}</h4>
-            <p>${date} • ${transaction.category || 'Revenu'}</p>
+            <p>${date} • ${categoryLabel}</p>
           </div>
         </div>
         <div class="transaction-amount ${amountClass}">${amount}</div>
@@ -150,20 +153,8 @@ class Dashboard {
   }
 
   getCategoryIcon(category) {
-    const icons = {
-      alimentation: '🛒',
-      transport: '🚗',
-      logement: '🏠',
-      sante: '💊',
-      beaute: '💄',
-      vetements: '👔',
-      loisirs: '🎮',
-      imprevus: '⚡',
-      epargne: '💾',
-      income: '💼',
-      autre: '📦'
-    };
-    return icons[category] || '📦';
+    if (category === 'income') return '💼';
+    return getDynamicCategoryIcon(category);
   }
 
   formatCurrency(amount) {
@@ -257,11 +248,12 @@ class Dashboard {
 
     this.categoryBreakdown.forEach(row => {
       const category = getCategories().find(c => c.id === row.category);
-      if (category) {
-        labels.push(`${category.icon} ${category.name}`);
-        data.push(Number(row.total || 0));
-        colors.push(category.color);
-      }
+      const icon = category?.icon || '📦';
+      const name = category?.name || row.category || 'Autre';
+      const color = category?.color || '#6b7280';
+      labels.push(`${icon} ${name}`);
+      data.push(Number(row.total || 0));
+      colors.push(color);
     });
 
     const chartColors = this.getChartColors();
@@ -371,12 +363,13 @@ class Dashboard {
 
     this.budgetUsage.forEach(row => {
       const category = getCategories().find(c => c.id === row.category);
-      if (category) {
-        labels.push(`${category.icon} ${category.name}`);
-        spentData.push(Number(row.spent || 0));
-        remainingData.push(Number(row.remaining || 0));
-        colors.push(category.color);
-      }
+      const icon = category?.icon || '📦';
+      const name = category?.name || row.category || 'Autre';
+      const color = category?.color || '#6b7280';
+      labels.push(`${icon} ${name}`);
+      spentData.push(Number(row.spent || 0));
+      remainingData.push(Number(row.remaining || 0));
+      colors.push(color);
     });
 
     const chartColors = this.getChartColors();

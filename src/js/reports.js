@@ -174,11 +174,12 @@ class ReportsManager {
 
     this.categoryRows.forEach(row => {
       const category = getCategories().find(c => c.id === row.category);
-      if (category) {
-        labels.push(`${category.icon} ${category.name}`);
-        data.push(Number(row.total || 0));
-        bgColors.push(category.color);
-      }
+      const icon = category?.icon || '📦';
+      const name = category?.name || row.category || 'Autre';
+      const color = category?.color || '#6b7280';
+      labels.push(`${icon} ${name}`);
+      data.push(Number(row.total || 0));
+      bgColors.push(color);
     });
 
     this.charts.category = new Chart(canvas, {

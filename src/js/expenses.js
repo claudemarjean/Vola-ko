@@ -8,7 +8,7 @@ import { renderSidebar, renderBottomNav, showConfirmModal } from './components.j
 import notify from './notifications.js';
 import { generateUUID } from './ids.js';
 import { fetchTable, insertRow, updateRow, deleteRow, fetchCategories } from './volakoApi.js';
-import { getCategories, setCategoriesCache, getCategoryIcon } from './utils.js';
+import { getCategories, setCategoriesCache, getCategoryIcon, getCategoryName } from './utils.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
@@ -120,9 +120,10 @@ class ExpensesManager {
   createExpenseHTML(expense) {
     const icon = getCategoryIcon(expense.category);
     const date = new Date(expense.date).toLocaleDateString('fr-FR');
+    const categoryName = getCategoryName(expense.category);
     const categoryDisplay = expense.category === 'autre' && expense.other_reference
-      ? `${expense.category} (${expense.other_reference})`
-      : expense.category;
+      ? `${categoryName} (${expense.other_reference})`
+      : categoryName;
 
     return `
       <div class="list-item" data-id="${expense.id}">
