@@ -130,6 +130,35 @@ input:focus, textarea:focus, select:focus {
   border: 0;
 }
 
+/* Theme-aware brand assets */
+.brand-logo-source {
+  display: none;
+}
+
+.brand-logo-source--light {
+  display: block;
+}
+
+.brand-logo-glyph {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-wordmark {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+
+[data-theme="dark"] .brand-logo-source--light {
+  display: none;
+}
+
+[data-theme="dark"] .brand-logo-source--dark {
+  display: block;
+}
+
 /* Loading state */
 .loading {
   pointer-events: none;

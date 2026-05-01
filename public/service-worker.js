@@ -2,7 +2,7 @@
  * SERVICE WORKER - Offline cache for authenticated users
  */
 
-const CACHE_NAME = 'vola-ko-cache-v2';
+const CACHE_NAME = 'vola-ko-cache-v3';
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
@@ -51,7 +51,12 @@ const OFFLINE_ASSETS = [
   '/js/utils.js',
   '/js/volakoApi.js',
   '/js/ux-enhancements.js',
-  '/favicon.svg',
+  '/icones/vola-ko/vola-ko-favicon.png',
+  '/icones/vola-ko/icon-vola-ko-color.png',
+  '/icones/vola-ko/icon-vola-ko-white.png',
+  '/icones/vola-ko/logo-vola-ko-main.png',
+  '/icones/vola-ko/logo-vola-ko-black.png',
+  '/icones/vola-ko/logo-vola-ko-white.png',
   '/locales/fr.json',
   '/locales/mg.json'
 ];

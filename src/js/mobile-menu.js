@@ -31,8 +31,14 @@ class MobileMenu {
     topbar.setAttribute('aria-label', 'Navigation mobile');
     topbar.innerHTML = `
       <a href="/" class="mobile-topbar-brand" data-link>
-        <span class="mobile-topbar-brand-icon" aria-hidden="true">💰</span>
-        <span class="mobile-topbar-brand-name">Vola-ko</span>
+        <span class="mobile-topbar-brand-icon" aria-hidden="true">
+          <img src="/icones/vola-ko/icon-vola-ko-color.png" class="brand-logo-source brand-logo-source--light brand-logo-glyph" alt="">
+          <img src="/icones/vola-ko/icon-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-glyph" alt="">
+        </span>
+        <span class="mobile-topbar-brand-name">
+          <img src="/icones/vola-ko/logo-vola-ko-black.png" class="brand-logo-source brand-logo-source--light brand-logo-wordmark" alt="Vola-ko">
+          <img src="/icones/vola-ko/logo-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-wordmark" alt="Vola-ko">
+        </span>
       </a>
       <div class="mobile-topbar-right" id="mobile-topbar-right">
         <!-- Controls moved here by JS -->

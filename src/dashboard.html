@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Vola-ko - Dashboard">
   <meta name="theme-color" content="#10b981">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icones/vola-ko/vola-ko-favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icones/vola-ko/icon-vola-ko-color.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icones/vola-ko/icon-vola-ko-white.png" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="/icones/vola-ko/icon-vola-ko-color.png">
   <title>Dashboard - Vola-ko</title>
   
   <!-- CSS -->
@@ -39,15 +42,10 @@
     }
 
     .sidebar-logo {
-      font-size: 1.75rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
       margin-bottom: var(--space-2xl);
-      letter-spacing: -0.02em;
-      text-align: center;
     }
 
     .sidebar-nav {
@@ -627,9 +625,15 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <span class="sidebar-logo-icon" aria-hidden="true">💰</span>
+        <span class="sidebar-logo-icon" aria-hidden="true">
+          <img src="/icones/vola-ko/icon-vola-ko-color.png" class="brand-logo-source brand-logo-source--light brand-logo-glyph" alt="">
+          <img src="/icones/vola-ko/icon-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-glyph" alt="">
+        </span>
         <div>
-          <span class="sidebar-logo-text" data-i18n="app.name">Vola-ko</span>
+          <span class="sidebar-logo-text">
+            <img src="/icones/vola-ko/logo-vola-ko-black.png" class="brand-logo-source brand-logo-source--light brand-logo-wordmark" alt="Vola-ko">
+            <img src="/icones/vola-ko/logo-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-wordmark" alt="Vola-ko">
+          </span>
           <span class="sidebar-logo-tagline">Mon argent</span>
         </div>
       </div>

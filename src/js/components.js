@@ -17,9 +17,15 @@ export function renderSidebar(activePage = '') {
 
   container.innerHTML = `
     <div class="sidebar-logo">
-      <span class="sidebar-logo-icon" aria-hidden="true">💰</span>
+      <span class="sidebar-logo-icon" aria-hidden="true">
+        <img src="/icones/vola-ko/icon-vola-ko-color.png" class="brand-logo-source brand-logo-source--light brand-logo-glyph" alt="">
+        <img src="/icones/vola-ko/icon-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-glyph" alt="">
+      </span>
       <div>
-        <span class="sidebar-logo-text" data-i18n="app.name">Vola-ko</span>
+        <span class="sidebar-logo-text">
+          <img src="/icones/vola-ko/logo-vola-ko-black.png" class="brand-logo-source brand-logo-source--light brand-logo-wordmark" alt="Vola-ko">
+          <img src="/icones/vola-ko/logo-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-wordmark" alt="Vola-ko">
+        </span>
         <span class="sidebar-logo-tagline">Mon argent</span>
       </div>
     </div>
