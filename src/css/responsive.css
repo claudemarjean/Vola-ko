@@ -543,9 +543,24 @@ body {
     overflow: hidden;
   }
 
-  .saving-actions,
   .header-actions {
     width: 100%;
+  }
+
+  .saving-card {
+    padding: 12px;
+  }
+
+  .saving-header {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .saving-actions {
+    width: auto;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    gap: 4px;
   }
 
   .budget-card {
