@@ -1,4 +1,24 @@
 {
+  "headers": [
+    {
+      "source": "/service-worker.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/budgets", "destination": "/budgets.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
@@ -6,6 +26,7 @@
     { "source": "/incomes", "destination": "/incomes.html" },
     { "source": "/savings", "destination": "/savings.html" },
     { "source": "/reports", "destination": "/reports.html" },
+    { "source": "/transactions", "destination": "/transactions.html" },
     { "source": "/settings", "destination": "/settings.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/register", "destination": "/register.html" }

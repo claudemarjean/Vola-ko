@@ -2,13 +2,79 @@ import { supabase, SUPABASE_TABLES } from './supabase.js';
 import { ensureOnlineForCriticalAction } from './network.js';
 import { withGlobalLoader } from './loaders.js';
 
-async function requireUserId() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) {
-    throw new Error('Utilisateur non authentifie');
+const AUTH_STORAGE_KEYS = ['tvolako_user', 'tvolako_token', 'volako-auth-token'];
+let authRedirectTriggered = false;
+
+function cleanupAuthStorage() {
+  AUTH_STORAGE_KEYS.forEach((key) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Ignore storage cleanup failures to avoid masking auth errors.
+    }
+  });
+}
+
+function redirectToLoginOnce() {
+  if (authRedirectTriggered) {
+    return;
   }
 
-  return user.id;
+  authRedirectTriggered = true;
+  cleanupAuthStorage();
+
+  if (window.location.pathname !== '/login' && window.location.pathname !== '/login.html') {
+    window.location.href = '/login';
+  }
+}
+
+function isAuthError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const code = (error.code || '').toUpperCase();
+  const message = (error.message || '').toLowerCase();
+  return (
+    code === 'PGRST301' ||
+    code === '401' ||
+    message.includes('jwt') ||
+    message.includes('auth') ||
+    message.includes('not authenticated') ||
+    message.includes('session')
+  );
+}
+
+function formatSupabaseError(error, fallback) {
+  if (!error) {
+    return fallback;
+  }
+
+  const parts = [];
+  if (error.message) {
+    parts.push(error.message);
+  }
+  if (error.code) {
+    parts.push(`code: ${error.code}`);
+  }
+  if (error.details) {
+    parts.push(`details: ${error.details}`);
+  }
+  if (error.hint) {
+    parts.push(`hint: ${error.hint}`);
+  }
+
+  return parts.length ? parts.join(' | ') : fallback;
+}
+
+async function requireUserId() {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error || !session?.user?.id) {
+    redirectToLoginOnce();
+    throw new Error('Session expiree. Veuillez vous reconnecter.');
+  }
+
+  return session.user.id;
 }
 
 function handleDbError(error, fallback = 'Erreur base de donnees') {
@@ -16,7 +82,12 @@ function handleDbError(error, fallback = 'Erreur base de donnees') {
     return;
   }
 
-  const message = error.message || fallback;
+  if (isAuthError(error)) {
+    redirectToLoginOnce();
+    throw new Error('Session expiree. Veuillez vous reconnecter.');
+  }
+
+  const message = formatSupabaseError(error, fallback);
   throw new Error(message);
 }
 
