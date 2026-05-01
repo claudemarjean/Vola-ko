@@ -2,7 +2,7 @@
  * SERVICE WORKER - Offline cache for authenticated users
  */
 
-const CACHE_NAME = 'vola-ko-cache-v3';
+const CACHE_NAME = 'vola-ko-cache-v4';
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
@@ -16,41 +16,8 @@ const OFFLINE_ASSETS = [
   '/settings.html',
   '/login.html',
   '/register.html',
-  '/css/base.css',
-  '/css/theme.css',
-  '/css/dark.css',
-  '/css/animations.css',
-  '/css/notifications.css',
-  '/css/app-layout.css',
-  '/css/bottom-nav.css',
-  '/css/responsive.css',
-  '/css/home.css',
-  '/js/app.js',
-  '/js/auth.js',
-  '/js/offline.js',
-  '/js/budgets.js',
-  '/js/components.js',
-  '/js/dashboard.js',
-  '/js/expenses.js',
-  '/js/ids.js',
-  '/js/i18n.js',
-  '/js/incomes.js',
-  '/js/loaders.js',
-  '/js/mobile-menu.js',
-  '/js/network.js',
-  '/js/notifications.js',
-  '/js/offline.js',
-  '/js/reports.js',
-  '/js/router.js',
-  '/js/savings.js',
-  '/js/transactions.js',
-  '/js/settings.js',
-  '/js/storage.js',
-  '/js/supabase.js',
-  '/js/theme.js',
-  '/js/utils.js',
-  '/js/volakoApi.js',
-  '/js/ux-enhancements.js',
+  '/favicon.ico',
+  '/favicon.svg',
   '/icones/vola-ko/vola-ko-favicon.png',
   '/icones/vola-ko/icon-vola-ko-color.png',
   '/icones/vola-ko/icon-vola-ko-white.png',
@@ -61,10 +28,28 @@ const OFFLINE_ASSETS = [
   '/locales/mg.json'
 ];
 
+async function precacheStableAssets() {
+  const cache = await caches.open(CACHE_NAME);
+
+  await Promise.all(
+    OFFLINE_ASSETS.map(async (assetUrl) => {
+      try {
+        const response = await fetch(assetUrl, { cache: 'no-cache' });
+        if (!response.ok) {
+          console.warn('Precache skipped for asset:', assetUrl, response.status);
+          return;
+        }
+        await cache.put(assetUrl, response.clone());
+      } catch (error) {
+        console.warn('Precache skipped for asset:', assetUrl, error);
+      }
+    })
+  );
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(OFFLINE_ASSETS))
+    precacheStableAssets()
       .catch((err) => console.error('Cache install error', err))
   );
   self.skipWaiting();
