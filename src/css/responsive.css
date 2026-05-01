@@ -543,10 +543,36 @@ body {
     overflow: hidden;
   }
 
-  .budget-actions,
   .saving-actions,
   .header-actions {
     width: 100%;
+  }
+
+  .budget-card {
+    padding: 12px;
+  }
+
+  .budget-header {
+    margin-bottom: 10px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .budget-actions {
+    width: auto;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    gap: 4px;
+    margin-top: 0;
+  }
+
+  .budget-progress {
+    margin-bottom: 10px;
+  }
+
+  .budget-stats {
+    padding-top: 10px;
+    gap: 10px;
   }
 
   .filters-toggle {
