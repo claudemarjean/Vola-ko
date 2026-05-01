@@ -34,6 +34,24 @@
         </button>
       </div>
 
+      <div class="filters-card card">
+        <div class="filters-row">
+          <select id="budget-category-filter" class="form-select">
+            <option value="">Toutes les catégories</option>
+          </select>
+
+          <select id="budget-period-filter" class="form-select">
+            <option value="current_month">Période: mois courant</option>
+            <option value="current_year">Période: année courante</option>
+            <option value="custom">Période: personnalisée</option>
+            <option value="all">Toutes les périodes</option>
+          </select>
+
+          <input type="date" id="budget-filter-start" class="form-input" aria-label="Date de début du filtre budget">
+          <input type="date" id="budget-filter-end" class="form-input" aria-label="Date de fin du filtre budget">
+        </div>
+      </div>
+
       <!-- Budgets Grid -->
       <div class="budgets-grid" id="budgets-grid">
         <!-- Budget cards will be loaded dynamically -->
@@ -97,6 +115,16 @@
         <div class="form-group">
           <label for="budget-amount" data-i18n="budgets.amount">Montant mensuel (MGA)</label>
           <input type="number" id="budget-amount" class="form-input" required min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="budget-start-date">Date de début du budget</label>
+          <input type="date" id="budget-start-date" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="budget-end-date">Date de fin du budget</label>
+          <input type="date" id="budget-end-date" class="form-input">
         </div>
 
         <div class="form-group">

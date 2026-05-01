@@ -6,7 +6,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import { generateUUID } from './ids.js';
-import { fetchTable, insertRow, updateRow, deleteRow, fetchBudgetProgress, fetchCategories } from './volakoApi.js';
+import { fetchTable, insertRow, updateRow, deleteRow, fetchCategories } from './volakoApi.js';
 import { getCategories, setCategoriesCache, getCategoryIcon, getCategoryName } from './utils.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import notify from './notifications.js';
@@ -14,11 +14,18 @@ import { withPageLoader, setButtonLoading, applySkeleton } from './loaders.js';
 
 class BudgetsManager {
   constructor() {
+    const defaultRange = this.getCurrentMonthRange();
     this.budgets = [];
-    this.progressRows = [];
+    this.expenses = [];
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.editingBudgetId = null;
     this.selectedBudgetForExpense = null;
+    this.currentFilter = {
+      category: '',
+      period: 'current_month',
+      startDate: defaultRange.startDate,
+      endDate: defaultRange.endDate
+    };
   }
 
   async init() {
@@ -41,17 +48,29 @@ class BudgetsManager {
     } catch {
       // Utiliser le fallback statique si la BDD est inaccessible
     }
-    this.populateCategorySelect();
+    this.populateCategorySelects();
   }
 
-  populateCategorySelect() {
-    const select = document.getElementById('budget-category');
-    if (!select) return;
-    let html = '<option value="">S\u00e9lectionner...</option>';
+  populateCategorySelects() {
+    const formSelect = document.getElementById('budget-category');
+    const filterSelect = document.getElementById('budget-category-filter');
+
+    let formHtml = '<option value="">Selectionner...</option>';
+    let filterHtml = '<option value="">Toutes les categories</option>';
+
     getCategories().forEach(cat => {
-      html += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+      formHtml += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+      filterHtml += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
     });
-    select.innerHTML = html;
+
+    if (formSelect) {
+      formSelect.innerHTML = formHtml;
+    }
+
+    if (filterSelect) {
+      filterSelect.innerHTML = filterHtml;
+      filterSelect.value = this.currentFilter.category;
+    }
   }
 
   checkAuth() {
@@ -63,35 +82,70 @@ class BudgetsManager {
 
   async refreshData() {
     await withPageLoader('budgets-grid', async () => {
-      this.budgets = await fetchTable(SUPABASE_TABLES.BUDGETS, { orderBy: 'updated_at', ascending: false });
-      this.progressRows = await fetchBudgetProgress();
+      const [budgets, expenses] = await Promise.all([
+        fetchTable(SUPABASE_TABLES.BUDGETS, { orderBy: 'updated_at', ascending: false }),
+        fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false })
+      ]);
+
+      this.budgets = budgets;
+      this.expenses = expenses;
       this.loadBudgets();
     });
   }
 
   loadBudgets() {
+    const filteredBudgets = this.filterBudgets();
     const gridElement = document.getElementById('budgets-grid');
     if (!gridElement) return;
 
-    if (this.budgets.length === 0) {
+    if (filteredBudgets.length === 0) {
       gridElement.innerHTML = '<p style="text-align: center; padding: var(--space-2xl); color: var(--text-secondary); grid-column: 1/-1;">Aucun budget defini</p>';
       return;
     }
 
-    gridElement.innerHTML = this.budgets.map(budget => this.createBudgetHTML(budget)).join('');
+    gridElement.innerHTML = filteredBudgets.map(budget => this.createBudgetHTML(budget)).join('');
     this.attachEventListeners();
   }
 
+  filterBudgets() {
+    let filtered = [...this.budgets];
+
+    if (this.currentFilter.category) {
+      filtered = filtered.filter(budget => budget.category === this.currentFilter.category);
+    }
+
+    const periodRange = this.getFilterRange();
+    if (periodRange) {
+      filtered = filtered.filter(budget => {
+        const budgetRange = this.getBudgetRange(budget);
+        return this.rangesOverlap(
+          budgetRange.startDate,
+          budgetRange.endDate,
+          periodRange.startDate,
+          periodRange.endDate
+        );
+      });
+    }
+
+    return filtered;
+  }
+
   createBudgetHTML(budget) {
-    const progress = this.progressRows.find(row => row.id === budget.id) || {
-      spent: 0,
-      remaining: budget.amount,
-      amount: budget.amount
+    const range = this.getBudgetRange(budget);
+    const spent = this.getSpentForBudget(budget, range.startDate, range.endDate);
+    const progress = {
+      spent,
+      remaining: (parseFloat(budget.amount) || 0) - spent,
+      amount: parseFloat(budget.amount) || 0
     };
 
     const percentage = progress.amount > 0 ? (progress.spent / progress.amount) * 100 : 0;
     const progressBarWidth = Math.min(Math.max(percentage, 0), 100);
     const isOverBudget = percentage > 100;
+    const remainingDisplay = isOverBudget
+      ? `-${this.formatCurrency(Math.abs(progress.remaining))}`
+      : this.formatCurrency(progress.remaining);
+    const remainingStyle = isOverBudget ? 'color: var(--color-error); font-weight: 700;' : '';
 
     let progressColor = 'var(--color-success)';
     if (percentage > 80) progressColor = 'var(--color-error)';
@@ -104,13 +158,14 @@ class BudgetsManager {
     const categoryName = budget.category === 'autre' && budget.other_reference
       ? `${getCategoryName(budget.category)} (${safeOtherReference})`
       : getCategoryName(budget.category);
+    const periodLabel = `Du ${this.formatDateFr(range.startDate)} au ${this.formatDateFr(range.endDate)}`;
 
     return `
       <div class="budget-card card">
         <div class="budget-header">
           <div class="budget-content">
             <h3>${icon} ${categoryName}</h3>
-            <p>Budget mensuel</p>
+            <p>${periodLabel}</p>
           </div>
           <div class="budget-actions">
             <button class="btn-icon add-expense-btn" data-id="${budget.id}" title="Ajouter une depense" style="display:inline-flex; align-items:center; justify-content:center; gap:2px; line-height:1;"><span style="font-weight:700; font-size:0.9rem;">+</span><span>💸</span></button>
@@ -132,7 +187,7 @@ class BudgetsManager {
         <div class="budget-stats">
           <div>
             <span class="stat-label">Restant</span>
-            <span class="stat-value">${this.formatCurrency(progress.remaining)}</span>
+            <span class="stat-value" style="${remainingStyle}">${remainingDisplay}</span>
           </div>
           <div>
             <span class="stat-label">Depense</span>
@@ -166,6 +221,51 @@ class BudgetsManager {
     expenseCloseBtns?.forEach(btn => {
       btn.addEventListener('click', () => this.closeExpenseModal());
     });
+
+    const categoryFilter = document.getElementById('budget-category-filter');
+    if (categoryFilter) {
+      categoryFilter.value = this.currentFilter.category;
+      categoryFilter.addEventListener('change', (e) => {
+        this.currentFilter.category = e.target.value;
+        this.loadBudgets();
+      });
+    }
+
+    const periodFilter = document.getElementById('budget-period-filter');
+    if (periodFilter) {
+      periodFilter.value = this.currentFilter.period;
+      periodFilter.addEventListener('change', (e) => {
+        this.currentFilter.period = e.target.value;
+        this.syncFilterInputsFromPeriod();
+        this.loadBudgets();
+      });
+    }
+
+    const startFilterInput = document.getElementById('budget-filter-start');
+    if (startFilterInput) {
+      startFilterInput.value = this.currentFilter.startDate;
+      startFilterInput.addEventListener('change', (e) => {
+        this.currentFilter.startDate = e.target.value || '';
+        this.currentFilter.period = 'custom';
+        const periodSelect = document.getElementById('budget-period-filter');
+        if (periodSelect) periodSelect.value = 'custom';
+        this.loadBudgets();
+      });
+    }
+
+    const endFilterInput = document.getElementById('budget-filter-end');
+    if (endFilterInput) {
+      endFilterInput.value = this.currentFilter.endDate;
+      endFilterInput.addEventListener('change', (e) => {
+        this.currentFilter.endDate = e.target.value || '';
+        this.currentFilter.period = 'custom';
+        const periodSelect = document.getElementById('budget-period-filter');
+        if (periodSelect) periodSelect.value = 'custom';
+        this.loadBudgets();
+      });
+    }
+
+    this.syncFilterInputsFromPeriod();
   }
 
   attachEventListeners() {
@@ -340,6 +440,8 @@ class BudgetsManager {
     const otherReferenceInput = document.getElementById('budget-other-reference');
     const categorySelect = document.getElementById('budget-category');
     const amountInput = document.getElementById('budget-amount');
+    const startDateInput = document.getElementById('budget-start-date');
+    const endDateInput = document.getElementById('budget-end-date');
     const notesInput = document.getElementById('budget-notes');
     const modalTitle = document.getElementById('budget-modal-title');
     const submitBtn = document.getElementById('budget-submit');
@@ -377,15 +479,21 @@ class BudgetsManager {
     }
 
     if (budget) {
+      const range = this.getBudgetRange(budget);
       if (categorySelect) categorySelect.value = budget.category;
       if (amountInput) amountInput.value = budget.amount;
+      if (startDateInput) startDateInput.value = range.startDate;
+      if (endDateInput) endDateInput.value = range.endDate;
 
       if (budget.category === 'autre') {
         if (otherReferenceGroup) otherReferenceGroup.style.display = 'block';
         if (otherReferenceInput) otherReferenceInput.value = budget.other_reference || '';
       }
     } else if (categorySelect) {
+      const defaultRange = this.getCurrentMonthRange();
       categorySelect.disabled = false;
+      if (startDateInput) startDateInput.value = defaultRange.startDate;
+      if (endDateInput) endDateInput.value = defaultRange.endDate;
     }
   }
 
@@ -393,6 +501,8 @@ class BudgetsManager {
     const modal = document.getElementById('budget-modal');
     const otherReferenceGroup = document.getElementById('budget-other-reference-group');
     const categorySelect = document.getElementById('budget-category');
+    const startDateInput = document.getElementById('budget-start-date');
+    const endDateInput = document.getElementById('budget-end-date');
     const notesInput = document.getElementById('budget-notes');
 
     if (modal) {
@@ -410,6 +520,14 @@ class BudgetsManager {
       categorySelect.value = '';
     }
 
+    if (startDateInput) {
+      startDateInput.value = '';
+    }
+
+    if (endDateInput) {
+      endDateInput.value = '';
+    }
+
     if (notesInput) {
       notesInput.value = '';
     }
@@ -422,52 +540,79 @@ class BudgetsManager {
     const amount = parseFloat(document.getElementById('budget-amount').value);
     const otherReference = category === 'autre' ? document.getElementById('budget-other-reference').value : '';
     const notes = document.getElementById('budget-notes')?.value.trim() || '';
+    const startDateInput = document.getElementById('budget-start-date')?.value || '';
+    const endDateInput = document.getElementById('budget-end-date')?.value || '';
+    const defaultRange = this.getCurrentMonthRange();
+    const { startDate, endDate } = this.normalizeRange(startDateInput, endDateInput, defaultRange.startDate, defaultRange.endDate);
+    const timestamp = new Date().toISOString();
 
     if (!category || Number.isNaN(amount) || amount < 0) {
       notify.error('Categorie ou montant invalide.');
       return;
     }
 
+    if (!startDate || !endDate) {
+      notify.error('Periode de budget invalide.');
+      return;
+    }
+
+    if (startDate > endDate) {
+      notify.error('La date de debut doit etre inferieure ou egale a la date de fin.');
+      return;
+    }
+
     try {
-      if (this.editingBudgetId) {
+      const overlappingBudget = this.budgets.find(budget => (
+        budget.category === category
+        && budget.id !== this.editingBudgetId
+        && this.isBudgetOverlapping(budget, startDate, endDate)
+      ));
+
+      if (overlappingBudget && !this.editingBudgetId) {
+        const confirmed = await showConfirmModal(
+          'Un budget avec cette categorie existe deja sur une periode qui se chevauche. Le remplacer ?',
+          {
+            title: 'Budget existant sur la periode',
+            confirmText: 'Remplacer',
+            cancelText: 'Annuler',
+            danger: false
+          }
+        );
+
+        if (!confirmed) return;
+
+        await updateRow(SUPABASE_TABLES.BUDGETS, overlappingBudget.id, {
+          amount,
+          other_reference: otherReference || null,
+          notes: notes || null,
+          start_date: startDate,
+          end_date: endDate,
+          updated_at: timestamp
+        }, 'Mise a jour du budget');
+      } else if (overlappingBudget && this.editingBudgetId) {
+        notify.error('Un autre budget de cette categorie existe deja sur la meme periode.');
+        return;
+      } else if (this.editingBudgetId) {
         await updateRow(SUPABASE_TABLES.BUDGETS, this.editingBudgetId, {
           amount,
           other_reference: otherReference || null,
           notes: notes || null,
-          updated_at: new Date().toISOString()
+          start_date: startDate,
+          end_date: endDate,
+          updated_at: timestamp
         }, 'Mise a jour du budget');
       } else {
-        const existing = this.budgets.find(b => b.category === category);
-        if (existing) {
-          const confirmed = await showConfirmModal(
-            'Un budget existe deja pour cette categorie. Le remplacer ?',
-            {
-              title: 'Budget existant',
-              confirmText: 'Remplacer',
-              cancelText: 'Annuler',
-              danger: false
-            }
-          );
-
-          if (!confirmed) return;
-
-          await updateRow(SUPABASE_TABLES.BUDGETS, existing.id, {
-            amount,
-            other_reference: otherReference || null,
-            notes: notes || null,
-            updated_at: new Date().toISOString()
-          }, 'Mise a jour du budget');
-        } else {
-          await insertRow(SUPABASE_TABLES.BUDGETS, {
-            id: generateUUID(),
-            category,
-            amount,
-            other_reference: otherReference || null,
-            notes: notes || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, 'Creation du budget');
-        }
+        await insertRow(SUPABASE_TABLES.BUDGETS, {
+          id: generateUUID(),
+          category,
+          amount,
+          other_reference: otherReference || null,
+          notes: notes || null,
+          start_date: startDate,
+          end_date: endDate,
+          created_at: timestamp,
+          updated_at: timestamp
+        }, 'Creation du budget');
       }
 
       await this.refreshData();
@@ -477,6 +622,148 @@ class BudgetsManager {
         notify.error(error.message || 'Erreur lors de la sauvegarde du budget.');
       }
     }
+  }
+
+  getCurrentMonthRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      startDate: this.toDateInputValue(start),
+      endDate: this.toDateInputValue(end)
+    };
+  }
+
+  getCurrentYearRange() {
+    const now = new Date();
+    return {
+      startDate: `${now.getFullYear()}-01-01`,
+      endDate: `${now.getFullYear()}-12-31`
+    };
+  }
+
+  toDateInputValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  normalizeRange(startDate, endDate, defaultStartDate, defaultEndDate) {
+    const resolvedStart = startDate || defaultStartDate;
+    const resolvedEnd = endDate || defaultEndDate;
+
+    if (!resolvedStart || !resolvedEnd) {
+      return { startDate: resolvedStart, endDate: resolvedEnd };
+    }
+
+    if (resolvedStart <= resolvedEnd) {
+      return { startDate: resolvedStart, endDate: resolvedEnd };
+    }
+
+    return { startDate: resolvedEnd, endDate: resolvedStart };
+  }
+
+  getBudgetRange(budget) {
+    if (budget?.start_date && budget?.end_date) {
+      return {
+        startDate: budget.start_date,
+        endDate: budget.end_date
+      };
+    }
+
+    const baseDate = budget?.created_at ? new Date(budget.created_at) : new Date();
+    const fallbackStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+    const fallbackEnd = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+    return {
+      startDate: this.toDateInputValue(fallbackStart),
+      endDate: this.toDateInputValue(fallbackEnd)
+    };
+  }
+
+  isBudgetOverlapping(existingBudget, newStartDate, newEndDate) {
+    const existingRange = this.getBudgetRange(existingBudget);
+    return this.rangesOverlap(
+      existingRange.startDate,
+      existingRange.endDate,
+      newStartDate,
+      newEndDate
+    );
+  }
+
+  rangesOverlap(startA, endA, startB, endB) {
+    return startA <= endB && startB <= endA;
+  }
+
+  getFilterRange() {
+    if (this.currentFilter.period === 'all') {
+      return null;
+    }
+
+    if (this.currentFilter.period === 'current_year') {
+      return this.getCurrentYearRange();
+    }
+
+    if (this.currentFilter.period === 'current_month') {
+      return this.getCurrentMonthRange();
+    }
+
+    const startDate = this.currentFilter.startDate || '';
+    const endDate = this.currentFilter.endDate || '';
+
+    if (!startDate && !endDate) {
+      return null;
+    }
+
+    return this.normalizeRange(startDate, endDate, startDate || endDate, endDate || startDate);
+  }
+
+  syncFilterInputsFromPeriod() {
+    const startInput = document.getElementById('budget-filter-start');
+    const endInput = document.getElementById('budget-filter-end');
+
+    if (this.currentFilter.period === 'current_month') {
+      const range = this.getCurrentMonthRange();
+      this.currentFilter.startDate = range.startDate;
+      this.currentFilter.endDate = range.endDate;
+    } else if (this.currentFilter.period === 'current_year') {
+      const range = this.getCurrentYearRange();
+      this.currentFilter.startDate = range.startDate;
+      this.currentFilter.endDate = range.endDate;
+    }
+
+    if (startInput) {
+      startInput.value = this.currentFilter.startDate || '';
+      startInput.disabled = this.currentFilter.period === 'all';
+    }
+
+    if (endInput) {
+      endInput.value = this.currentFilter.endDate || '';
+      endInput.disabled = this.currentFilter.period === 'all';
+    }
+  }
+
+  getSpentForBudget(budget, startDate, endDate) {
+    return this.expenses
+      .filter(expense => {
+        if (expense.category !== budget.category) return false;
+        const expenseDate = this.getDateOnly(expense.date);
+        return expenseDate >= startDate && expenseDate <= endDate;
+      })
+      .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  }
+
+  getDateOnly(value) {
+    if (typeof value === 'string') {
+      return value.slice(0, 10);
+    }
+
+    return this.toDateInputValue(new Date(value));
+  }
+
+  formatDateFr(dateString) {
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
   }
 
   escapeHtml(value) {
