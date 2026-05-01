@@ -2,7 +2,7 @@
  * SERVICE WORKER - Offline cache for authenticated users
  */
 
-const CACHE_NAME = 'vola-ko-cache-v4';
+const CACHE_NAME = 'vola-ko-cache-v5';
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
@@ -98,34 +98,34 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(request)
-        .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            networkResponse.type === 'basic'
-          ) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone).catch((error) => {
-                console.warn('Cache put skipped for request:', request.url, error);
-              });
+    fetch(request)
+      .then((networkResponse) => {
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          networkResponse.type === 'basic'
+        ) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone).catch((error) => {
+              console.warn('Cache put skipped for request:', request.url, error);
             });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Return app shell only for navigations.
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-          return new Response('', { status: 504, statusText: 'Offline' });
-        });
-    })
+          });
+        }
+        return networkResponse;
+      })
+      .catch(async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Return app shell only for navigations.
+        if (request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+
+        return new Response('', { status: 504, statusText: 'Offline' });
+      })
   );
 });
