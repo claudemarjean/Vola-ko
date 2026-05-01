@@ -108,6 +108,9 @@ class App {
 
     // Gérer les formulaires
     this.setupForms();
+
+    // Compacter les filtres sur mobile
+    this.setupResponsiveFilters();
   }
 
   /**
@@ -153,6 +156,105 @@ class App {
         e.preventDefault();
         await this.handleRegister(e.target);
       });
+    }
+  }
+
+  setupResponsiveFilters() {
+    const cards = document.querySelectorAll('.filters-card');
+    if (!cards.length) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+
+    const updateSummary = (card) => {
+      const summary = card.querySelector('.filters-toggle-summary');
+      const badge = card.querySelector('.filters-toggle-count');
+      if (!summary || !badge) return;
+
+      const fields = card.querySelectorAll('select, input[type="text"], input[type="search"], input[type="date"]');
+      const activeParts = [];
+
+      fields.forEach((field) => {
+        if (field.tagName === 'SELECT') {
+          if (field.value) {
+            const selectedOption = field.options[field.selectedIndex];
+            if (selectedOption && selectedOption.textContent) {
+              activeParts.push(selectedOption.textContent.trim());
+            }
+          }
+          return;
+        }
+
+        const value = (field.value || '').trim();
+        if (value) {
+          activeParts.push(value);
+        }
+      });
+
+      const uniqueParts = [...new Set(activeParts)].slice(0, 2);
+      const hiddenCount = Math.max(activeParts.length - uniqueParts.length, 0);
+      summary.textContent = uniqueParts.length ? uniqueParts.join(' • ') : 'Aucun filtre actif';
+      badge.textContent = String(activeParts.length);
+      badge.hidden = activeParts.length === 0;
+
+      if (hiddenCount > 0) {
+        summary.textContent += ` +${hiddenCount}`;
+      }
+    };
+
+    const syncCardMode = (card) => {
+      const isMobile = mobileQuery.matches;
+      card.classList.toggle('filters-card--mobile', isMobile);
+
+      let toggle = card.querySelector('.filters-toggle');
+      if (!toggle) {
+        toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'filters-toggle';
+        toggle.innerHTML = '<span class="filters-toggle-label">Filtres</span><span class="filters-toggle-summary">Aucun filtre actif</span><span class="filters-toggle-count" hidden>0</span><span class="filters-toggle-icon" aria-hidden="true">▾</span>';
+        toggle.addEventListener('click', () => {
+          const expanded = card.classList.toggle('filters-card--expanded');
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+        card.insertBefore(toggle, card.firstChild);
+      }
+
+      if (isMobile) {
+        if (!card.dataset.mobileFiltersInitialized) {
+          card.classList.remove('filters-card--expanded');
+          card.dataset.mobileFiltersInitialized = 'true';
+        }
+        toggle.hidden = false;
+        toggle.setAttribute('aria-expanded', card.classList.contains('filters-card--expanded') ? 'true' : 'false');
+      } else {
+        card.classList.add('filters-card--expanded');
+        toggle.hidden = true;
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      updateSummary(card);
+    };
+
+    cards.forEach((card) => {
+      const fields = card.querySelectorAll('select, input[type="text"], input[type="search"], input[type="date"]');
+      fields.forEach((field) => {
+        const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+        field.addEventListener(eventName, () => updateSummary(card));
+        if (field.tagName !== 'SELECT' && field.type === 'date') {
+          field.addEventListener('change', () => updateSummary(card));
+        }
+      });
+
+      syncCardMode(card);
+    });
+
+    const handleMediaChange = () => {
+      cards.forEach(syncCardMode);
+    };
+
+    if (typeof mobileQuery.addEventListener === 'function') {
+      mobileQuery.addEventListener('change', handleMediaChange);
+    } else if (typeof mobileQuery.addListener === 'function') {
+      mobileQuery.addListener(handleMediaChange);
     }
   }
 
