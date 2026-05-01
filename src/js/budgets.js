@@ -168,6 +168,7 @@ class BudgetsManager {
             <p>${periodLabel}</p>
           </div>
           <div class="budget-actions">
+            <button class="btn-icon history-btn" data-id="${budget.id}" title="Voir l historique">📋</button>
             <button class="btn-icon add-expense-btn" data-id="${budget.id}" title="Ajouter une depense" style="display:inline-flex; align-items:center; justify-content:center; gap:2px; line-height:1;"><span style="font-weight:700; font-size:0.9rem;">+</span><span>💸</span></button>
             <button class="btn-icon edit-btn" data-id="${budget.id}" title="Modifier le budget">✏️</button>
             <button class="btn-icon delete-btn" data-id="${budget.id}" title="Supprimer le budget">🗑️</button>
@@ -222,6 +223,12 @@ class BudgetsManager {
       btn.addEventListener('click', () => this.closeExpenseModal());
     });
 
+    const historyModal = document.getElementById('budget-history-modal');
+    const historyCloseBtns = historyModal?.querySelectorAll('.modal-close');
+    historyCloseBtns?.forEach(btn => {
+      btn.addEventListener('click', () => this.closeHistoryModal());
+    });
+
     const categoryFilter = document.getElementById('budget-category-filter');
     if (categoryFilter) {
       categoryFilter.value = this.currentFilter.category;
@@ -269,6 +276,16 @@ class BudgetsManager {
   }
 
   attachEventListeners() {
+    document.querySelectorAll('.history-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const budget = this.budgets.find(b => b.id === id);
+        if (budget) {
+          this.openHistoryModal(budget);
+        }
+      });
+    });
+
     document.querySelectorAll('.add-expense-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
@@ -387,6 +404,76 @@ class BudgetsManager {
       modal.classList.remove('active');
     }
     this.selectedBudgetForExpense = null;
+  }
+
+  openHistoryModal(budget) {
+    const modal = document.getElementById('budget-history-modal');
+    const title = document.getElementById('budget-history-title');
+    const list = document.getElementById('budget-history-list');
+    const empty = document.getElementById('budget-history-empty');
+    const summary = document.getElementById('budget-history-summary');
+
+    if (!modal || !title || !list || !empty || !summary) return;
+
+    const range = this.getBudgetRange(budget);
+    const expenses = this.getExpensesForBudget(budget, range.startDate, range.endDate)
+      .sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
+      });
+
+    const categoryLabel = budget.category === 'autre' && budget.other_reference
+      ? `${getCategoryName(budget.category)} (${budget.other_reference})`
+      : getCategoryName(budget.category);
+
+    title.textContent = `Historique - ${categoryLabel}`;
+
+    const totalSpent = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+    summary.innerHTML = `
+      <div class="stat-card"><div class="stat-label">Periode</div><div class="stat-value" style="font-size: var(--font-size-base);">${this.formatDateFr(range.startDate)} - ${this.formatDateFr(range.endDate)}</div></div>
+      <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${expenses.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total depense</div><div class="stat-value">${this.formatCurrency(totalSpent)}</div></div>
+    `;
+
+    if (expenses.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      modal.classList.add('active');
+      return;
+    }
+
+    empty.style.display = 'none';
+    list.innerHTML = expenses.map(expense => this.createBudgetHistoryItem(expense)).join('');
+    modal.classList.add('active');
+  }
+
+  closeHistoryModal() {
+    const modal = document.getElementById('budget-history-modal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  }
+
+  createBudgetHistoryItem(expense) {
+    const safeDescription = this.escapeHtml(expense.description || 'Depense');
+    const safeOtherReference = expense.other_reference ? this.escapeHtml(expense.other_reference) : '';
+    const dateLabel = this.formatDateFr(this.getDateOnly(expense.date));
+
+    return `
+      <div class="list-item">
+        <div class="item-info">
+          <div class="item-icon">💸</div>
+          <div class="item-details">
+            <h4>${safeDescription}</h4>
+            <p>${dateLabel}${safeOtherReference ? ` • ${safeOtherReference}` : ''}</p>
+          </div>
+        </div>
+        <div class="item-actions">
+          <div class="item-amount expense">${this.formatCurrency(expense.amount)}</div>
+        </div>
+      </div>
+    `;
   }
 
   async saveExpenseFromBudget() {
@@ -779,13 +866,24 @@ class BudgetsManager {
   }
 
   getSpentForBudget(budget, startDate, endDate) {
-    return this.expenses
-      .filter(expense => {
-        if (expense.category !== budget.category) return false;
-        const expenseDate = this.getDateOnly(expense.date);
-        return expenseDate >= startDate && expenseDate <= endDate;
-      })
+    return this.getExpensesForBudget(budget, startDate, endDate)
       .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  }
+
+  getExpensesForBudget(budget, startDate, endDate) {
+    const budgetOtherRef = (budget.other_reference || '').trim();
+
+    return this.expenses.filter(expense => {
+      if (expense.category !== budget.category) return false;
+
+      if (budget.category === 'autre' && budgetOtherRef) {
+        const expenseOtherRef = (expense.other_reference || '').trim();
+        if (expenseOtherRef !== budgetOtherRef) return false;
+      }
+
+      const expenseDate = this.getDateOnly(expense.date);
+      return expenseDate >= startDate && expenseDate <= endDate;
+    });
   }
 
   getDateOnly(value) {
