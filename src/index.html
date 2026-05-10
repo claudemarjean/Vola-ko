@@ -100,14 +100,52 @@
     .home-overview h3 {
       margin: 0 0 var(--space-sm) 0;
       font-size: var(--font-size-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .home-overview h3::before {
+      content: '⚡';
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+      font-size: 0.95rem;
     }
 
     .home-overview ul {
       margin: 0;
-      padding-left: 1.1rem;
+      padding: 0;
+      list-style: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       display: grid;
-      gap: 6px;
+      gap: var(--space-sm);
+    }
+
+    .overview-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      margin: 0;
       color: var(--text-secondary);
+      background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm) var(--space-md);
+      line-height: 1.45;
+    }
+
+    .overview-item::before {
+      content: '•';
+      color: var(--color-primary);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-top: 2px;
     }
 
     .features-section {
@@ -530,6 +568,10 @@
         padding: var(--space-md);
       }
 
+      .home-overview ul {
+        grid-template-columns: 1fr;
+      }
+
       .features-grid {
         grid-template-columns: 1fr;
       }
@@ -614,10 +656,10 @@
       <div class="home-overview animate-fade-in-up delay-300">
         <h3 data-i18n="home.overview.title">L'essentiel en 20 secondes</h3>
         <ul>
-          <li data-i18n="home.overview.item1">Dashboard instantané: solde, tendances, transactions récentes.</li>
-          <li data-i18n="home.overview.item2">Suivi complet: dépenses, revenus, budgets, épargne et historique global.</li>
-          <li data-i18n="home.overview.item3">Rapports visuels: catégories, comparaisons, évolution mensuelle.</li>
-          <li data-i18n="home.overview.item4">Personnalisation: thème, langue, sécurité et accès mobile/tablette/PC.</li>
+          <li class="overview-item" data-i18n="home.overview.item1">Dashboard instantané: solde, tendances, transactions récentes.</li>
+          <li class="overview-item" data-i18n="home.overview.item2">Suivi complet: dépenses, revenus, budgets, épargne et historique global.</li>
+          <li class="overview-item" data-i18n="home.overview.item3">Rapports visuels: catégories, comparaisons, évolution mensuelle.</li>
+          <li class="overview-item" data-i18n="home.overview.item4">Personnalisation: thème, langue, sécurité et accès mobile/tablette/PC.</li>
         </ul>
       </div>
     </div>
