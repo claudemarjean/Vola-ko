@@ -1175,20 +1175,13 @@ class BudgetsManager {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    const manager = new BudgetsManager();
-    try {
-      await manager.init();
-    } catch (error) {
-      notify.error(error.message || 'Erreur lors du chargement des budgets.');
-    }
-  });
-} else {
+document.addEventListener('DOMContentLoaded', async () => {
   const manager = new BudgetsManager();
-  manager.init().catch((error) => {
+  try {
+    await manager.init();
+  } catch (error) {
     notify.error(error.message || 'Erreur lors du chargement des budgets.');
-  });
-}
+  }
+});
 
 export default BudgetsManager;

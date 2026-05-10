@@ -280,20 +280,13 @@ class IncomesManager {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    const manager = new IncomesManager();
-    try {
-      await manager.init();
-    } catch (error) {
-      notify.error(error.message || 'Erreur lors du chargement des revenus.');
-    }
-  });
-} else {
+document.addEventListener('DOMContentLoaded', async () => {
   const manager = new IncomesManager();
-  manager.init().catch((error) => {
+  try {
+    await manager.init();
+  } catch (error) {
     notify.error(error.message || 'Erreur lors du chargement des revenus.');
-  });
-}
+  }
+});
 
 export default IncomesManager;

@@ -435,20 +435,13 @@ class ExpensesManager {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    const manager = new ExpensesManager();
-    try {
-      await manager.init();
-    } catch (error) {
-      notify.error(error.message || 'Erreur lors du chargement des depenses.');
-    }
-  });
-} else {
+document.addEventListener('DOMContentLoaded', async () => {
   const manager = new ExpensesManager();
-  manager.init().catch((error) => {
+  try {
+    await manager.init();
+  } catch (error) {
     notify.error(error.message || 'Erreur lors du chargement des depenses.');
-  });
-}
+  }
+});
 
 export default ExpensesManager;

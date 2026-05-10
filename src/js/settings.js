@@ -507,14 +507,9 @@ class SettingsManager {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const manager = new SettingsManager();
-    manager.init();
-  });
-} else {
+document.addEventListener('DOMContentLoaded', () => {
   const manager = new SettingsManager();
   manager.init();
-}
+});
 
 export default SettingsManager;

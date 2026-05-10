@@ -531,14 +531,9 @@ class ReportsManager {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    const manager = new ReportsManager();
-    await manager.init();
-  });
-} else {
+document.addEventListener('DOMContentLoaded', async () => {
   const manager = new ReportsManager();
-  manager.init();
-}
+  await manager.init();
+});
 
 export default ReportsManager;

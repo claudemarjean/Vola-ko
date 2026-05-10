@@ -444,14 +444,9 @@ class Dashboard {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    const dashboard = new Dashboard();
-    await dashboard.init();
-  });
-} else {
+document.addEventListener('DOMContentLoaded', async () => {
   const dashboard = new Dashboard();
-  dashboard.init();
-}
+  await dashboard.init();
+});
 
 export default Dashboard;

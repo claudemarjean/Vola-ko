@@ -558,22 +558,14 @@ class SavingsManager {
 }
 
 let savingsManager;
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      savingsManager = new SavingsManager();
-      await savingsManager.init();
-      window.savingsManager = savingsManager;
-    } catch (error) {
-      notify.error(error.message || 'Erreur lors du chargement de l epargne.');
-    }
-  });
-} else {
-  savingsManager = new SavingsManager();
-  savingsManager.init().catch((error) => {
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    savingsManager = new SavingsManager();
+    await savingsManager.init();
+    window.savingsManager = savingsManager;
+  } catch (error) {
     notify.error(error.message || 'Erreur lors du chargement de l epargne.');
-  });
-  window.savingsManager = savingsManager;
-}
+  }
+});
 
 export default SavingsManager;
