@@ -58,11 +58,6 @@
   border-left-color: #34d399;
 }
 
-[data-theme="dark"] .mobile-topbar {
-  background-color: #1e293b;
-  border-bottom-color: #2d3e50;
-}
-
 [data-theme="dark"] .bottom-nav {
   background-color: #1e293b;
 }

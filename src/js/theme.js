@@ -68,7 +68,12 @@ class ThemeManager {
       const toggleBtn = document.getElementById(buttonId);
       if (!toggleBtn) return;
 
-      toggleBtn.innerHTML = `<span aria-hidden="true">${icon}</span>`;
+      if (toggleBtn.classList.contains('mobile-quick-menu-item')) {
+        const menuLabel = toggleBtn.dataset.menuLabel || 'Apparence';
+        toggleBtn.innerHTML = `<span aria-hidden="true">${icon}</span><span>${menuLabel}</span>`;
+      } else {
+        toggleBtn.innerHTML = `<span aria-hidden="true">${icon}</span>`;
+      }
       toggleBtn.setAttribute('aria-label', text);
       toggleBtn.setAttribute('title', text);
     });

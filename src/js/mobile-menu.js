@@ -11,59 +11,65 @@ class MobileMenu {
   }
 
   init() {
-    this.createMobileTopbar();
+    this.createMobileQuickToggle();
     this.createOverlay();
     this.attachEventListeners();
     this.handleResize();
-    this.moveControlsToTopbar();
+    this.moveControlsToQuickMenu();
     this.watchForDeferredControls();
   }
 
   /**
-   * Create a proper sticky mobile topbar (replaces the floating hamburger)
+   * Create a single floating quick-controls toggle on the right edge (mobile only)
    */
-  createMobileTopbar() {
-    if (document.querySelector('.mobile-topbar')) return;
+  createMobileQuickToggle() {
+    if (document.getElementById('mobile-quick-toggle-wrapper')) return;
 
-    const topbar = document.createElement('header');
-    topbar.className = 'mobile-topbar';
-    topbar.setAttribute('role', 'banner');
-    topbar.setAttribute('aria-label', 'Navigation mobile');
-    topbar.innerHTML = `
-      <a href="/" class="mobile-topbar-brand" data-link>
-        <span class="mobile-topbar-brand-icon" aria-hidden="true">
-          <img src="/icones/vola-ko/icon-vola-ko-color.png" class="brand-logo-source brand-logo-source--light brand-logo-glyph" alt="">
-          <img src="/icones/vola-ko/icon-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-glyph" alt="">
+    const wrapper = document.createElement('div');
+    wrapper.id = 'mobile-quick-toggle-wrapper';
+    wrapper.className = 'mobile-quick-toggle-wrapper';
+    wrapper.innerHTML = `
+      <button
+        type="button"
+        class="mobile-quick-menu-toggle"
+        id="mobile-quick-menu-toggle"
+        aria-label="Ouvrir les reglages rapides"
+        aria-expanded="false"
+        aria-controls="mobile-quick-menu"
+      >
+        <span class="mobile-quick-menu-toggle__track" aria-hidden="true">
+          <span class="mobile-quick-menu-toggle__thumb">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
         </span>
-        <span class="mobile-topbar-brand-name">
-          <img src="/icones/vola-ko/logo-vola-ko-black.png" class="brand-logo-source brand-logo-source--light brand-logo-wordmark" alt="Vola-ko">
-          <img src="/icones/vola-ko/logo-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-wordmark" alt="Vola-ko">
-        </span>
-      </a>
-      <div class="mobile-topbar-right" id="mobile-topbar-right">
-        <!-- Controls moved here by JS -->
+      </button>
+      <div class="mobile-quick-menu" id="mobile-quick-menu" role="menu" aria-label="Menu rapide mobile">
+        <span class="mobile-quick-menu-title">Reglages rapides</span>
+        <div class="mobile-quick-menu-actions" id="mobile-quick-menu-actions"></div>
       </div>
     `;
-    document.body.prepend(topbar);
+    document.body.appendChild(wrapper);
   }
 
   /**
-   * Move theme toggle and language selector into mobile topbar
+   * Move theme toggle and logout into expandable mobile quick menu
    */
-  moveControlsToTopbar() {
+  moveControlsToQuickMenu() {
     if (window.innerWidth > 768) return;
 
-    const topbarRight = document.getElementById('mobile-topbar-right');
-    if (!topbarRight) return;
+    const quickMenuActions = document.getElementById('mobile-quick-menu-actions');
+    if (!quickMenuActions) return;
 
-    this.ensureTopbarActionButton({
+    this.ensureQuickMenuActionButton({
       sourceId: 'theme-toggle',
       cloneId: 'theme-toggle-mobile',
-      iconMarkup: '<span aria-hidden="true">🌙</span>',
-      label: 'Changer de thème'
+      iconMarkup: '<span aria-hidden="true">🌓</span>',
+      label: 'Apparence'
     });
 
-    this.ensureTopbarActionButton({
+    this.ensureQuickMenuActionButton({
       sourceId: 'logout-btn',
       cloneId: 'logout-btn-mobile',
       iconMarkup: `
@@ -73,30 +79,35 @@ class MobileMenu {
           <path d="M21 12H9" />
         </svg>
       `,
-      label: 'Déconnexion'
+      label: 'Déconnexion',
+      logout: true
     });
   }
 
-  ensureTopbarActionButton({ sourceId, cloneId, iconMarkup, label }) {
+  ensureQuickMenuActionButton({ sourceId, cloneId, iconMarkup, label, logout = false }) {
     const sourceButton = document.getElementById(sourceId);
-    const topbarRight = document.getElementById('mobile-topbar-right');
+    const quickMenuActions = document.getElementById('mobile-quick-menu-actions');
 
-    if (!sourceButton || !topbarRight || document.getElementById(cloneId)) return;
+    if (!sourceButton || !quickMenuActions || document.getElementById(cloneId)) return;
 
     const button = document.createElement('button');
     button.type = 'button';
     button.id = cloneId;
-    button.className = 'btn btn-secondary mobile-topbar-action';
-    if (cloneId === 'logout-btn-mobile') {
-      button.classList.add('mobile-topbar-action--logout');
+    button.className = 'btn btn-secondary mobile-quick-menu-item';
+    if (logout) {
+      button.classList.add('mobile-quick-menu-item--logout');
     }
 
-    button.innerHTML = iconMarkup;
+    button.innerHTML = `${iconMarkup}<span>${label}</span>`;
+    button.dataset.menuLabel = label;
+    button.style.setProperty('--item-index', String(quickMenuActions.children.length));
     button.setAttribute('aria-label', label);
     button.setAttribute('title', label);
-    button.style.cssText = 'width:36px;height:36px;padding:0;font-size:1rem;border-radius:var(--radius-md);background:var(--bg-secondary);border:1px solid var(--border-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;';
-    button.addEventListener('click', () => sourceButton.click());
-    topbarRight.appendChild(button);
+    button.addEventListener('click', () => {
+      sourceButton.click();
+      this.closeQuickMenu();
+    });
+    quickMenuActions.appendChild(button);
   }
 
   createOverlay() {
@@ -111,6 +122,7 @@ class MobileMenu {
   attachEventListeners() {
     const toggle = document.querySelector('.mobile-menu-toggle');
     const overlay = document.querySelector('.mobile-overlay');
+    const quickMenuToggle = document.getElementById('mobile-quick-menu-toggle');
 
     if (toggle) {
       toggle.addEventListener('click', () => this.toggleMenu());
@@ -120,14 +132,65 @@ class MobileMenu {
       overlay.addEventListener('click', () => this.closeMenu());
     }
 
+    if (quickMenuToggle) {
+      quickMenuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.toggleQuickMenu();
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      if (window.innerWidth > 768) return;
+
+      const quickMenu = document.getElementById('mobile-quick-menu');
+      const quickMenuToggleBtn = document.getElementById('mobile-quick-menu-toggle');
+      if (!quickMenu || !quickMenuToggleBtn) return;
+
+      if (!quickMenu.contains(event.target) && !quickMenuToggleBtn.contains(event.target)) {
+        this.closeQuickMenu();
+      }
+    });
+
     this.attachSidebarNavListeners();
 
     // Close menu on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeMenu();
+        this.closeQuickMenu();
       }
     });
+  }
+
+  toggleQuickMenu() {
+    const quickMenu = document.getElementById('mobile-quick-menu');
+    if (!quickMenu) return;
+
+    if (quickMenu.classList.contains('open')) {
+      this.closeQuickMenu();
+    } else {
+      this.openQuickMenu();
+    }
+  }
+
+  openQuickMenu() {
+    const quickMenu = document.getElementById('mobile-quick-menu');
+    const toggle = document.getElementById('mobile-quick-menu-toggle');
+    if (!quickMenu || !toggle) return;
+
+    quickMenu.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Fermer les reglages rapides');
+  }
+
+  closeQuickMenu() {
+    const quickMenu = document.getElementById('mobile-quick-menu');
+    const toggle = document.getElementById('mobile-quick-menu-toggle');
+    if (!quickMenu || !toggle) return;
+
+    quickMenu.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Ouvrir les reglages rapides');
   }
 
   attachSidebarNavListeners() {
@@ -166,6 +229,7 @@ class MobileMenu {
     const body = document.body;
 
     body.classList.add('menu-open');
+    this.closeQuickMenu();
     sidebar?.classList.add('mobile-open');
     overlay?.classList.add('active');
     toggle?.setAttribute('aria-expanded', 'true');
@@ -196,9 +260,10 @@ class MobileMenu {
       resizeTimer = setTimeout(() => {
         if (window.innerWidth > 768) {
           this.closeMenu();
+          this.closeQuickMenu();
         } else {
-          // Populate topbar controls on mobile
-          this.moveControlsToTopbar();
+          // Populate quick menu controls on mobile
+          this.moveControlsToQuickMenu();
           this.attachSidebarNavListeners();
         }
       }, 250);
@@ -209,7 +274,7 @@ class MobileMenu {
     if (this.domObserver) return;
 
     this.domObserver = new MutationObserver(() => {
-      this.moveControlsToTopbar();
+      this.moveControlsToQuickMenu();
       this.attachSidebarNavListeners();
     });
 

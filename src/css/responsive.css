@@ -177,9 +177,9 @@ body {
    TABLET SMALL (max-width: 768px) — MOBILE LAYOUT
    ============================================ */
 @media (max-width: 768px) {
-  /* ── Show Mobile Topbar ── */
-  .mobile-topbar {
-    display: flex !important;
+  /* ── Show floating mobile quick toggle ── */
+  .mobile-quick-toggle-wrapper {
+    display: block !important;
   }
 
   /* ── Hide sidebar by default ── */
@@ -208,18 +208,12 @@ body {
     overflow: hidden;
   }
 
-  /* ── Main content — full width, push below topbar ── */
+  /* ── Main content — full width ── */
   .main-content {
     margin-left: 0 !important;
     padding: var(--space-md);
-    padding-top: calc(var(--mobile-header-height, 60px) + var(--space-md));
     min-height: 100vh;
     width: 100%;
-  }
-
-  .mobile-topbar-brand {
-    padding-right: 92px;
-    padding-left: var(--space-xs);
   }
 
   /* ── App Header on mobile ── */
@@ -495,34 +489,22 @@ body {
   /* ── Tighter main content ── */
   .main-content {
     padding: var(--space-sm);
-    padding-top: calc(var(--mobile-header-height, 60px) + var(--space-sm));
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     width: 100%;
   }
 
-  .mobile-topbar {
-    padding-left: 10px;
-    padding-right: 10px;
+  #mobile-quick-menu-toggle {
+    width: 48px !important;
+    height: 32px !important;
   }
 
-  .mobile-topbar-brand {
-    justify-content: flex-start;
-    padding-right: 82px;
+  #mobile-quick-menu-toggle .mobile-quick-menu-toggle__thumb {
+    width: 26px;
+    height: 26px;
   }
 
-  .mobile-topbar-brand-name {
-    font-size: 1rem;
-    max-width: 100%;
-  }
-
-  .mobile-topbar-right {
-    right: 10px;
-  }
-
-  #mobile-topbar-right > * {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
+  .mobile-quick-menu-toggle[aria-expanded='true'] .mobile-quick-menu-toggle__thumb {
+    transform: translateX(16px);
   }
 
   /* ── App header ── */
@@ -735,14 +717,6 @@ body {
     width: 220px;
   }
 
-  .mobile-topbar {
-    height: var(--mobile-header-height, 50px);
-  }
-
-  .main-content {
-    padding-top: calc(var(--mobile-header-height, 50px) + var(--space-sm));
-  }
-
   .hero {
     min-height: 100vh;
   }
@@ -765,30 +739,25 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .mobile-topbar {
-    padding-top: env(safe-area-inset-top);
-    height: calc(var(--mobile-header-height, 60px) + env(safe-area-inset-top));
-  }
-
   .main-content {
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
   @media (max-width: 768px) {
     .main-content {
-      padding-top: calc(var(--mobile-header-height, 60px) + env(safe-area-inset-top) + var(--space-md));
+      padding-top: var(--space-md);
     }
   }
 
   @media (max-width: 480px) {
     .main-content {
-      padding-top: calc(var(--mobile-header-height, 60px) + env(safe-area-inset-top) + var(--space-sm));
+      padding-top: var(--space-sm);
     }
   }
 
   @media (max-width: 900px) and (orientation: landscape) {
     .main-content {
-      padding-top: calc(var(--mobile-header-height, 50px) + env(safe-area-inset-top) + var(--space-sm));
+      padding-top: var(--space-sm);
     }
   }
 }
@@ -807,7 +776,7 @@ body {
    ============================================ */
 @media print {
   .sidebar,
-  .mobile-topbar,
+  .mobile-quick-toggle-wrapper,
   .bottom-nav,
   .mobile-overlay,
   .header-actions,
