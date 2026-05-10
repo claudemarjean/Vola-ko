@@ -342,9 +342,9 @@
 /* ── App Header ────────────────────────────── */
 .app-header {
   background-color: var(--card-bg);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-xl);
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -358,8 +358,9 @@
 .header-title { flex: 1; min-width: 0; }
 
 .header-title h1 {
-  font-size: var(--font-size-2xl);
-  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-xl);
+  margin-bottom: 2px;
+  line-height: 1.15;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -369,7 +370,7 @@
   margin: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .header-actions {
@@ -401,13 +402,59 @@
 .card-title { font-size: var(--font-size-xl); font-weight: 700; }
 
 /* ── Filters ───────────────────────────────── */
-.filters-card { margin-bottom: var(--space-xl); }
+.filters-card {
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+}
 
 .filters-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-sm);
   align-items: end;
+}
+
+@media (min-width: 1281px) {
+  .app-header {
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .header-title h1 {
+    font-size: var(--font-size-lg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0;
+  }
+
+  .header-title p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .filters-card {
+    margin-bottom: var(--space-sm);
+    padding: var(--space-sm);
+  }
+
+  .filters-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .filters-row > * {
+    flex: 1 1 0;
+    min-width: 140px;
+  }
 }
 
 /* ── Forms ─────────────────────────────────── */

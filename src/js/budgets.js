@@ -585,10 +585,13 @@ class BudgetsManager {
     }
 
     const description = document.getElementById('budget-expense-description')?.value?.trim() || '';
-    const amount = parseFloat(document.getElementById('budget-expense-amount')?.value || '0');
+    const rawAmount = parseFloat(document.getElementById('budget-expense-amount')?.value || '0');
+    const amount = this.currency === 'MGA'
+      ? Math.round(rawAmount)
+      : Math.round((rawAmount + Number.EPSILON) * 100) / 100;
     const date = document.getElementById('budget-expense-date')?.value;
 
-    if (!description || Number.isNaN(amount) || amount <= 0 || !date) {
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
       notify.error('Description, montant et date sont requis.');
       return;
     }

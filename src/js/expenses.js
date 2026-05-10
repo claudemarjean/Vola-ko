@@ -211,7 +211,29 @@ class ExpensesManager {
   }
 
   formatCurrency(amount) {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' ' + this.currency;
+    const numericAmount = Number(amount || 0);
+    const isMGA = this.currency === 'MGA';
+    const roundedAmount = isMGA
+      ? Math.round(numericAmount)
+      : Math.round((numericAmount + Number.EPSILON) * 100) / 100;
+    const formatterOptions = isMGA
+      ? { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
+    return new Intl.NumberFormat('fr-FR', formatterOptions).format(roundedAmount) + ' ' + this.currency;
+  }
+
+  normalizeAmount(rawValue) {
+    const parsedAmount = parseFloat(rawValue);
+    if (!Number.isFinite(parsedAmount)) {
+      return Number.NaN;
+    }
+
+    if (this.currency === 'MGA') {
+      return Math.round(parsedAmount);
+    }
+
+    return Math.round((parsedAmount + Number.EPSILON) * 100) / 100;
   }
 
   setupEventListeners() {
@@ -313,7 +335,7 @@ class ExpensesManager {
     if (expense) {
       form.dataset.editId = expense.id;
       document.getElementById('expense-description').value = expense.description;
-      document.getElementById('expense-amount').value = expense.amount;
+      document.getElementById('expense-amount').value = this.normalizeAmount(expense.amount);
       document.getElementById('expense-category').value = expense.category;
       document.getElementById('expense-date').value = expense.date;
 
@@ -359,13 +381,13 @@ class ExpensesManager {
     const form = document.getElementById('expense-form');
     const editId = form.dataset.editId;
 
-    const amount = parseFloat(document.getElementById('expense-amount').value);
+    const amount = this.normalizeAmount(document.getElementById('expense-amount').value);
     const description = document.getElementById('expense-description').value;
     const category = document.getElementById('expense-category').value;
     const date = document.getElementById('expense-date').value;
     const otherReference = category === 'autre' ? document.getElementById('expense-other-reference').value : '';
 
-    if (!description || !amount || !category || !date) {
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !category || !date) {
       notify.error('Tous les champs sont requis');
       return;
     }
