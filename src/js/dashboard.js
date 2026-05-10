@@ -186,10 +186,10 @@ class Dashboard {
   setupEventListeners() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
+      logoutBtn.addEventListener('click', async () => {
+        logoutBtn.disabled = true;
         const auth = new Auth();
-        auth.logout();
-        window.location.href = '/';
+        await auth.logout();
       });
     }
 

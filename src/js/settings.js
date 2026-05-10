@@ -166,9 +166,9 @@ class SettingsManager {
 
     const logoutBtn = document.getElementById('logout-btn-settings');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        this.auth.logout();
-        window.location.href = '/';
+      logoutBtn.addEventListener('click', async () => {
+        logoutBtn.disabled = true;
+        await this.auth.logout();
       });
     }
 

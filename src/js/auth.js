@@ -92,10 +92,10 @@ class Auth {
 
     Storage.remove(STORAGE_KEYS.USER);
     Storage.remove(STORAGE_KEYS.TOKEN);
+    // Clear the Supabase session key directly to prevent re-authentication on next page load
+    localStorage.removeItem('volako-auth-token');
 
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-      window.location.href = '/';
-    }
+    window.location.replace('/');
   }
 
   isAuthenticated() {
@@ -184,13 +184,28 @@ class Auth {
 
   async logout() {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // 1. Effacer IMMÉDIATEMENT toutes les données locales (synchrone)
+      //    avant toute opération async pour éviter la race condition
+      this.user = null;
+      this.token = null;
+      this.isInitialized = false;
 
-      notify.success('Deconnexion reussie');
+      Storage.remove(STORAGE_KEYS.USER);
+      Storage.remove(STORAGE_KEYS.TOKEN);
+      // Supprimer la clé de session Supabase directement pour que
+      // getCurrentSession() renvoie null au prochain chargement de page
+      localStorage.removeItem('volako-auth-token');
+
+      // 2. Appeler signOut() côté serveur (best-effort, non bloquant)
+      supabase.auth.signOut().catch(() => {});
+
+      // 3. Rediriger via replace() pour empêcher le retour arrière vers une page protégée
+      window.location.replace('/');
+
       return { success: true };
     } catch (error) {
-      notify.error(error.message || 'Erreur lors de la deconnexion');
+      // En cas d'erreur inattendue, forcer quand même la déconnexion
+      window.location.replace('/');
       return { success: false, error: error.message };
     }
   }

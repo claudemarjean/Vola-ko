@@ -86,9 +86,9 @@ export function renderSidebar(activePage = '') {
   // Setup logout
   const logoutBtn = container.querySelector('#logout-btn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      auth.logout();
-      window.location.href = '/';
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      await auth.logout();
     });
   }
 }
