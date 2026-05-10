@@ -6,7 +6,7 @@ import { Storage, STORAGE_KEYS } from './storage.js';
 import Auth from './auth.js';
 import { renderSidebar, renderBottomNav, showConfirmModal } from './components.js';
 import { generateUUID } from './ids.js';
-import { fetchTable, insertRow, updateRow, deleteRow, fetchCategories } from './volakoApi.js';
+import { fetchTable, insertRow, updateRow, deleteRow, fetchCategories, fetchDashboardSnapshot } from './volakoApi.js';
 import { getCategories, setCategoriesCache, getCategoryIcon, getCategoryName } from './utils.js';
 import { SUPABASE_TABLES } from './supabase.js';
 import notify from './notifications.js';
@@ -16,7 +16,10 @@ class BudgetsManager {
   constructor() {
     const defaultRange = this.getCurrentMonthRange();
     this.budgets = [];
+    this.incomes = [];
     this.expenses = [];
+    this.savingsTransactions = [];
+    this.dashboardSnapshot = null;
     this.currency = Storage.get(STORAGE_KEYS.CURRENCY, 'MGA');
     this.editingBudgetId = null;
     this.selectedBudgetForExpense = null;
@@ -84,15 +87,21 @@ class BudgetsManager {
 
   async refreshData() {
     await withPageLoader('budgets-grid', async () => {
-      const [budgetsRes, expensesRes] = await Promise.allSettled([
+      const [budgetsRes, incomesRes, expensesRes, savingsTxRes, snapshotRes] = await Promise.allSettled([
         fetchTable(SUPABASE_TABLES.BUDGETS, { orderBy: 'updated_at', ascending: false }),
-        fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false })
+        fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false }),
+        fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false }),
+        fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS, { orderBy: 'date', ascending: false }),
+        fetchDashboardSnapshot()
       ]);
 
       this.budgets = budgetsRes.status === 'fulfilled' ? budgetsRes.value : [];
+      this.incomes = incomesRes.status === 'fulfilled' ? incomesRes.value : [];
       this.expenses = expensesRes.status === 'fulfilled' ? expensesRes.value : [];
+      this.savingsTransactions = savingsTxRes.status === 'fulfilled' ? savingsTxRes.value : [];
+      this.dashboardSnapshot = snapshotRes.status === 'fulfilled' ? (snapshotRes.value || null) : null;
 
-      if (budgetsRes.status === 'rejected' || expensesRes.status === 'rejected') {
+      if (budgetsRes.status === 'rejected' || incomesRes.status === 'rejected' || expensesRes.status === 'rejected' || savingsTxRes.status === 'rejected' || snapshotRes.status === 'rejected') {
         notify.warning('Certaines donnees budgets sont indisponibles. Affichage partiel applique.');
       }
 
@@ -103,6 +112,9 @@ class BudgetsManager {
   loadBudgets() {
     const filteredBudgets = this.filterBudgets();
     const gridElement = document.getElementById('budgets-grid');
+
+    this.renderBudgetBalanceCheck(filteredBudgets);
+
     if (!gridElement) return;
 
     if (filteredBudgets.length === 0) {
@@ -112,6 +124,82 @@ class BudgetsManager {
 
     gridElement.innerHTML = filteredBudgets.map(budget => this.createBudgetHTML(budget)).join('');
     this.attachEventListeners();
+  }
+
+  renderBudgetBalanceCheck(filteredBudgets = []) {
+    const summaryElement = document.getElementById('budget-balance-check');
+    if (!summaryElement) return;
+
+    const availableBalance = this.getAvailableBalance();
+    const remainingBudgets = this.getTotalRemainingBudgets(filteredBudgets);
+    const projectedBalance = availableBalance - remainingBudgets;
+    const isSufficient = projectedBalance >= 0;
+    const statusColor = isSufficient ? 'var(--color-success)' : 'var(--color-error)';
+    const statusLabel = isSufficient ? 'Suffisant' : 'Insuffisant';
+    const gapLabel = isSufficient
+      ? `Marge: ${this.formatCurrency(projectedBalance)}`
+      : `Manque: ${this.formatCurrency(Math.abs(projectedBalance))}`;
+
+    summaryElement.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">Solde disponible (hors epargne)</div>
+        <div class="stat-value">${this.formatCurrency(availableBalance)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Budgets restants (hors epargne)</div>
+        <div class="stat-value">${this.formatCurrency(remainingBudgets)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Solde apres budgets</div>
+        <div class="stat-value" style="color: ${statusColor};">${this.formatCurrency(projectedBalance)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Etat du solde</div>
+        <div class="stat-value" style="color: ${statusColor};">${statusLabel}</div>
+        <div class="stat-subtitle" style="margin-top: 4px; color: var(--text-secondary);">${gapLabel}</div>
+      </div>
+    `;
+  }
+
+  getAvailableBalance() {
+    const snapshotBalance = Number(this.dashboardSnapshot?.available_balance);
+    if (Number.isFinite(snapshotBalance)) {
+      return snapshotBalance;
+    }
+
+    const totalIncome = this.incomes
+      .reduce((sum, income) => sum + (parseFloat(income.amount) || 0), 0);
+    const totalExpenses = this.expenses
+      .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+
+    // Neutralise les mouvements d'epargne (add/withdraw) pour afficher un solde hors epargne,
+    // meme si ces mouvements ont ete enregistres avec une categorie non epargne.
+    const savingsImpact = this.savingsTransactions.reduce((sum, transaction) => {
+      const amount = parseFloat(transaction.amount) || 0;
+      if (transaction.type === 'add') {
+        return sum + amount;
+      }
+      if (transaction.type === 'withdraw') {
+        return sum - amount;
+      }
+      return sum;
+    }, 0);
+
+    return (totalIncome - totalExpenses) + savingsImpact;
+  }
+
+  getTotalRemainingBudgets(filteredBudgets) {
+    return filteredBudgets.reduce((sum, budget) => {
+      if (budget.category === 'epargne') {
+        return sum;
+      }
+
+      const range = this.getBudgetRange(budget);
+      const spent = this.getSpentForBudget(budget, range.startDate, range.endDate);
+      const amount = parseFloat(budget.amount) || 0;
+      const remaining = amount - spent;
+      return sum + Math.max(remaining, 0);
+    }, 0);
   }
 
   filterBudgets() {

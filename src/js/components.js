@@ -26,7 +26,6 @@ export function renderSidebar(activePage = '') {
           <img src="/icones/vola-ko/logo-vola-ko-black.png" class="brand-logo-source brand-logo-source--light brand-logo-wordmark" alt="Vola-ko">
           <img src="/icones/vola-ko/logo-vola-ko-white.png" class="brand-logo-source brand-logo-source--dark brand-logo-wordmark" alt="Vola-ko">
         </span>
-        <span class="sidebar-logo-tagline">Mon argent</span>
       </div>
     </div>
     

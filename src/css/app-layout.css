@@ -687,6 +687,39 @@
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+/* ── Budget Summary (compact) ─────────────── */
+.budget-balance-check {
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.budget-balance-check .stat-card {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.budget-balance-check .stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.budget-balance-check .stat-label {
+  font-size: 0.68rem;
+  margin-bottom: 4px;
+  letter-spacing: 0.03em;
+}
+
+.budget-balance-check .stat-value {
+  font-size: var(--font-size-lg);
+  line-height: 1.15;
+}
+
+.budget-balance-check .stat-subtitle {
+  font-size: 0.75rem;
+}
+
 /* ── Budget Cards ──────────────────────────── */
 .budgets-grid {
   display: grid;
