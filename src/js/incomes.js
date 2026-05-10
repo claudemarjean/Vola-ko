@@ -37,21 +37,70 @@ class IncomesManager {
 
   async refreshData() {
     await withPageLoader('incomes-list', async () => {
-      this.incomes = await fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false });
+      try {
+        this.incomes = await fetchTable(SUPABASE_TABLES.INCOMES, { orderBy: 'date', ascending: false });
+      } catch (error) {
+        this.incomes = [];
+        notify.error(error.message || 'Impossible de charger les revenus.');
+      }
+
       await this.updateStats();
       this.loadIncomes();
     });
   }
 
   async updateStats() {
-    const stats = await callRpc('volako_get_income_stats', {}, 'Chargement des revenus');
-    const row = stats?.[0] || { month_total: 0, year_total: 0 };
+    let row = { month_total: 0, year_total: 0 };
+
+    try {
+      const stats = await callRpc('volako_get_income_stats', {}, 'Chargement des revenus');
+      row = stats?.[0] || row;
+    } catch {
+      const now = new Date();
+      const monthKey = this.toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1));
+      const yearKey = `${now.getFullYear()}-01-01`;
+      const todayKey = this.toDateInputValue(now);
+
+      const monthTotal = this.incomes.reduce((sum, income) => {
+        const dateKey = this.getDateKey(income.date);
+        if (dateKey >= monthKey && dateKey <= todayKey) {
+          return sum + Number(income.amount || 0);
+        }
+        return sum;
+      }, 0);
+
+      const yearTotal = this.incomes.reduce((sum, income) => {
+        const dateKey = this.getDateKey(income.date);
+        if (dateKey >= yearKey && dateKey <= todayKey) {
+          return sum + Number(income.amount || 0);
+        }
+        return sum;
+      }, 0);
+
+      row = { month_total: monthTotal, year_total: yearTotal };
+      notify.warning('Statistiques revenus indisponibles cote serveur. Calcul local applique.');
+    }
 
     const monthEl = document.getElementById('income-month');
     const yearEl = document.getElementById('income-year');
 
     if (monthEl) monthEl.textContent = this.formatCurrency(row.month_total || 0);
     if (yearEl) yearEl.textContent = this.formatCurrency(row.year_total || 0);
+  }
+
+  toDateInputValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getDateKey(value) {
+    if (typeof value === 'string' && value.length >= 10) {
+      return value.slice(0, 10);
+    }
+    const date = new Date(value);
+    return this.toDateInputValue(date);
   }
 
   loadIncomes() {
@@ -234,11 +283,17 @@ class IncomesManager {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
     const manager = new IncomesManager();
-    await manager.init();
+    try {
+      await manager.init();
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors du chargement des revenus.');
+    }
   });
 } else {
   const manager = new IncomesManager();
-  manager.init();
+  manager.init().catch((error) => {
+    notify.error(error.message || 'Erreur lors du chargement des revenus.');
+  });
 }
 
 export default IncomesManager;

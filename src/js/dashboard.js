@@ -75,24 +75,27 @@ class Dashboard {
   }
 
   async loadData() {
-    try {
-      const [snapshot, recent, category, trend, budget, balance] = await Promise.all([
-        fetchDashboardSnapshot(),
-        fetchDashboardRecentTransactions(5),
-        fetchDashboardCategoryBreakdown(),
-        fetchDashboardTrend7(),
-        fetchDashboardBudgetUsage(),
-        fetchDashboardBalance12Months()
-      ]);
+    const results = await Promise.allSettled([
+      fetchDashboardSnapshot(),
+      fetchDashboardRecentTransactions(5),
+      fetchDashboardCategoryBreakdown(),
+      fetchDashboardTrend7(),
+      fetchDashboardBudgetUsage(),
+      fetchDashboardBalance12Months()
+    ]);
 
-      this.snapshot = snapshot || {};
-      this.recentTransactions = recent || [];
-      this.categoryBreakdown = category || [];
-      this.trend7 = trend || [];
-      this.budgetUsage = budget || [];
-      this.balance12m = balance || [];
-    } catch (error) {
-      notify.error('Erreur de chargement du dashboard: ' + (error.message || 'inconnue'));
+    const [snapshotRes, recentRes, categoryRes, trendRes, budgetRes, balanceRes] = results;
+
+    this.snapshot = snapshotRes.status === 'fulfilled' ? (snapshotRes.value || {}) : {};
+    this.recentTransactions = recentRes.status === 'fulfilled' ? (recentRes.value || []) : [];
+    this.categoryBreakdown = categoryRes.status === 'fulfilled' ? (categoryRes.value || []) : [];
+    this.trend7 = trendRes.status === 'fulfilled' ? (trendRes.value || []) : [];
+    this.budgetUsage = budgetRes.status === 'fulfilled' ? (budgetRes.value || []) : [];
+    this.balance12m = balanceRes.status === 'fulfilled' ? (balanceRes.value || []) : [];
+
+    const failedCount = results.filter(result => result.status === 'rejected').length;
+    if (failedCount > 0) {
+      notify.warning('Certaines donnees du dashboard sont indisponibles. Affichage partiel applique.');
     }
   }
 

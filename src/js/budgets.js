@@ -84,13 +84,18 @@ class BudgetsManager {
 
   async refreshData() {
     await withPageLoader('budgets-grid', async () => {
-      const [budgets, expenses] = await Promise.all([
+      const [budgetsRes, expensesRes] = await Promise.allSettled([
         fetchTable(SUPABASE_TABLES.BUDGETS, { orderBy: 'updated_at', ascending: false }),
         fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false })
       ]);
 
-      this.budgets = budgets;
-      this.expenses = expenses;
+      this.budgets = budgetsRes.status === 'fulfilled' ? budgetsRes.value : [];
+      this.expenses = expensesRes.status === 'fulfilled' ? expensesRes.value : [];
+
+      if (budgetsRes.status === 'rejected' || expensesRes.status === 'rejected') {
+        notify.warning('Certaines donnees budgets sont indisponibles. Affichage partiel applique.');
+      }
+
       this.loadBudgets();
     });
   }
@@ -1173,11 +1178,17 @@ class BudgetsManager {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
     const manager = new BudgetsManager();
-    await manager.init();
+    try {
+      await manager.init();
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors du chargement des budgets.');
+    }
   });
 } else {
   const manager = new BudgetsManager();
-  manager.init();
+  manager.init().catch((error) => {
+    notify.error(error.message || 'Erreur lors du chargement des budgets.');
+  });
 }
 
 export default BudgetsManager;

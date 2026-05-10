@@ -67,7 +67,13 @@ class ExpensesManager {
 
   async refreshData() {
     await withPageLoader('expenses-list', async () => {
-      this.expenses = await fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false });
+      try {
+        this.expenses = await fetchTable(SUPABASE_TABLES.EXPENSES, { orderBy: 'date', ascending: false });
+      } catch (error) {
+        this.expenses = [];
+        notify.error(error.message || 'Impossible de charger les depenses.');
+      }
+
       this.loadExpenses();
     });
   }
@@ -432,11 +438,17 @@ class ExpensesManager {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
     const manager = new ExpensesManager();
-    await manager.init();
+    try {
+      await manager.init();
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors du chargement des depenses.');
+    }
   });
 } else {
   const manager = new ExpensesManager();
-  manager.init();
+  manager.init().catch((error) => {
+    notify.error(error.message || 'Erreur lors du chargement des depenses.');
+  });
 }
 
 export default ExpensesManager;

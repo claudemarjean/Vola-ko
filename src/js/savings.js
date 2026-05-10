@@ -38,18 +38,54 @@ class SavingsManager {
 
   async refreshData() {
     await withPageLoader('savings-list', async () => {
-      this.savings = await fetchTable(SUPABASE_TABLES.SAVINGS, { orderBy: 'updated_at', ascending: false });
-      this.transactions = await fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS, { orderBy: 'date', ascending: false });
+      const [savingsRes, transactionsRes] = await Promise.allSettled([
+        fetchTable(SUPABASE_TABLES.SAVINGS, { orderBy: 'updated_at', ascending: false }),
+        fetchTable(SUPABASE_TABLES.SAVINGS_TRANSACTIONS, { orderBy: 'date', ascending: false })
+      ]);
+
+      this.savings = savingsRes.status === 'fulfilled' ? savingsRes.value : [];
+      this.transactions = transactionsRes.status === 'fulfilled' ? transactionsRes.value : [];
+
+      if (savingsRes.status === 'rejected' || transactionsRes.status === 'rejected') {
+        notify.warning('Certaines donnees epargne sont indisponibles. Affichage partiel applique.');
+      }
+
       await this.updateStats();
       this.loadSavings();
     });
   }
 
   async updateStats() {
-    const stats = await fetchSavingsStats();
-    const totalSaved = stats?.total_saved || 0;
-    const activeGoals = stats?.active_goals || 0;
-    const avgProgress = Math.round(stats?.avg_progress || 0);
+    let totalSaved = 0;
+    let activeGoals = 0;
+    let avgProgress = 0;
+
+    try {
+      const stats = await fetchSavingsStats();
+      totalSaved = stats?.total_saved || 0;
+      activeGoals = stats?.active_goals || 0;
+      avgProgress = Math.round(stats?.avg_progress || 0);
+    } catch {
+      totalSaved = this.savings.reduce((sum, saving) => sum + Number(saving.balance || 0), 0);
+
+      const goalSavings = this.savings.filter((saving) => saving.type === 'goal');
+      activeGoals = goalSavings.length;
+
+      if (goalSavings.length > 0) {
+        const progressSum = goalSavings.reduce((sum, saving) => {
+          const balance = Number(saving.balance || 0);
+          const target = Number(saving.target_amount || 0);
+          if (target <= 0) {
+            return sum;
+          }
+          return sum + Math.min((balance / target) * 100, 100);
+        }, 0);
+
+        avgProgress = Math.round(progressSum / goalSavings.length);
+      }
+
+      notify.warning('Statistiques epargne indisponibles cote serveur. Calcul local applique.');
+    }
 
     const totalEl = document.getElementById('total-saved');
     const activeEl = document.getElementById('active-goals');
@@ -524,13 +560,19 @@ class SavingsManager {
 let savingsManager;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
-    savingsManager = new SavingsManager();
-    await savingsManager.init();
-    window.savingsManager = savingsManager;
+    try {
+      savingsManager = new SavingsManager();
+      await savingsManager.init();
+      window.savingsManager = savingsManager;
+    } catch (error) {
+      notify.error(error.message || 'Erreur lors du chargement de l epargne.');
+    }
   });
 } else {
   savingsManager = new SavingsManager();
-  savingsManager.init();
+  savingsManager.init().catch((error) => {
+    notify.error(error.message || 'Erreur lors du chargement de l epargne.');
+  });
   window.savingsManager = savingsManager;
 }
 
