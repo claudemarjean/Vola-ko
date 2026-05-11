@@ -23,6 +23,7 @@ import {
   rejectJointAccountRequest,
   fetchJointAccountState,
   removeJointAccountMember,
+  leaveJointAccountAsMember,
   resetDataScopeCache
 } from './volakoApi.js';
 import { ensureOnlineForCriticalAction } from './network.js';
@@ -299,10 +300,16 @@ class SettingsManager {
     if (statePanel) {
       statePanel.addEventListener('click', async (e) => {
         const removeBtn = e.target.closest('[data-action="remove-joint-member"]');
-        if (!removeBtn) return;
-        const memberUserId = removeBtn.dataset.memberUserId;
-        if (!memberUserId) return;
-        await this.removeJointMemberFlow(memberUserId, removeBtn);
+        if (removeBtn) {
+          const memberUserId = removeBtn.dataset.memberUserId;
+          if (!memberUserId) return;
+          await this.removeJointMemberFlow(memberUserId, removeBtn);
+          return;
+        }
+
+        const leaveBtn = e.target.closest('[data-action="leave-joint-account"]');
+        if (!leaveBtn) return;
+        await this.leaveJointAccountFlow(leaveBtn);
       });
     }
   }
@@ -408,6 +415,11 @@ class SettingsManager {
       panel.innerHTML = `
         <span class="settings-lock-badge" style="margin-right: 0.5rem;">Conjoint</span>
         <span>Vous utilisez les donnees de ${adminEmail}.</span>
+        <div style="margin-top: 0.75rem;">
+          <button type="button" class="btn btn-outline btn-sm danger" data-action="leave-joint-account">
+            Se retirer de ce compte
+          </button>
+        </div>
       `;
       return;
     }
@@ -498,18 +510,6 @@ class SettingsManager {
       return;
     }
 
-    const confirmed = await notify.confirm(
-      'Avant d accepter, vous devez effacer toutes vos donnees depuis la section Gestion des donnees. Continuer quand meme ?',
-      'Condition obligatoire',
-      {
-        confirmText: 'Continuer',
-        cancelText: 'Annuler',
-        type: 'warning'
-      }
-    );
-
-    if (!confirmed) return;
-
     setButtonLoading(button, true, 'Validation...');
     try {
       await withGlobalLoader(async () => {
@@ -570,6 +570,41 @@ class SettingsManager {
       await this.loadJointAccountData();
     } catch (error) {
       notify.error(error.message || 'Impossible de retirer ce conjoint.');
+    } finally {
+      setButtonLoading(button, false);
+    }
+  }
+
+  async leaveJointAccountFlow(button) {
+    if (!ensureOnlineForCriticalAction('Le retrait du compte conjoint')) {
+      return;
+    }
+
+    const confirmed = await notify.confirm(
+      'Vous allez quitter ce compte conjoint et revenir sur votre propre espace. Continuer ?',
+      'Quitter le compte conjoint',
+      {
+        confirmText: 'Se retirer',
+        cancelText: 'Annuler',
+        type: 'warning',
+        danger: true
+      }
+    );
+
+    if (!confirmed) return;
+
+    setButtonLoading(button, true, 'Retrait...');
+    try {
+      await withGlobalLoader(async () => {
+        await leaveJointAccountAsMember();
+      }, { message: 'Retrait du compte conjoint...' });
+
+      resetDataScopeCache();
+      notify.success('Vous vous etes retire du compte conjoint.');
+      await this.loadCategories();
+      await this.loadJointAccountData();
+    } catch (error) {
+      notify.error(error.message || 'Impossible de vous retirer du compte conjoint.');
     } finally {
       setButtonLoading(button, false);
     }

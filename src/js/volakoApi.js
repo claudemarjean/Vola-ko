@@ -219,7 +219,13 @@ export async function callRpc(name, params = {}, actionLabel = 'Cette action') {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const { data, error } = await supabase.rpc(name, params);
+    const hasParams = params !== null
+      && params !== undefined
+      && (typeof params !== 'object' || Object.keys(params).length > 0);
+
+    const { data, error } = hasParams
+      ? await supabase.rpc(name, params)
+      : await supabase.rpc(name);
     handleDbError(error, `RPC ${name} en erreur`);
     return data;
   }, { message: 'Chargement des donnees...' });
@@ -432,7 +438,8 @@ const JOINT_ACCOUNT_ERROR_MESSAGES = {
   REQUEST_NOT_PENDING: 'Cette demande n est plus en attente.',
   REQUEST_NOT_FOUND_OR_ALREADY_HANDLED: 'Cette demande est introuvable ou deja traitee.',
   TARGET_DATA_NOT_EMPTY: 'Avant d accepter, vous devez supprimer toutes vos donnees personnelles.',
-  ACTIVE_LINK_NOT_FOUND: 'Aucun lien conjoint actif a retirer pour ce membre.'
+  ACTIVE_LINK_NOT_FOUND: 'Aucun lien conjoint actif a retirer pour ce membre.',
+  ACTIVE_MEMBER_LINK_NOT_FOUND: 'Vous n etes lie a aucun compte conjoint actif.'
 };
 
 function mapJointAccountError(error, fallbackMessage) {
@@ -566,5 +573,17 @@ export async function removeJointAccountMember(memberUserId) {
     }, 'Retrait du compte conjoint');
   } catch (error) {
     throw mapJointAccountError(error, 'Impossible de retirer ce conjoint.');
+  }
+}
+
+export async function leaveJointAccountAsMember() {
+  try {
+    return await callRpc('volako_member_leave_joint_account', null, 'Retrait du compte conjoint (membre)');
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (message.includes('PGRST202') && message.includes('volako_member_leave_joint_account')) {
+      throw new Error('La fonction SQL de retrait membre est absente dans Supabase. Executez la migration volako_joint_member_leave_patch.sql puis reessayez.');
+    }
+    throw mapJointAccountError(error, 'Impossible de vous retirer du compte conjoint.');
   }
 }
