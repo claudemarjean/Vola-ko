@@ -175,6 +175,63 @@
         </form>
       </div>
 
+      <!-- Joint Account -->
+      <div class="settings-section card">
+        <h2>Compte conjoint</h2>
+
+        <div class="settings-item" style="align-items: flex-start;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%;">
+            <div>
+              <h4>Inviter un conjoint</h4>
+              <p>Entrez un email exact. Aucun email disponible ne sera affiche.</p>
+            </div>
+
+            <form id="joint-email-search-form" class="settings-joint-form">
+              <div class="form-group" style="margin: 0;">
+                <label for="joint-email-search">Email du compte a inviter</label>
+                <input type="email" id="joint-email-search" class="form-input" placeholder="exemple@mail.com" autocomplete="off" required>
+              </div>
+              <button type="submit" class="btn btn-outline btn-sm" id="joint-email-search-btn">Verifier</button>
+            </form>
+
+            <div id="joint-email-search-result" class="settings-joint-result" aria-live="polite"></div>
+
+            <div class="settings-inline-actions" style="width: 100%; justify-content: flex-start;">
+              <button type="button" class="btn btn-primary" id="joint-send-request-btn" disabled>Envoyer la demande</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-item" style="align-items: flex-start;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%;">
+            <div>
+              <h4>Statut du compte conjoint</h4>
+              <p id="joint-account-state">Aucun lien actif pour le moment.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-item" style="align-items: flex-start;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%;">
+            <div>
+              <h4>Demandes envoyees</h4>
+              <p>En attente de reponse du destinataire.</p>
+            </div>
+            <div id="joint-sent-requests-list" style="display: grid; gap: 0.5rem; width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="settings-item" style="align-items: flex-start; border-bottom: none;">
+          <div class="settings-item-info" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%;">
+            <div>
+              <h4>Demandes recues</h4>
+              <p>Condition obligatoire avant acceptation: effacer toutes vos donnees personnelles.</p>
+            </div>
+            <div id="joint-received-requests-list" style="display: grid; gap: 0.5rem; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Data Management -->
       <div class="settings-section card">
         <h2 data-i18n="settings.data_title">Gestion des données</h2>

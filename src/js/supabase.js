@@ -41,7 +41,9 @@ export const SUPABASE_TABLES = {
   BUDGETS: 'volako_budgets',
   SAVINGS: 'volako_savings',
   SAVINGS_TRANSACTIONS: 'volako_savings_transactions',
-  CATEGORIES: 'volako_categories'
+  CATEGORIES: 'volako_categories',
+  JOINT_ACCOUNT_REQUESTS: 'volako_joint_account_requests',
+  JOINT_ACCOUNT_LINKS: 'volako_joint_account_links'
 };
 
 /**

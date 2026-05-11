@@ -14,7 +14,16 @@ import {
   upsertUserSettings,
   fetchCategories,
   createCustomCategory,
-  deleteCustomCategory
+  deleteCustomCategory,
+  findJointAccountCandidateByEmail,
+  sendJointAccountRequest,
+  fetchReceivedJointAccountRequests,
+  fetchSentJointAccountRequests,
+  acceptJointAccountRequest,
+  rejectJointAccountRequest,
+  fetchJointAccountState,
+  removeJointAccountMember,
+  resetDataScopeCache
 } from './volakoApi.js';
 import { ensureOnlineForCriticalAction } from './network.js';
 import { withPageLoader, setButtonLoading, withGlobalLoader } from './loaders.js';
@@ -25,6 +34,10 @@ class SettingsManager {
     this.auth = new Auth();
     this.themeManager = new ThemeManager();
     this.categories = [];
+    this.jointSearchMatch = null;
+    this.jointState = null;
+    this.receivedJointRequests = [];
+    this.sentJointRequests = [];
   }
 
   async init() {
@@ -35,6 +48,7 @@ class SettingsManager {
     await withPageLoader('sidebar-container', async () => {
       this.loadUserInfo();
       await this.loadCategories();
+      await this.loadJointAccountData();
       this.setupEventListeners();
     });
   }
@@ -234,6 +248,330 @@ class SettingsManager {
         if (!dbId) return;
         await this.removeCustomCategory(dbId);
       });
+    }
+
+    const jointSearchForm = document.getElementById('joint-email-search-form');
+    if (jointSearchForm) {
+      jointSearchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('joint-email-search-btn');
+        setButtonLoading(btn, true, 'Verification...');
+        try {
+          await this.lookupJointEmail();
+        } finally {
+          setButtonLoading(btn, false);
+        }
+      });
+    }
+
+    const jointSendBtn = document.getElementById('joint-send-request-btn');
+    if (jointSendBtn) {
+      jointSendBtn.addEventListener('click', async () => {
+        setButtonLoading(jointSendBtn, true, 'Envoi...');
+        try {
+          await this.sendJointInvitation();
+        } finally {
+          setButtonLoading(jointSendBtn, false);
+        }
+      });
+    }
+
+    const receivedList = document.getElementById('joint-received-requests-list');
+    if (receivedList) {
+      receivedList.addEventListener('click', async (e) => {
+        const acceptBtn = e.target.closest('[data-action="accept-joint-request"]');
+        if (acceptBtn) {
+          const requestId = acceptBtn.dataset.requestId;
+          if (!requestId) return;
+          await this.acceptJointRequestFlow(requestId, acceptBtn);
+          return;
+        }
+
+        const rejectBtn = e.target.closest('[data-action="reject-joint-request"]');
+        if (!rejectBtn) return;
+        const requestId = rejectBtn.dataset.requestId;
+        if (!requestId) return;
+        await this.rejectJointRequestFlow(requestId, rejectBtn);
+      });
+    }
+
+    const statePanel = document.getElementById('joint-account-state');
+    if (statePanel) {
+      statePanel.addEventListener('click', async (e) => {
+        const removeBtn = e.target.closest('[data-action="remove-joint-member"]');
+        if (!removeBtn) return;
+        const memberUserId = removeBtn.dataset.memberUserId;
+        if (!memberUserId) return;
+        await this.removeJointMemberFlow(memberUserId, removeBtn);
+      });
+    }
+  }
+
+  resetJointSearch() {
+    this.jointSearchMatch = null;
+    const resultEl = document.getElementById('joint-email-search-result');
+    const sendBtn = document.getElementById('joint-send-request-btn');
+    if (resultEl) {
+      resultEl.textContent = '';
+      resultEl.className = 'settings-joint-result';
+    }
+    if (sendBtn) {
+      sendBtn.disabled = true;
+    }
+  }
+
+  showJointSearchResult(message, type = 'info') {
+    const resultEl = document.getElementById('joint-email-search-result');
+    if (!resultEl) return;
+    resultEl.textContent = message;
+    resultEl.className = `settings-joint-result settings-joint-result-${type}`;
+  }
+
+  async lookupJointEmail() {
+    const emailInput = document.getElementById('joint-email-search');
+    const sendBtn = document.getElementById('joint-send-request-btn');
+    const email = emailInput?.value?.trim() || '';
+
+    this.resetJointSearch();
+
+    if (!this.auth.validateEmail(email)) {
+      this.showJointSearchResult('Email invalide.', 'error');
+      return;
+    }
+
+    try {
+      const match = await findJointAccountCandidateByEmail(email);
+      if (!match) {
+        this.showJointSearchResult('Aucun compte trouve avec cet email exact.', 'warning');
+        return;
+      }
+
+      this.jointSearchMatch = match;
+      this.showJointSearchResult(`Compte trouve: ${match.email}`, 'success');
+      if (sendBtn) {
+        sendBtn.disabled = false;
+      }
+    } catch (error) {
+      this.showJointSearchResult(error.message || 'Impossible de verifier cet email.', 'error');
+    }
+  }
+
+  async sendJointInvitation() {
+    if (!ensureOnlineForCriticalAction('L envoi d une demande conjointe')) {
+      return;
+    }
+
+    if (!this.jointSearchMatch?.email) {
+      notify.error('Vous devez verifier un email exact avant envoi.');
+      return;
+    }
+
+    await withGlobalLoader(async () => {
+      await sendJointAccountRequest(this.jointSearchMatch.email);
+    }, { message: 'Envoi de la demande...' });
+
+    notify.success('Demande envoyee. Le destinataire la verra a la connexion.');
+    this.resetJointSearch();
+    const emailInput = document.getElementById('joint-email-search');
+    if (emailInput) {
+      emailInput.value = '';
+    }
+    await this.loadJointAccountData();
+  }
+
+  renderJointState() {
+    const panel = document.getElementById('joint-account-state');
+    if (!panel) return;
+
+    if (!this.jointState?.role || this.jointState.role === 'none') {
+      panel.innerHTML = 'Aucun lien actif pour le moment.';
+      return;
+    }
+
+    if (this.jointState.role === 'admin') {
+      const memberEmail = this.escapeHtml(this.jointState.member_email || 'Utilisateur lie');
+      const memberUserId = this.escapeHtml(this.jointState.member_user_id || '');
+      panel.innerHTML = `
+        <span class="settings-lock-badge" style="margin-right: 0.5rem;">Admin</span>
+        <span>Votre conjoint actif: ${memberEmail}</span>
+        <div style="margin-top: 0.75rem;">
+          <button type="button" class="btn btn-outline btn-sm danger" data-action="remove-joint-member" data-member-user-id="${memberUserId}">
+            Retirer ce conjoint
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    if (this.jointState.role === 'member') {
+      const adminEmail = this.escapeHtml(this.jointState.admin_email || 'Admin');
+      panel.innerHTML = `
+        <span class="settings-lock-badge" style="margin-right: 0.5rem;">Conjoint</span>
+        <span>Vous utilisez les donnees de ${adminEmail}.</span>
+      `;
+      return;
+    }
+
+    panel.textContent = 'Aucun lien actif pour le moment.';
+  }
+
+  renderSentJointRequests() {
+    const list = document.getElementById('joint-sent-requests-list');
+    if (!list) return;
+
+    if (!this.sentJointRequests.length) {
+      list.innerHTML = '<p style="color: var(--text-secondary);">Aucune demande envoyee en attente.</p>';
+      return;
+    }
+
+    list.innerHTML = this.sentJointRequests
+      .map((request) => {
+        const email = this.escapeHtml(request.target_email || '');
+        const date = new Date(request.created_at).toLocaleString();
+        return `
+          <div class="settings-joint-request-card">
+            <div>
+              <h4 style="margin-bottom:0.2rem;">${email}</h4>
+              <p>Envoyee le ${this.escapeHtml(date)}</p>
+            </div>
+            <span class="settings-lock-badge">En attente</span>
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  renderReceivedJointRequests() {
+    const list = document.getElementById('joint-received-requests-list');
+    if (!list) return;
+
+    if (!this.receivedJointRequests.length) {
+      list.innerHTML = '<p style="color: var(--text-secondary);">Aucune demande recue en attente.</p>';
+      return;
+    }
+
+    list.innerHTML = this.receivedJointRequests
+      .map((request) => {
+        const email = this.escapeHtml(request.requester_email || '');
+        const date = new Date(request.created_at).toLocaleString();
+        return `
+          <div class="settings-joint-request-card">
+            <div>
+              <h4 style="margin-bottom:0.2rem;">${email}</h4>
+              <p>Recue le ${this.escapeHtml(date)}</p>
+            </div>
+            <div class="settings-inline-actions" style="margin-top:0;">
+              <button type="button" class="btn btn-secondary btn-sm" data-action="reject-joint-request" data-request-id="${request.id}">Refuser</button>
+              <button type="button" class="btn btn-primary btn-sm" data-action="accept-joint-request" data-request-id="${request.id}">Accepter</button>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  async loadJointAccountData() {
+    try {
+      const [jointState, receivedRequests, sentRequests] = await Promise.all([
+        fetchJointAccountState(),
+        fetchReceivedJointAccountRequests(),
+        fetchSentJointAccountRequests()
+      ]);
+
+      this.jointState = jointState;
+      this.receivedJointRequests = receivedRequests;
+      this.sentJointRequests = sentRequests;
+    } catch (error) {
+      this.jointState = null;
+      this.receivedJointRequests = [];
+      this.sentJointRequests = [];
+      notify.error(error.message || 'Impossible de charger le module compte conjoint.');
+    }
+
+    this.renderJointState();
+    this.renderReceivedJointRequests();
+    this.renderSentJointRequests();
+  }
+
+  async acceptJointRequestFlow(requestId, button) {
+    if (!ensureOnlineForCriticalAction('L acceptation de la demande')) {
+      return;
+    }
+
+    const confirmed = await notify.confirm(
+      'Avant d accepter, vous devez effacer toutes vos donnees depuis la section Gestion des donnees. Continuer quand meme ?',
+      'Condition obligatoire',
+      {
+        confirmText: 'Continuer',
+        cancelText: 'Annuler',
+        type: 'warning'
+      }
+    );
+
+    if (!confirmed) return;
+
+    setButtonLoading(button, true, 'Validation...');
+    try {
+      await withGlobalLoader(async () => {
+        await acceptJointAccountRequest(requestId);
+      }, { message: 'Activation du compte conjoint...' });
+
+      resetDataScopeCache();
+      notify.success('Demande acceptee. Vous avez maintenant acces aux donnees du compte admin.');
+      await this.loadCategories();
+      await this.loadJointAccountData();
+    } catch (error) {
+      notify.error(error.message || 'Impossible d accepter la demande.');
+    } finally {
+      setButtonLoading(button, false);
+    }
+  }
+
+  async rejectJointRequestFlow(requestId, button) {
+    if (!ensureOnlineForCriticalAction('Le refus de la demande')) {
+      return;
+    }
+
+    setButtonLoading(button, true, 'Refus...');
+    try {
+      await rejectJointAccountRequest(requestId);
+      notify.success('Demande refusee.');
+      await this.loadJointAccountData();
+    } catch (error) {
+      notify.error(error.message || 'Impossible de refuser la demande.');
+    } finally {
+      setButtonLoading(button, false);
+    }
+  }
+
+  async removeJointMemberFlow(memberUserId, button) {
+    if (!ensureOnlineForCriticalAction('Le retrait du conjoint')) {
+      return;
+    }
+
+    const confirmed = await notify.confirm(
+      'Retirer ce conjoint de votre compte partage ?',
+      'Retrait du conjoint',
+      {
+        confirmText: 'Retirer',
+        cancelText: 'Annuler',
+        type: 'warning',
+        danger: true
+      }
+    );
+
+    if (!confirmed) return;
+
+    setButtonLoading(button, true, 'Retrait...');
+    try {
+      await removeJointAccountMember(memberUserId);
+      resetDataScopeCache();
+      notify.success('Le conjoint a ete retire.');
+      await this.loadJointAccountData();
+    } catch (error) {
+      notify.error(error.message || 'Impossible de retirer ce conjoint.');
+    } finally {
+      setButtonLoading(button, false);
     }
   }
 

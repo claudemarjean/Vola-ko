@@ -1274,6 +1274,43 @@
   white-space: nowrap;
 }
 
+.settings-joint-form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: end;
+}
+
+.settings-joint-result {
+  min-height: 1.2rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.settings-joint-result-success {
+  color: var(--color-success);
+}
+
+.settings-joint-result-warning {
+  color: var(--color-warning);
+}
+
+.settings-joint-result-error {
+  color: var(--color-error);
+}
+
+.settings-joint-request-card {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+}
+
 @media (max-width: 768px) {
   .settings-item {
     align-items: flex-start;
@@ -1301,6 +1338,15 @@
 
   .settings-password-form .settings-inline-actions {
     justify-content: stretch;
+  }
+
+  .settings-joint-form {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-joint-request-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .settings-lock-badge {

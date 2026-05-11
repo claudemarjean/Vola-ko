@@ -5,7 +5,7 @@
 
 import { Storage, STORAGE_KEYS } from './storage.js';
 import { supabase, getCurrentSession } from './supabase.js';
-import { fetchUserSettings } from './volakoApi.js';
+import { fetchPendingJointRequestCount, fetchUserSettings, resetDataScopeCache } from './volakoApi.js';
 import notify from './notifications.js';
 
 let authInstance = null;
@@ -70,6 +70,7 @@ class Auth {
 
     Storage.set(STORAGE_KEYS.USER, this.user);
     Storage.set(STORAGE_KEYS.TOKEN, this.token);
+    resetDataScopeCache();
 
     try {
       const settings = await fetchUserSettings();
@@ -82,6 +83,15 @@ class Auth {
       console.error('Settings load error:', error);
     }
 
+    try {
+      const pendingRequests = await fetchPendingJointRequestCount();
+      if (pendingRequests > 0) {
+        notify.info(`Vous avez ${pendingRequests} demande(s) de compte conjoint en attente dans Parametres.`);
+      }
+    } catch (error) {
+      console.error('Joint request notification error:', error);
+    }
+
     this.isInitialized = true;
   }
 
@@ -92,6 +102,7 @@ class Auth {
 
     Storage.remove(STORAGE_KEYS.USER);
     Storage.remove(STORAGE_KEYS.TOKEN);
+    resetDataScopeCache();
     // Clear the Supabase session key directly to prevent re-authentication on next page load
     localStorage.removeItem('volako-auth-token');
 
@@ -192,6 +203,7 @@ class Auth {
 
       Storage.remove(STORAGE_KEYS.USER);
       Storage.remove(STORAGE_KEYS.TOKEN);
+      resetDataScopeCache();
       // Supprimer la clé de session Supabase directement pour que
       // getCurrentSession() renvoie null au prochain chargement de page
       localStorage.removeItem('volako-auth-token');

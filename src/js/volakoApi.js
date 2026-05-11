@@ -4,6 +4,11 @@ import { withGlobalLoader } from './loaders.js';
 
 const AUTH_STORAGE_KEYS = ['tvolako_user', 'tvolako_token', 'volako-auth-token'];
 let authRedirectTriggered = false;
+let dataScopeCache = {
+  sessionUserId: null,
+  ownerUserId: null,
+  fetchedAt: 0
+};
 
 function cleanupAuthStorage() {
   AUTH_STORAGE_KEYS.forEach((key) => {
@@ -26,6 +31,14 @@ function redirectToLoginOnce() {
   if (window.location.pathname !== '/login' && window.location.pathname !== '/login.html') {
     window.location.href = '/login';
   }
+}
+
+export function resetDataScopeCache() {
+  dataScopeCache = {
+    sessionUserId: null,
+    ownerUserId: null,
+    fetchedAt: 0
+  };
 }
 
 function isAuthError(error) {
@@ -67,7 +80,7 @@ function formatSupabaseError(error, fallback) {
   return parts.length ? parts.join(' | ') : fallback;
 }
 
-async function requireUserId() {
+async function requireSessionUserId() {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error || !session?.user?.id) {
     redirectToLoginOnce();
@@ -75,6 +88,31 @@ async function requireUserId() {
   }
 
   return session.user.id;
+}
+
+async function requireDataOwnerUserId() {
+  const sessionUserId = await requireSessionUserId();
+  const cacheTtlMs = 60 * 1000;
+
+  if (
+    dataScopeCache.sessionUserId === sessionUserId &&
+    dataScopeCache.ownerUserId &&
+    Date.now() - dataScopeCache.fetchedAt < cacheTtlMs
+  ) {
+    return dataScopeCache.ownerUserId;
+  }
+
+  const { data, error } = await supabase.rpc('volako_get_data_scope_user');
+  handleDbError(error, 'Impossible de determiner le scope de donnees');
+
+  const ownerUserId = data || sessionUserId;
+  dataScopeCache = {
+    sessionUserId,
+    ownerUserId,
+    fetchedAt: Date.now()
+  };
+
+  return ownerUserId;
 }
 
 function handleDbError(error, fallback = 'Erreur base de donnees') {
@@ -93,7 +131,7 @@ function handleDbError(error, fallback = 'Erreur base de donnees') {
 
 export async function fetchTable(tableName, options = {}) {
   return withGlobalLoader(async () => {
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const {
       columns = '*',
       orderBy = 'created_at',
@@ -126,7 +164,7 @@ export async function insertRow(tableName, payload, actionLabel) {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const { data, error } = await supabase
       .from(tableName)
       .insert([{ ...payload, user_id: userId }])
@@ -144,7 +182,7 @@ export async function updateRow(tableName, id, payload, actionLabel) {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const { data, error } = await supabase
       .from(tableName)
       .update(payload)
@@ -164,7 +202,7 @@ export async function deleteRow(tableName, id, actionLabel) {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -192,7 +230,7 @@ export async function callRpc(name, params = {}, actionLabel = 'Cette action') {
  * (catégories système user_id IS NULL + catégories custom de l'utilisateur)
  */
 export async function fetchCategories() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   const { data, error } = await supabase
     .from(SUPABASE_TABLES.CATEGORIES)
     .select('id, slug, name, icon, color, sort_order, is_default, user_id')
@@ -218,7 +256,7 @@ export async function createCustomCategory(payload) {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const { data, error } = await supabase
       .from(SUPABASE_TABLES.CATEGORIES)
       .insert([{
@@ -244,7 +282,7 @@ export async function deleteCustomCategory(categoryDbId) {
       throw new Error('MODE_HORS_LIGNE');
     }
 
-    const userId = await requireUserId();
+    const userId = await requireDataOwnerUserId();
     const { error } = await supabase
       .from(SUPABASE_TABLES.CATEGORIES)
       .delete()
@@ -257,80 +295,80 @@ export async function deleteCustomCategory(categoryDbId) {
 }
 
 export async function fetchDashboardSnapshot() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   const data = await callRpc('volako_get_dashboard_snapshot', { p_user_id: userId }, 'Chargement du dashboard');
   return data?.[0] || null;
 }
 
 export async function fetchDashboardRecentTransactions(limit = 5) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_dashboard_recent_transactions', { p_user_id: userId, p_limit: limit }, 'Chargement des transactions');
 }
 
 export async function fetchDashboardCategoryBreakdown() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_dashboard_category_breakdown', { p_user_id: userId }, 'Chargement du dashboard');
 }
 
 export async function fetchDashboardTrend7() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_dashboard_trend7', { p_user_id: userId }, 'Chargement du dashboard');
 }
 
 export async function fetchDashboardBudgetUsage() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_dashboard_budget_usage', { p_user_id: userId }, 'Chargement du dashboard');
 }
 
 export async function fetchDashboardBalance12Months() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_dashboard_balance_12m', { p_user_id: userId }, 'Chargement du dashboard');
 }
 
 export async function fetchReportsSummary(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   const data = await callRpc('volako_get_report_summary', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
   return data?.[0] || null;
 }
 
 export async function fetchReportsCategoryBreakdown(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_report_category_breakdown', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
 }
 
 export async function fetchReportsMonthlyComparison(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_report_monthly_comparison', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
 }
 
 export async function fetchReportsExpenseTrend(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_report_expense_trend', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
 }
 
 export async function fetchReportsTopExpenses(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_report_top_expenses', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
 }
 
 export async function fetchReportsWeekly(period) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_report_weekly', { p_user_id: userId, p_period: period }, 'Chargement des rapports');
 }
 
 export async function fetchBudgetProgress() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_get_budget_progress', { p_user_id: userId }, 'Chargement des budgets');
 }
 
 export async function fetchSavingsStats() {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   const data = await callRpc('volako_get_savings_stats', { p_user_id: userId }, 'Chargement de l epargne');
   return data?.[0] || null;
 }
 
 export async function applySavingsTransaction(payload) {
-  const userId = await requireUserId();
+  const userId = await requireDataOwnerUserId();
   return callRpc('volako_apply_savings_transaction', {
     p_user_id: userId,
     p_savings_id: payload.savings_id,
@@ -343,7 +381,7 @@ export async function applySavingsTransaction(payload) {
 
 export async function fetchUserSettings() {
   return withGlobalLoader(async () => {
-    const userId = await requireUserId();
+    const userId = await requireSessionUserId();
     const { data, error } = await supabase
       .from(SUPABASE_TABLES.USER_SETTINGS)
       .select('*')
@@ -357,7 +395,7 @@ export async function fetchUserSettings() {
 
 export async function upsertUserSettings(payload) {
   return withGlobalLoader(async () => {
-    const userId = await requireUserId();
+    const userId = await requireSessionUserId();
     if (!ensureOnlineForCriticalAction('Mise a jour des parametres')) {
       throw new Error('MODE_HORS_LIGNE');
     }
@@ -376,4 +414,157 @@ export async function upsertUserSettings(payload) {
 
     handleDbError(error, 'Impossible de sauvegarder les parametres');
   }, { message: 'Sauvegarde des parametres...' });
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+const JOINT_ACCOUNT_ERROR_MESSAGES = {
+  NOT_AUTHENTICATED: 'Session expiree. Veuillez vous reconnecter.',
+  EMAIL_NOT_FOUND: 'Aucun compte trouve avec cet email exact.',
+  SELF_INVITE_NOT_ALLOWED: 'Vous ne pouvez pas vous inviter vous-meme.',
+  REQUESTER_IS_ADMIN_WITH_ACTIVE_MEMBER: 'Vous etes deja admin d un compte conjoint. Retirez d abord votre conjoint actuel.',
+  REQUESTER_IS_ALREADY_MEMBER: 'Vous etes deja conjoint d un autre compte. Vous devez etre retire avant une nouvelle demande.',
+  TARGET_IS_ADMIN_WITH_ACTIVE_MEMBER: 'Vous avez recu la demande, mais vous devez d abord retirer votre conjoint actuel puis supprimer toutes vos donnees avant de pouvoir accepter.',
+  TARGET_IS_ALREADY_MEMBER: 'Vous avez recu la demande, mais vous devez d abord etre retire de votre compte conjoint actuel avant de pouvoir accepter.',
+  REQUEST_NOT_FOUND: 'Demande introuvable.',
+  REQUEST_NOT_PENDING: 'Cette demande n est plus en attente.',
+  REQUEST_NOT_FOUND_OR_ALREADY_HANDLED: 'Cette demande est introuvable ou deja traitee.',
+  TARGET_DATA_NOT_EMPTY: 'Avant d accepter, vous devez supprimer toutes vos donnees personnelles.',
+  ACTIVE_LINK_NOT_FOUND: 'Aucun lien conjoint actif a retirer pour ce membre.'
+};
+
+function mapJointAccountError(error, fallbackMessage) {
+  const message = String(error?.message || '').toUpperCase();
+  for (const [code, translated] of Object.entries(JOINT_ACCOUNT_ERROR_MESSAGES)) {
+    if (message.includes(code)) {
+      return new Error(translated);
+    }
+  }
+
+  return new Error(error?.message || fallbackMessage);
+}
+
+export async function findJointAccountCandidateByEmail(email) {
+  return withGlobalLoader(async () => {
+    const normalized = normalizeEmail(email);
+    if (!normalized) {
+      throw new Error('Email requis');
+    }
+
+    const sessionUserId = await requireSessionUserId();
+    const { data, error } = await supabase.rpc('volako_find_user_by_exact_email', {
+      p_email: normalized
+    });
+    handleDbError(error, 'Impossible de verifier cet email');
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || !row.user_id || row.user_id === sessionUserId) {
+      return null;
+    }
+
+    return {
+      userId: row.user_id,
+      email: row.email,
+      displayName: row.display_name || row.email
+    };
+  }, { message: 'Verification de l email...' });
+}
+
+export async function sendJointAccountRequest(email) {
+  const normalized = normalizeEmail(email);
+  try {
+    return await callRpc('volako_send_joint_account_request', {
+      p_target_email: normalized
+    }, 'Envoi de la demande de compte conjoint');
+  } catch (error) {
+    throw mapJointAccountError(error, 'Impossible d envoyer la demande conjointe.');
+  }
+}
+
+export async function fetchReceivedJointAccountRequests() {
+  return withGlobalLoader(async () => {
+    const sessionUserId = await requireSessionUserId();
+    const { data, error } = await supabase
+      .from(SUPABASE_TABLES.JOINT_ACCOUNT_REQUESTS)
+      .select('id, requester_user_id, requester_email, target_email, status, created_at')
+      .eq('target_user_id', sessionUserId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+
+    handleDbError(error, 'Impossible de charger les demandes recues');
+    return data || [];
+  }, { message: 'Chargement des demandes recues...' });
+}
+
+export async function fetchSentJointAccountRequests() {
+  return withGlobalLoader(async () => {
+    const sessionUserId = await requireSessionUserId();
+    const { data, error } = await supabase
+      .from(SUPABASE_TABLES.JOINT_ACCOUNT_REQUESTS)
+      .select('id, requester_email, target_email, status, created_at')
+      .eq('requester_user_id', sessionUserId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    handleDbError(error, 'Impossible de charger les demandes envoyees');
+    return data || [];
+  }, { message: 'Chargement des demandes envoyees...' });
+}
+
+export async function fetchPendingJointRequestCount() {
+  const sessionUserId = await requireSessionUserId();
+  const { count, error } = await supabase
+    .from(SUPABASE_TABLES.JOINT_ACCOUNT_REQUESTS)
+    .select('id', { count: 'exact', head: true })
+    .eq('target_user_id', sessionUserId)
+    .eq('status', 'pending');
+
+  handleDbError(error, 'Impossible de verifier les demandes en attente');
+  return Number(count || 0);
+}
+
+export async function acceptJointAccountRequest(requestId) {
+  try {
+    return await callRpc('volako_accept_joint_account_request', {
+      p_request_id: requestId
+    }, 'Acceptation de la demande conjointe');
+  } catch (error) {
+    throw mapJointAccountError(error, 'Impossible d accepter la demande conjointe.');
+  }
+}
+
+export async function rejectJointAccountRequest(requestId) {
+  try {
+    return await callRpc('volako_reject_joint_account_request', {
+      p_request_id: requestId
+    }, 'Refus de la demande conjointe');
+  } catch (error) {
+    throw mapJointAccountError(error, 'Impossible de refuser la demande conjointe.');
+  }
+}
+
+export async function fetchJointAccountState() {
+  return withGlobalLoader(async () => {
+    const { data, error } = await supabase.rpc('volako_get_joint_account_state');
+    handleDbError(error, 'Impossible de charger l etat du compte conjoint');
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return null;
+    }
+
+    return row;
+  }, { message: 'Chargement du compte conjoint...' });
+}
+
+export async function removeJointAccountMember(memberUserId) {
+  try {
+    return await callRpc('volako_admin_remove_joint_member', {
+      p_member_user_id: memberUserId
+    }, 'Retrait du compte conjoint');
+  } catch (error) {
+    throw mapJointAccountError(error, 'Impossible de retirer ce conjoint.');
+  }
 }
